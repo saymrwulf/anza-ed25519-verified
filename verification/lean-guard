@@ -106,7 +106,7 @@ if systemd-run --user --scope -p MemoryMax=10M --quiet -- /bin/true 2>/dev/null;
     # --scope runs the command as a child of THIS shell (env inherited),
     # merely placing it in a fresh cgroup with the hard caps below.
     systemd-run --user --scope --quiet \
-        -p MemoryMax="${CGROUP_MB}M" -p MemorySwapMax=256M -p LimitCORE=0 \
+        -p MemoryMax="${CGROUP_MB}M" -p MemorySwapMax=256M \
         -- taskset -c "$CORES" \
            timeout --signal=TERM --kill-after=15 "$TIMEOUT_SEC" \
            lean -M "$MEM_MB" -o "$OLEAN_FILE" "$LEAN_FILE" "$@"
