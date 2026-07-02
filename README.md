@@ -58,6 +58,14 @@ cd verification
 ./check.sh      # compiles EVERY shipped file + axiom-audits EVERY certificate
 ```
 
+The scalar layer has its own pair of buttons:
+
+```bash
+./extract-scalar.sh   # regenerates gen/CurveScalar (Scalar52 limb arithmetic)
+./check-scalar.sh     # compiles the scalar gen + the proven scalar foundation
+```
+
+
 ## Trusted base
 
 See [TRUSTED-BASE.md](TRUSTED-BASE.md) for the complete list of assumptions
