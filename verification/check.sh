@@ -98,7 +98,7 @@ lake env bash -c "
   cd '$HERE/gen' && export LEAN_PATH=\"\$LEAN_PATH:\$PWD:$HERE\"
   compile() {
     echo \"  · \$1\"
-    taskset -c $CORES timeout --kill-after=15 $TIMEOUT lean -o \"\${1}.olean\" \"\${1}.lean\" 2>&1 | tee -a '$LOG' || { echo \"FAIL: \$1\"; exit 1; }
+    LEAN_TIMEOUT=$TIMEOUT LEAN_MAX_CORES=$CORES '$HERE/lean-guard' \"\${1}.lean\" 2>&1 | tee -a '$LOG' || { echo \"FAIL: \$1\"; exit 1; }
   }
   for m in ${GEN_MODULES[*]}; do compile \"\$m\"; done
   cd '$HERE'
@@ -130,7 +130,7 @@ lake env bash -c "
     for i in ${AUDIT_IMPORTS[*]}; do echo \"import \$i\"; done
     for c in ${CERTS[*]}; do echo \"#print axioms \$c\"; done
   } > \"\$AUD\"
-  OUT=\$(taskset -c $CORES timeout --kill-after=15 $TIMEOUT lean \"\$AUD\" 2>&1)
+  OUT=\$(taskset -c $CORES timeout --kill-after=15 $TIMEOUT lean -M \${LEAN_MEM_MB:-4096} \"\$AUD\" 2>&1)
   echo \"\$OUT\"
   rm -f \"\$AUD\"
   N_CLEAN=\$(echo \"\$OUT\" | grep -cF \"depends on axioms: $EXPECTED\" || true)

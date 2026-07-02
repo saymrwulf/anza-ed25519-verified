@@ -1,0 +1,125 @@
+#!/usr/bin/env bash
+# ────────────────────────────────────────────────────────────────────────────
+# lean-guard — HARD-CAPPED Lean compiler wrapper.
+#
+# Successor to lean-safe after the 2026-07-02 OOM incident: a single `lean`
+# elaboration (tactic-search blowup: simp[*]/scalar_tac over a ~60-hypothesis
+# context with 2^256-scale literals) grew to 12.2GB RSS and was killed by the
+# GLOBAL kernel OOM killer, taking the driving session down with it.
+# lean-safe's guards (timeout + affinity + PREFLIGHT headroom) cannot stop
+# that: the process passes preflight, then balloons inside its timeout.
+#
+# NEW GUARDS (in addition to all lean-safe guards):
+#   A. lean -M <MB>                  — Lean's internal cap: elaboration aborts
+#                                      with a clean "maximum memory exceeded"
+#                                      error. First line of defense; graceful.
+#   B. systemd-run --user --scope
+#        -p MemoryMax / MemorySwapMax — kernel cgroup cap around the process:
+#                                      if Lean's own accounting misses (C-level
+#                                      allocations), the cgroup kills ONLY this
+#                                      lean, never the session, never the box.
+#   C. flock on /tmp/lean-guard.lock — machine-wide single-flight: at most ONE
+#                                      lean compile at a time, regardless of
+#                                      how many agents/scripts are active.
+#
+# Env knobs (defaults for this 14GB / 8-core ThinkPad):
+#   LEAN_TIMEOUT      per-file wall clock seconds        (default 400)
+#   LEAN_MEM_MB       lean -M internal cap, MB           (default 4096)
+#   LEAN_CGROUP_MB    cgroup MemoryMax, MB               (default LEAN_MEM_MB+1024)
+#   LEAN_MAX_CORES    taskset core range                 (default 0-3)
+#   LEAN_MIN_FREE_MB  preflight available-RAM floor      (default 3072)
+#   LEAN_LOCK_WAIT    max seconds to wait for the lock   (default 7200)
+#
+# Usage:  lean-guard <file.lean> [extra lean args...]
+# The .olean output path is always computed as ${file%.lean}.olean.
+# Requires: lean on PATH (caller sources the toolchain env; typically run
+# inside `lake env` so LEAN_PATH is set — this wrapper does NOT clobber env).
+# ────────────────────────────────────────────────────────────────────────────
+set -uo pipefail
+
+TIMEOUT_SEC=${LEAN_TIMEOUT:-400}
+MEM_MB=${LEAN_MEM_MB:-4096}
+CGROUP_MB=${LEAN_CGROUP_MB:-$((MEM_MB + 1024))}
+CORES=${LEAN_MAX_CORES:-0-3}
+MIN_FREE_MB=${LEAN_MIN_FREE_MB:-3072}
+LOCK_WAIT=${LEAN_LOCK_WAIT:-7200}
+LOCK_FILE=/tmp/lean-guard.lock
+LOG_FILE="${HOME}/.lean-guard.log"
+
+if ! command -v lean &>/dev/null; then
+    echo "FATAL: lean not on PATH — source ~/aeneas-toolchain/env.sh (and run inside lake env)"
+    exit 1
+fi
+if [ $# -eq 0 ]; then
+    echo "Usage: lean-guard <file.lean> [lean args...]"
+    exit 1
+fi
+
+LEAN_FILE="$1"; shift || true
+
+# ── Guard 1: source integrity (anti olean-clobber) ──────────────────────────
+if [ ! -f "$LEAN_FILE" ]; then
+    echo "MISSING: $LEAN_FILE"; exit 1
+fi
+if ! grep -qE '^[[:space:]]*(/-|import |namespace |theorem |def |open |set_option |--)' "$LEAN_FILE" 2>/dev/null; then
+    echo "FATAL: $LEAN_FILE is not Lean source (binary/olean data?)."
+    echo "  Restore: git checkout HEAD -- $LEAN_FILE"
+    exit 1
+fi
+
+# ── Guard 2: output path ─────────────────────────────────────────────────────
+case "$LEAN_FILE" in
+  *.lean) ;;
+  *) echo "FATAL: input lacks .lean extension"; exit 1 ;;
+esac
+OLEAN_FILE="${LEAN_FILE%.lean}.olean"
+[ "$OLEAN_FILE" = "$LEAN_FILE" ] && { echo "FATAL: output would clobber source"; exit 1; }
+
+# ── Guard C: machine-wide single-flight ─────────────────────────────────────
+exec 9>"$LOCK_FILE"
+if ! flock -w "$LOCK_WAIT" 9; then
+    echo "FATAL: could not acquire lean-guard lock within ${LOCK_WAIT}s (another compile stuck?)"
+    exit 1
+fi
+
+# ── Guard 3: preflight headroom (after lock: serialized measurement) ────────
+AVAIL_MB=$(free -m | awk '/Mem:/{print $7}')
+if [ "$AVAIL_MB" -lt "$MIN_FREE_MB" ]; then
+    echo "FATAL: only ${AVAIL_MB}MB available (< ${MIN_FREE_MB}MB floor) — refusing to compile"
+    exit 1
+fi
+
+echo "[$(date -u +%F' '%T)] $LEAN_FILE (t=${TIMEOUT_SEC}s M=${MEM_MB}MB cg=${CGROUP_MB}MB cores=$CORES avail=${AVAIL_MB}MB)" >> "$LOG_FILE"
+
+# ── Compile under both caps ──────────────────────────────────────────────────
+run_leancmd() {
+    taskset -c "$CORES" \
+      timeout --signal=TERM --kill-after=15 "$TIMEOUT_SEC" \
+      lean -M "$MEM_MB" -o "$OLEAN_FILE" "$LEAN_FILE" "$@"
+}
+if systemd-run --user --scope -p MemoryMax=10M --quiet -- /bin/true 2>/dev/null; then
+    # --scope runs the command as a child of THIS shell (env inherited),
+    # merely placing it in a fresh cgroup with the hard caps below.
+    systemd-run --user --scope --quiet \
+        -p MemoryMax="${CGROUP_MB}M" -p MemorySwapMax=256M \
+        -- taskset -c "$CORES" \
+           timeout --signal=TERM --kill-after=15 "$TIMEOUT_SEC" \
+           lean -M "$MEM_MB" -o "$OLEAN_FILE" "$LEAN_FILE" "$@"
+    EXIT_CODE=$?
+else
+    echo "  (systemd-run unavailable — falling back to lean -M only)" >> "$LOG_FILE"
+    run_leancmd "$@"
+    EXIT_CODE=$?
+fi
+
+case $EXIT_CODE in
+  0)   echo "  OK" >> "$LOG_FILE" ;;
+  124) echo "  TIMEOUT ${TIMEOUT_SEC}s" >> "$LOG_FILE"
+       echo "TIMEOUT: $LEAN_FILE exceeded ${TIMEOUT_SEC}s" ;;
+  137) echo "  KILLED (cgroup MemoryMax ${CGROUP_MB}MB hit)" >> "$LOG_FILE"
+       echo "KILLED: $LEAN_FILE hit the ${CGROUP_MB}MB cgroup cap (contained — machine unharmed)" ;;
+  *)   echo "  FAILED exit $EXIT_CODE (lean error, possibly '-M ${MEM_MB}MB exceeded')" >> "$LOG_FILE" ;;
+esac
+# stale partial olean from a failed compile must not poison later imports
+[ $EXIT_CODE -ne 0 ] && rm -f "$OLEAN_FILE"
+exit $EXIT_CODE
