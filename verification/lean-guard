@@ -37,6 +37,11 @@
 # ────────────────────────────────────────────────────────────────────────────
 set -uo pipefail
 
+# No core dumps: hitting the memory cap makes lean (and uutils `timeout`) abort;
+# those aborts are EXPECTED and their core dumps only trigger Ubuntu apport
+# popups and fill /var/crash. ulimit applies to this shell and every child.
+ulimit -c 0 2>/dev/null || true
+
 TIMEOUT_SEC=${LEAN_TIMEOUT:-400}
 MEM_MB=${LEAN_MEM_MB:-4096}
 CGROUP_MB=${LEAN_CGROUP_MB:-$((MEM_MB + 1024))}
@@ -101,7 +106,7 @@ if systemd-run --user --scope -p MemoryMax=10M --quiet -- /bin/true 2>/dev/null;
     # --scope runs the command as a child of THIS shell (env inherited),
     # merely placing it in a fresh cgroup with the hard caps below.
     systemd-run --user --scope --quiet \
-        -p MemoryMax="${CGROUP_MB}M" -p MemorySwapMax=256M \
+        -p MemoryMax="${CGROUP_MB}M" -p MemorySwapMax=256M -p LimitCORE=0 \
         -- taskset -c "$CORES" \
            timeout --signal=TERM --kill-after=15 "$TIMEOUT_SEC" \
            lean -M "$MEM_MB" -o "$OLEAN_FILE" "$LEAN_FILE" "$@"

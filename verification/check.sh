@@ -20,6 +20,7 @@ source ~/aeneas-toolchain/env.sh
 HERE="$(cd "$(dirname "$0")" && pwd)"
 AENEAS_LEAN="$AENEAS_HOME/backends/lean"
 TIMEOUT="${LEAN_TIMEOUT:-300}"
+export LEAN_MEM_MB="${LEAN_MEM_MB:-6144}"
 CORES="${LEAN_MAX_CORES:-0-3}"
 
 # Layer manifests (extended as the pyramid grows; ORDER = import order).
