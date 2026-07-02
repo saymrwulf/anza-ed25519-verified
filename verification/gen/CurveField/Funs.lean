@@ -19,6 +19,15 @@ noncomputable section
 
 namespace curve25519
 
+/-- Trait implementation: [core::array::{impl core::fmt::Debug for [T; N]}]
+    Source: '/rustc/library/core/src/array/mod.rs', lines 355:0-355:57
+    Name pattern: [core::fmt::Debug<[@T; @N]>] -/
+@[reducible, rust_trait_impl "core::fmt::Debug<[@T; @N]>"]
+def Array.Insts.CoreFmtDebug {T : Type} (N : Std.Usize) (fmtDebugInst :
+  core.fmt.Debug T) : core.fmt.Debug (Array T N) := {
+  fmt := core.array.DebugArray.fmt fmtDebugInst
+}
+
 /-- Trait implementation: [core::fmt::{impl core::fmt::Debug for [T]}]
     Source: '/rustc/library/core/src/fmt/mod.rs', lines 3121:0-3121:28
     Name pattern: [core::fmt::Debug<[@T]>] -/
@@ -26,6 +35,27 @@ namespace curve25519
 def Slice.Insts.CoreFmtDebug {T : Type} (DebugInst : core.fmt.Debug T) :
   core.fmt.Debug (Slice T) := {
   fmt := Slice.Insts.CoreFmtDebug.fmt DebugInst
+}
+
+/-- Trait implementation: [core::hash::impls::{impl core::hash::Hash for u8}]
+    Source: '/rustc/library/core/src/hash/mod.rs', lines 810:12-810:29
+    Name pattern: [core::hash::Hash<u8>] -/
+@[reducible, rust_trait_impl "core::hash::Hash<u8>"]
+def U8.Insts.CoreHashHash : core.hash.Hash Std.U8 := {
+  hash := fun {H : Type} (HasherInst : core.hash.Hasher H) =>
+    U8.Insts.CoreHashHash.hash HasherInst
+}
+
+/-- Trait implementation: [core::iter::range::{impl core::iter::range::Step for u32}]
+    Source: '/rustc/library/core/src/iter/range.rs', lines 266:12-266:43
+    Name pattern: [core::iter::range::Step<u32>] -/
+@[reducible, rust_trait_impl "core::iter::range::Step<u32>"]
+def U32.Insts.CoreIterRangeStep : core.iter.range.Step Std.U32 := {
+  cloneInst := core.clone.CloneU32
+  partialOrdInst := core.cmp.PartialOrdU32
+  steps_between := U32.Insts.CoreIterRangeStep.steps_between
+  forward_checked := U32.Insts.CoreIterRangeStep.forward_checked
+  backward_checked := U32.Insts.CoreIterRangeStep.backward_checked
 }
 
 /-- Trait implementation: [core::slice::index::private_slice_index::{impl core::slice::index::private_slice_index::Sealed for core::ops::range::RangeFull}]
@@ -86,169 +116,83 @@ def U8.Insts.SubtleConstantTimeEq : subtle.ConstantTimeEq Std.U8 := {
   ct_eq := U8.Insts.SubtleConstantTimeEq.ct_eq
 }
 
-/-- [curve25519::backend::serial::u64::field::{curve25519::backend::serial::u64::field::FieldElement51}::from_limbs]:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 254:4-256:5 -/
-def backend.serial.u64.field.FieldElement51.from_limbs
-  (limbs : Array Std.U64 5#usize) :
-  Result backend.serial.u64.field.FieldElement51
-  := do
-  ok limbs
-
-/-- [curve25519::backend::serial::u64::constants::SQRT_M1]
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/constants.rs', lines 99:0-105:3 -/
-@[global_simps, irreducible]
-def backend.serial.u64.constants.SQRT_M1
-  : Result backend.serial.u64.field.FieldElement51 :=
-  backend.serial.u64.field.FieldElement51.from_limbs
-    (Array.make 5#usize [
-      1718705420411056#u64, 234908883556509#u64, 2233514472574048#u64,
-      2117202627021982#u64, 765476049583133#u64
-      ])
-
-/-- [curve25519::backend::serial::u64::field::{impl core::clone::Clone for curve25519::backend::serial::u64::field::FieldElement51}::clone]:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 42:15-42:20
+/-- [curve25519::backend::serial::curve_models::{impl core::clone::Clone for curve25519::backend::serial::curve_models::ProjectivePoint}::clone]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 153:15-153:20
     Visibility: public -/
-def backend.serial.u64.field.FieldElement51.Insts.CoreCloneClone.clone
-  (self : backend.serial.u64.field.FieldElement51) :
-  Result backend.serial.u64.field.FieldElement51
+def backend.serial.curve_models.ProjectivePoint.Insts.CoreCloneClone.clone
+  (self : backend.serial.curve_models.ProjectivePoint) :
+  Result backend.serial.curve_models.ProjectivePoint
   := do
   ok self
 
-/-- Trait implementation: [curve25519::backend::serial::u64::field::{impl core::clone::Clone for curve25519::backend::serial::u64::field::FieldElement51}]
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 42:15-42:20 -/
+/-- Trait implementation: [curve25519::backend::serial::curve_models::{impl core::clone::Clone for curve25519::backend::serial::curve_models::ProjectivePoint}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 153:15-153:20 -/
 @[reducible]
-def backend.serial.u64.field.FieldElement51.Insts.CoreCloneClone :
-  core.clone.Clone backend.serial.u64.field.FieldElement51 := {
-  clone := backend.serial.u64.field.FieldElement51.Insts.CoreCloneClone.clone
+def backend.serial.curve_models.ProjectivePoint.Insts.CoreCloneClone :
+  core.clone.Clone backend.serial.curve_models.ProjectivePoint := {
+  clone :=
+    backend.serial.curve_models.ProjectivePoint.Insts.CoreCloneClone.clone
 }
 
-/-- Trait implementation: [curve25519::backend::serial::u64::field::{impl core::marker::Copy for curve25519::backend::serial::u64::field::FieldElement51}]
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 42:9-42:13 -/
+/-- Trait implementation: [curve25519::backend::serial::curve_models::{impl core::marker::Copy for curve25519::backend::serial::curve_models::ProjectivePoint}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 153:9-153:13 -/
 @[reducible]
-def backend.serial.u64.field.FieldElement51.Insts.CoreMarkerCopy :
-  core.marker.Copy backend.serial.u64.field.FieldElement51 := {
-  cloneInst := backend.serial.u64.field.FieldElement51.Insts.CoreCloneClone
+def backend.serial.curve_models.ProjectivePoint.Insts.CoreMarkerCopy :
+  core.marker.Copy backend.serial.curve_models.ProjectivePoint := {
+  cloneInst := backend.serial.curve_models.ProjectivePoint.Insts.CoreCloneClone
 }
 
-/-- [curve25519::backend::serial::u64::field::{impl core::fmt::Debug for curve25519::backend::serial::u64::field::FieldElement51}::fmt]:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 46:4-48:5
+/-- [curve25519::backend::serial::curve_models::{impl core::clone::Clone for curve25519::backend::serial::curve_models::CompletedPoint}::clone]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 167:15-167:20
     Visibility: public -/
-def backend.serial.u64.field.FieldElement51.Insts.CoreFmtDebug.fmt
-  (self : backend.serial.u64.field.FieldElement51) (f : core.fmt.Formatter) :
-  Result ((core.result.Result Unit core.fmt.Error) × core.fmt.Formatter)
+def backend.serial.curve_models.CompletedPoint.Insts.CoreCloneClone.clone
+  (self : backend.serial.curve_models.CompletedPoint) :
+  Result backend.serial.curve_models.CompletedPoint
   := do
-  let args ←
-    core.array.Array.index (core.ops.index.IndexSlice
-      (core.ops.range.RangeFull.Insts.CoreSliceIndexSliceIndexSliceSlice
-      Std.U64)) self ()
-  let a ←
-    core.fmt.rt.Argument.new_debug (core.fmt.DebugShared
-      (Slice.Insts.CoreFmtDebug core.fmt.DebugU64)) args
-  let a1 ←
-    core.fmt.Arguments.new
-      (Array.make 20#usize [
-        15#u8, 70#u8, 105#u8, 101#u8, 108#u8, 100#u8, 69#u8, 108#u8, 101#u8,
-        109#u8, 101#u8, 110#u8, 116#u8, 53#u8, 49#u8, 40#u8, 192#u8, 1#u8,
-        41#u8, 0#u8
-        ]) (Array.make 1#usize [ a ])
-  core.fmt.Formatter.write_fmt f a1
+  ok self
 
-/-- Trait implementation: [curve25519::backend::serial::u64::field::{impl core::fmt::Debug for curve25519::backend::serial::u64::field::FieldElement51}]
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 45:0-49:1 -/
+/-- Trait implementation: [curve25519::backend::serial::curve_models::{impl core::clone::Clone for curve25519::backend::serial::curve_models::CompletedPoint}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 167:15-167:20 -/
 @[reducible]
-def backend.serial.u64.field.FieldElement51.Insts.CoreFmtDebug : core.fmt.Debug
-  backend.serial.u64.field.FieldElement51 := {
-  fmt := backend.serial.u64.field.FieldElement51.Insts.CoreFmtDebug.fmt
+def backend.serial.curve_models.CompletedPoint.Insts.CoreCloneClone :
+  core.clone.Clone backend.serial.curve_models.CompletedPoint := {
+  clone :=
+    backend.serial.curve_models.CompletedPoint.Insts.CoreCloneClone.clone
 }
 
-/-- [curve25519::backend::serial::u64::field::{impl core::ops::arith::AddAssign<&'a curve25519::backend::serial::u64::field::FieldElement51> for curve25519::backend::serial::u64::field::FieldElement51}::add_assign]: loop body 0:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 56:8-58:9
-    Visibility: public -/
-@[rust_loop_body]
-def
-  backend.serial.u64.field.FieldElement51.Insts.CoreOpsArithAddAssignSharedAFieldElement51.add_assign_loop.body
-  (iter : core.ops.range.Range Std.Usize)
-  (self : backend.serial.u64.field.FieldElement51)
-  (_rhs : backend.serial.u64.field.FieldElement51) :
-  Result (ControlFlow ((core.ops.range.Range Std.Usize) ×
-    backend.serial.u64.field.FieldElement51 ×
-    backend.serial.u64.field.FieldElement51)
-    backend.serial.u64.field.FieldElement51)
-  := do
-  let (o, iter1) ←
-    core.iter.range.IteratorRange.next core.iter.range.StepUsize iter
-  match o with
-  | none => ok (done self)
-  | some i =>
-    let i1 ← Array.index_usize _rhs i
-    let i2 ← Array.index_usize self i
-    let i3 ← i2 + i1
-    let a ← Array.update self i i3
-    ok (cont (iter1, a, _rhs))
-
-/-- [curve25519::backend::serial::u64::field::{impl core::ops::arith::AddAssign<&'a curve25519::backend::serial::u64::field::FieldElement51> for curve25519::backend::serial::u64::field::FieldElement51}::add_assign]: loop 0:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 56:8-58:9
-    Visibility: public -/
-@[rust_loop]
-def
-  backend.serial.u64.field.FieldElement51.Insts.CoreOpsArithAddAssignSharedAFieldElement51.add_assign_loop
-  (iter : core.ops.range.Range Std.Usize)
-  (self : backend.serial.u64.field.FieldElement51)
-  (_rhs : backend.serial.u64.field.FieldElement51) :
-  Result backend.serial.u64.field.FieldElement51
-  := do
-  loop
-    (fun (iter1, self1, _rhs1) =>
-      backend.serial.u64.field.FieldElement51.Insts.CoreOpsArithAddAssignSharedAFieldElement51.add_assign_loop.body
-      iter1 self1 _rhs1)
-    (iter, self, _rhs)
-
-/-- [curve25519::backend::serial::u64::field::{impl core::ops::arith::AddAssign<&'a curve25519::backend::serial::u64::field::FieldElement51> for curve25519::backend::serial::u64::field::FieldElement51}::add_assign]:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 55:4-59:5
-    Visibility: public -/
+/-- Trait implementation: [curve25519::backend::serial::curve_models::{impl core::marker::Copy for curve25519::backend::serial::curve_models::CompletedPoint}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 167:9-167:13 -/
 @[reducible]
-def
-  backend.serial.u64.field.FieldElement51.Insts.CoreOpsArithAddAssignSharedAFieldElement51.add_assign
-  (self : backend.serial.u64.field.FieldElement51)
-  (_rhs : backend.serial.u64.field.FieldElement51) :
-  Result backend.serial.u64.field.FieldElement51
-  := do
-  backend.serial.u64.field.FieldElement51.Insts.CoreOpsArithAddAssignSharedAFieldElement51.add_assign_loop
-    { start := 0#usize, «end» := 5#usize } self _rhs
-
-/-- Trait implementation: [curve25519::backend::serial::u64::field::{impl core::ops::arith::AddAssign<&'a curve25519::backend::serial::u64::field::FieldElement51> for curve25519::backend::serial::u64::field::FieldElement51}]
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 54:0-60:1 -/
-@[reducible]
-def
-  backend.serial.u64.field.FieldElement51.Insts.CoreOpsArithAddAssignSharedAFieldElement51
-  : core.ops.arith.AddAssign backend.serial.u64.field.FieldElement51
-  backend.serial.u64.field.FieldElement51 := {
-  add_assign :=
-    backend.serial.u64.field.FieldElement51.Insts.CoreOpsArithAddAssignSharedAFieldElement51.add_assign
+def backend.serial.curve_models.CompletedPoint.Insts.CoreMarkerCopy :
+  core.marker.Copy backend.serial.curve_models.CompletedPoint := {
+  cloneInst := backend.serial.curve_models.CompletedPoint.Insts.CoreCloneClone
 }
 
-/-- [curve25519::backend::serial::u64::field::{impl core::ops::arith::Add<&'a curve25519::backend::serial::u64::field::FieldElement51, curve25519::backend::serial::u64::field::FieldElement51> for &'_1 curve25519::backend::serial::u64::field::FieldElement51}::add]:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 64:4-68:5
+/-- [curve25519::backend::serial::curve_models::{impl core::clone::Clone for curve25519::backend::serial::curve_models::AffineNielsPoint}::clone]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 182:15-182:20
     Visibility: public -/
-def
-  Shared0FieldElement51.Insts.CoreOpsArithAddSharedAFieldElement51FieldElement51.add
-  (self : backend.serial.u64.field.FieldElement51)
-  (_rhs : backend.serial.u64.field.FieldElement51) :
-  Result backend.serial.u64.field.FieldElement51
+def backend.serial.curve_models.AffineNielsPoint.Insts.CoreCloneClone.clone
+  (self : backend.serial.curve_models.AffineNielsPoint) :
+  Result backend.serial.curve_models.AffineNielsPoint
   := do
-  backend.serial.u64.field.FieldElement51.Insts.CoreOpsArithAddAssignSharedAFieldElement51.add_assign
-    self _rhs
+  ok self
 
-/-- Trait implementation: [curve25519::backend::serial::u64::field::{impl core::ops::arith::Add<&'a curve25519::backend::serial::u64::field::FieldElement51, curve25519::backend::serial::u64::field::FieldElement51> for &'_1 curve25519::backend::serial::u64::field::FieldElement51}]
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 62:0-69:1 -/
+/-- Trait implementation: [curve25519::backend::serial::curve_models::{impl core::clone::Clone for curve25519::backend::serial::curve_models::AffineNielsPoint}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 182:15-182:20 -/
 @[reducible]
-def
-  Shared0FieldElement51.Insts.CoreOpsArithAddSharedAFieldElement51FieldElement51
-  : core.ops.arith.Add backend.serial.u64.field.FieldElement51
-  backend.serial.u64.field.FieldElement51
-  backend.serial.u64.field.FieldElement51 := {
-  add :=
-    Shared0FieldElement51.Insts.CoreOpsArithAddSharedAFieldElement51FieldElement51.add
+def backend.serial.curve_models.AffineNielsPoint.Insts.CoreCloneClone :
+  core.clone.Clone backend.serial.curve_models.AffineNielsPoint := {
+  clone :=
+    backend.serial.curve_models.AffineNielsPoint.Insts.CoreCloneClone.clone
+}
+
+/-- Trait implementation: [curve25519::backend::serial::curve_models::{impl core::marker::Copy for curve25519::backend::serial::curve_models::AffineNielsPoint}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 182:9-182:13 -/
+@[reducible]
+def backend.serial.curve_models.AffineNielsPoint.Insts.CoreMarkerCopy :
+  core.marker.Copy backend.serial.curve_models.AffineNielsPoint := {
+  cloneInst :=
+    backend.serial.curve_models.AffineNielsPoint.Insts.CoreCloneClone
 }
 
 /-- [curve25519::backend::serial::u64::field::{curve25519::backend::serial::u64::field::FieldElement51}::reduce::LOW_51_BIT_MASK]
@@ -308,74 +252,572 @@ def backend.serial.u64.field.FieldElement51.reduce
   let limbs10 ← Array.update limbs9 4#usize i25
   ok limbs10
 
-/-- [curve25519::backend::serial::u64::field::{impl core::ops::arith::Sub<&'a curve25519::backend::serial::u64::field::FieldElement51, curve25519::backend::serial::u64::field::FieldElement51> for &'_1 curve25519::backend::serial::u64::field::FieldElement51}::sub]:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 80:4-97:5
+/-- [curve25519::backend::serial::u64::field::{curve25519::backend::serial::u64::field::FieldElement51}::to_bytes]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 364:4-446:5
+    Visibility: public -/
+def backend.serial.u64.field.FieldElement51.to_bytes
+  (self : backend.serial.u64.field.FieldElement51) :
+  Result (Array Std.U8 32#usize)
+  := do
+  let fe ← backend.serial.u64.field.FieldElement51.reduce self
+  let i ← Array.index_usize fe 0#usize
+  let i1 ← i + 19#u64
+  let q ← i1 >>> 51#i32
+  let i2 ← Array.index_usize fe 1#usize
+  let i3 ← i2 + q
+  let q1 ← i3 >>> 51#i32
+  let i4 ← Array.index_usize fe 2#usize
+  let i5 ← i4 + q1
+  let q2 ← i5 >>> 51#i32
+  let i6 ← Array.index_usize fe 3#usize
+  let i7 ← i6 + q2
+  let q3 ← i7 >>> 51#i32
+  let i8 ← Array.index_usize fe 4#usize
+  let i9 ← i8 + q3
+  let q4 ← i9 >>> 51#i32
+  let i10 ← 19#u64 * q4
+  let i11 ← i + i10
+  let limbs ← Array.update fe 0#usize i11
+  let i12 ← 1#u64 <<< 51#i32
+  let low_51_bit_mask ← i12 - 1#u64
+  let i13 ← Array.index_usize limbs 0#usize
+  let i14 ← i13 >>> 51#i32
+  let i15 ← Array.index_usize limbs 1#usize
+  let i16 ← i15 + i14
+  let limbs1 ← Array.update limbs 1#usize i16
+  let i17 ← Array.index_usize limbs1 0#usize
+  let i18 ← lift (i17 &&& low_51_bit_mask)
+  let limbs2 ← Array.update limbs1 0#usize i18
+  let i19 ← Array.index_usize limbs2 1#usize
+  let i20 ← i19 >>> 51#i32
+  let i21 ← Array.index_usize limbs2 2#usize
+  let i22 ← i21 + i20
+  let limbs3 ← Array.update limbs2 2#usize i22
+  let i23 ← Array.index_usize limbs3 1#usize
+  let i24 ← lift (i23 &&& low_51_bit_mask)
+  let limbs4 ← Array.update limbs3 1#usize i24
+  let i25 ← Array.index_usize limbs4 2#usize
+  let i26 ← i25 >>> 51#i32
+  let i27 ← Array.index_usize limbs4 3#usize
+  let i28 ← i27 + i26
+  let limbs5 ← Array.update limbs4 3#usize i28
+  let i29 ← Array.index_usize limbs5 2#usize
+  let i30 ← lift (i29 &&& low_51_bit_mask)
+  let limbs6 ← Array.update limbs5 2#usize i30
+  let i31 ← Array.index_usize limbs6 3#usize
+  let i32 ← i31 >>> 51#i32
+  let i33 ← Array.index_usize limbs6 4#usize
+  let i34 ← i33 + i32
+  let limbs7 ← Array.update limbs6 4#usize i34
+  let i35 ← Array.index_usize limbs7 3#usize
+  let i36 ← lift (i35 &&& low_51_bit_mask)
+  let limbs8 ← Array.update limbs7 3#usize i36
+  let i37 ← Array.index_usize limbs8 4#usize
+  let i38 ← lift (i37 &&& low_51_bit_mask)
+  let limbs9 ← Array.update limbs8 4#usize i38
+  let s := Array.repeat 32#usize 0#u8
+  let i39 ← Array.index_usize limbs9 0#usize
+  let i40 ← lift (UScalar.cast .U8 i39)
+  let s1 ← Array.update s 0#usize i40
+  let i41 ← i39 >>> 8#i32
+  let i42 ← lift (UScalar.cast .U8 i41)
+  let s2 ← Array.update s1 1#usize i42
+  let i43 ← i39 >>> 16#i32
+  let i44 ← lift (UScalar.cast .U8 i43)
+  let s3 ← Array.update s2 2#usize i44
+  let i45 ← i39 >>> 24#i32
+  let i46 ← lift (UScalar.cast .U8 i45)
+  let s4 ← Array.update s3 3#usize i46
+  let i47 ← i39 >>> 32#i32
+  let i48 ← lift (UScalar.cast .U8 i47)
+  let s5 ← Array.update s4 4#usize i48
+  let i49 ← i39 >>> 40#i32
+  let i50 ← lift (UScalar.cast .U8 i49)
+  let s6 ← Array.update s5 5#usize i50
+  let i51 ← i39 >>> 48#i32
+  let i52 ← Array.index_usize limbs9 1#usize
+  let i53 ← i52 <<< 3#i32
+  let i54 ← lift (i51 ||| i53)
+  let i55 ← lift (UScalar.cast .U8 i54)
+  let s7 ← Array.update s6 6#usize i55
+  let i56 ← i52 >>> 5#i32
+  let i57 ← lift (UScalar.cast .U8 i56)
+  let s8 ← Array.update s7 7#usize i57
+  let i58 ← i52 >>> 13#i32
+  let i59 ← lift (UScalar.cast .U8 i58)
+  let s9 ← Array.update s8 8#usize i59
+  let i60 ← i52 >>> 21#i32
+  let i61 ← lift (UScalar.cast .U8 i60)
+  let s10 ← Array.update s9 9#usize i61
+  let i62 ← i52 >>> 29#i32
+  let i63 ← lift (UScalar.cast .U8 i62)
+  let s11 ← Array.update s10 10#usize i63
+  let i64 ← i52 >>> 37#i32
+  let i65 ← lift (UScalar.cast .U8 i64)
+  let s12 ← Array.update s11 11#usize i65
+  let i66 ← i52 >>> 45#i32
+  let i67 ← Array.index_usize limbs9 2#usize
+  let i68 ← i67 <<< 6#i32
+  let i69 ← lift (i66 ||| i68)
+  let i70 ← lift (UScalar.cast .U8 i69)
+  let s13 ← Array.update s12 12#usize i70
+  let i71 ← i67 >>> 2#i32
+  let i72 ← lift (UScalar.cast .U8 i71)
+  let s14 ← Array.update s13 13#usize i72
+  let i73 ← i67 >>> 10#i32
+  let i74 ← lift (UScalar.cast .U8 i73)
+  let s15 ← Array.update s14 14#usize i74
+  let i75 ← i67 >>> 18#i32
+  let i76 ← lift (UScalar.cast .U8 i75)
+  let s16 ← Array.update s15 15#usize i76
+  let i77 ← i67 >>> 26#i32
+  let i78 ← lift (UScalar.cast .U8 i77)
+  let s17 ← Array.update s16 16#usize i78
+  let i79 ← i67 >>> 34#i32
+  let i80 ← lift (UScalar.cast .U8 i79)
+  let s18 ← Array.update s17 17#usize i80
+  let i81 ← i67 >>> 42#i32
+  let i82 ← lift (UScalar.cast .U8 i81)
+  let s19 ← Array.update s18 18#usize i82
+  let i83 ← i67 >>> 50#i32
+  let i84 ← Array.index_usize limbs9 3#usize
+  let i85 ← i84 <<< 1#i32
+  let i86 ← lift (i83 ||| i85)
+  let i87 ← lift (UScalar.cast .U8 i86)
+  let s20 ← Array.update s19 19#usize i87
+  let i88 ← i84 >>> 7#i32
+  let i89 ← lift (UScalar.cast .U8 i88)
+  let s21 ← Array.update s20 20#usize i89
+  let i90 ← i84 >>> 15#i32
+  let i91 ← lift (UScalar.cast .U8 i90)
+  let s22 ← Array.update s21 21#usize i91
+  let i92 ← i84 >>> 23#i32
+  let i93 ← lift (UScalar.cast .U8 i92)
+  let s23 ← Array.update s22 22#usize i93
+  let i94 ← i84 >>> 31#i32
+  let i95 ← lift (UScalar.cast .U8 i94)
+  let s24 ← Array.update s23 23#usize i95
+  let i96 ← i84 >>> 39#i32
+  let i97 ← lift (UScalar.cast .U8 i96)
+  let s25 ← Array.update s24 24#usize i97
+  let i98 ← i84 >>> 47#i32
+  let i99 ← Array.index_usize limbs9 4#usize
+  let i100 ← i99 <<< 4#i32
+  let i101 ← lift (i98 ||| i100)
+  let i102 ← lift (UScalar.cast .U8 i101)
+  let s26 ← Array.update s25 25#usize i102
+  let i103 ← i99 >>> 4#i32
+  let i104 ← lift (UScalar.cast .U8 i103)
+  let s27 ← Array.update s26 26#usize i104
+  let i105 ← i99 >>> 12#i32
+  let i106 ← lift (UScalar.cast .U8 i105)
+  let s28 ← Array.update s27 27#usize i106
+  let i107 ← i99 >>> 20#i32
+  let i108 ← lift (UScalar.cast .U8 i107)
+  let s29 ← Array.update s28 28#usize i108
+  let i109 ← i99 >>> 28#i32
+  let i110 ← lift (UScalar.cast .U8 i109)
+  let s30 ← Array.update s29 29#usize i110
+  let i111 ← i99 >>> 36#i32
+  let i112 ← lift (UScalar.cast .U8 i111)
+  let s31 ← Array.update s30 30#usize i112
+  let i113 ← i99 >>> 44#i32
+  let i114 ← lift (UScalar.cast .U8 i113)
+  let s32 ← Array.update s31 31#usize i114
+  let i115 ← Array.index_usize s32 31#usize
+  let i116 ← lift (i115 &&& 128#u8)
+  massert (i116 = 0#u8)
+  ok s32
+
+/-- [curve25519::field::{impl subtle::ConstantTimeEq for curve25519::backend::serial::u64::field::FieldElement51}::ct_eq]:
+    Source: 'curve25519/solana-ed25519/src/field.rs', lines 64:4-66:5
+    Visibility: public -/
+def backend.serial.u64.field.FieldElement51.Insts.SubtleConstantTimeEq.ct_eq
+  (self : backend.serial.u64.field.FieldElement51)
+  (other : backend.serial.u64.field.FieldElement51) :
+  Result subtle.Choice
+  := do
+  let a ← backend.serial.u64.field.FieldElement51.to_bytes self
+  let s ← lift (Array.to_slice a)
+  let a1 ← backend.serial.u64.field.FieldElement51.to_bytes other
+  let s1 ← lift (Array.to_slice a1)
+  Slice.Insts.SubtleConstantTimeEq.ct_eq U8.Insts.SubtleConstantTimeEq s s1
+
+/-- [curve25519::field::{impl core::cmp::PartialEq<curve25519::backend::serial::u64::field::FieldElement51> for curve25519::backend::serial::u64::field::FieldElement51}::eq]:
+    Source: 'curve25519/solana-ed25519/src/field.rs', lines 55:4-57:5
     Visibility: public -/
 def
-  Shared0FieldElement51.Insts.CoreOpsArithSubSharedAFieldElement51FieldElement51.sub
+  backend.serial.u64.field.FieldElement51.Insts.CoreCmpPartialEqFieldElement51.eq
   (self : backend.serial.u64.field.FieldElement51)
-  (_rhs : backend.serial.u64.field.FieldElement51) :
-  Result backend.serial.u64.field.FieldElement51
+  (other : backend.serial.u64.field.FieldElement51) :
+  Result Bool
   := do
-  let i ← Array.index_usize self 0#usize
-  let i1 ← i + 36028797018963664#u64
-  let i2 ← Array.index_usize _rhs 0#usize
-  let i3 ← i1 - i2
-  let i4 ← Array.index_usize self 1#usize
-  let i5 ← i4 + 36028797018963952#u64
-  let i6 ← Array.index_usize _rhs 1#usize
-  let i7 ← i5 - i6
-  let i8 ← Array.index_usize self 2#usize
-  let i9 ← i8 + 36028797018963952#u64
-  let i10 ← Array.index_usize _rhs 2#usize
-  let i11 ← i9 - i10
-  let i12 ← Array.index_usize self 3#usize
-  let i13 ← i12 + 36028797018963952#u64
-  let i14 ← Array.index_usize _rhs 3#usize
-  let i15 ← i13 - i14
-  let i16 ← Array.index_usize self 4#usize
-  let i17 ← i16 + 36028797018963952#u64
-  let i18 ← Array.index_usize _rhs 4#usize
-  let i19 ← i17 - i18
-  backend.serial.u64.field.FieldElement51.reduce
-    (Array.make 5#usize [ i3, i7, i11, i15, i19 ])
+  let c ←
+    backend.serial.u64.field.FieldElement51.Insts.SubtleConstantTimeEq.ct_eq
+      self other
+  core.convert.IntoFrom.into Bool.Insts.CoreConvertFromChoice c
 
-/-- [curve25519::backend::serial::u64::field::{impl core::ops::arith::SubAssign<&'a curve25519::backend::serial::u64::field::FieldElement51> for curve25519::backend::serial::u64::field::FieldElement51}::sub_assign]:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 72:4-75:5
+/-- [curve25519::backend::serial::curve_models::{impl core::cmp::PartialEq<curve25519::backend::serial::curve_models::AffineNielsPoint> for curve25519::backend::serial::curve_models::AffineNielsPoint}::eq]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 182:26-182:35
     Visibility: public -/
 def
-  backend.serial.u64.field.FieldElement51.Insts.CoreOpsArithSubAssignSharedAFieldElement51.sub_assign
-  (self : backend.serial.u64.field.FieldElement51)
-  (_rhs : backend.serial.u64.field.FieldElement51) :
+  backend.serial.curve_models.AffineNielsPoint.Insts.CoreCmpPartialEqAffineNielsPoint.eq
+  (self : backend.serial.curve_models.AffineNielsPoint)
+  (other : backend.serial.curve_models.AffineNielsPoint) :
+  Result Bool
+  := do
+  let b ←
+    backend.serial.u64.field.FieldElement51.Insts.CoreCmpPartialEqFieldElement51.eq
+      self.y_plus_x other.y_plus_x
+  if b
+  then
+    let b1 ←
+      backend.serial.u64.field.FieldElement51.Insts.CoreCmpPartialEqFieldElement51.eq
+        self.y_minus_x other.y_minus_x
+    if b1
+    then
+      backend.serial.u64.field.FieldElement51.Insts.CoreCmpPartialEqFieldElement51.eq
+        self.xy2d other.xy2d
+    else ok false
+  else ok false
+
+/-- Trait implementation: [curve25519::backend::serial::curve_models::{impl core::cmp::PartialEq<curve25519::backend::serial::curve_models::AffineNielsPoint> for curve25519::backend::serial::curve_models::AffineNielsPoint}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 182:26-182:35 -/
+@[reducible]
+def
+  backend.serial.curve_models.AffineNielsPoint.Insts.CoreCmpPartialEqAffineNielsPoint
+  : core.cmp.PartialEq backend.serial.curve_models.AffineNielsPoint
+  backend.serial.curve_models.AffineNielsPoint := {
+  eq :=
+    backend.serial.curve_models.AffineNielsPoint.Insts.CoreCmpPartialEqAffineNielsPoint.eq
+}
+
+/-- [curve25519::backend::serial::curve_models::{impl core::cmp::Eq for curve25519::backend::serial::curve_models::AffineNielsPoint}::assert_fields_are_eq]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 182:22-182:24
+    Visibility: public -/
+def
+  backend.serial.curve_models.AffineNielsPoint.Insts.CoreCmpEq.assert_fields_are_eq
+  (self : backend.serial.curve_models.AffineNielsPoint) : Result Unit := do
+  ok ()
+
+/-- Trait implementation: [curve25519::backend::serial::curve_models::{impl core::cmp::Eq for curve25519::backend::serial::curve_models::AffineNielsPoint}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 182:22-182:24 -/
+@[reducible]
+def backend.serial.curve_models.AffineNielsPoint.Insts.CoreCmpEq : core.cmp.Eq
+  backend.serial.curve_models.AffineNielsPoint := {
+  partialEqInst :=
+    backend.serial.curve_models.AffineNielsPoint.Insts.CoreCmpPartialEqAffineNielsPoint
+  assert_fields_are_eq :=
+    backend.serial.curve_models.AffineNielsPoint.Insts.CoreCmpEq.assert_fields_are_eq
+}
+
+/-- Trait implementation: [curve25519::backend::serial::curve_models::{impl core::marker::StructuralPartialEq for curve25519::backend::serial::curve_models::AffineNielsPoint}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 182:26-182:35 -/
+@[reducible]
+def
+  backend.serial.curve_models.AffineNielsPoint.Insts.CoreMarkerStructuralPartialEq
+  : core.marker.StructuralPartialEq
+  backend.serial.curve_models.AffineNielsPoint := {
+}
+
+/-- [curve25519::backend::serial::curve_models::{impl core::clone::Clone for curve25519::backend::serial::curve_models::ProjectiveNielsPoint}::clone]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 204:15-204:20
+    Visibility: public -/
+def backend.serial.curve_models.ProjectiveNielsPoint.Insts.CoreCloneClone.clone
+  (self : backend.serial.curve_models.ProjectiveNielsPoint) :
+  Result backend.serial.curve_models.ProjectiveNielsPoint
+  := do
+  ok self
+
+/-- Trait implementation: [curve25519::backend::serial::curve_models::{impl core::clone::Clone for curve25519::backend::serial::curve_models::ProjectiveNielsPoint}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 204:15-204:20 -/
+@[reducible]
+def backend.serial.curve_models.ProjectiveNielsPoint.Insts.CoreCloneClone :
+  core.clone.Clone backend.serial.curve_models.ProjectiveNielsPoint := {
+  clone :=
+    backend.serial.curve_models.ProjectiveNielsPoint.Insts.CoreCloneClone.clone
+}
+
+/-- Trait implementation: [curve25519::backend::serial::curve_models::{impl core::marker::Copy for curve25519::backend::serial::curve_models::ProjectiveNielsPoint}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 204:9-204:13 -/
+@[reducible]
+def backend.serial.curve_models.ProjectiveNielsPoint.Insts.CoreMarkerCopy :
+  core.marker.Copy backend.serial.curve_models.ProjectiveNielsPoint := {
+  cloneInst :=
+    backend.serial.curve_models.ProjectiveNielsPoint.Insts.CoreCloneClone
+}
+
+/-- [curve25519::backend::serial::u64::field::{curve25519::backend::serial::u64::field::FieldElement51}::from_limbs]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 254:4-256:5 -/
+def backend.serial.u64.field.FieldElement51.from_limbs
+  (limbs : Array Std.U64 5#usize) :
   Result backend.serial.u64.field.FieldElement51
   := do
-  let result ←
-    Shared0FieldElement51.Insts.CoreOpsArithSubSharedAFieldElement51FieldElement51.sub
-      self _rhs
-  ok result
+  ok limbs
 
-/-- Trait implementation: [curve25519::backend::serial::u64::field::{impl core::ops::arith::SubAssign<&'a curve25519::backend::serial::u64::field::FieldElement51> for curve25519::backend::serial::u64::field::FieldElement51}]
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 71:0-76:1 -/
-@[reducible]
+/-- [curve25519::backend::serial::u64::field::{curve25519::backend::serial::u64::field::FieldElement51}::ONE]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 261:4-261:80
+    Visibility: public -/
+@[global_simps, irreducible]
+def backend.serial.u64.field.FieldElement51.ONE
+  : Result backend.serial.u64.field.FieldElement51 :=
+  backend.serial.u64.field.FieldElement51.from_limbs
+    (Array.make 5#usize [ 1#u64, 0#u64, 0#u64, 0#u64, 0#u64 ])
+
+/-- [curve25519::backend::serial::u64::field::{curve25519::backend::serial::u64::field::FieldElement51}::ZERO]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 259:4-259:81
+    Visibility: public -/
+@[global_simps, irreducible]
+def backend.serial.u64.field.FieldElement51.ZERO
+  : Result backend.serial.u64.field.FieldElement51 :=
+  let a := Array.repeat 5#usize 0#u64
+  backend.serial.u64.field.FieldElement51.from_limbs a
+
+/-- [curve25519::backend::serial::curve_models::{impl curve25519::traits::Identity for curve25519::backend::serial::curve_models::ProjectivePoint}::identity]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 230:4-236:5
+    Visibility: public -/
 def
-  backend.serial.u64.field.FieldElement51.Insts.CoreOpsArithSubAssignSharedAFieldElement51
-  : core.ops.arith.SubAssign backend.serial.u64.field.FieldElement51
-  backend.serial.u64.field.FieldElement51 := {
-  sub_assign :=
-    backend.serial.u64.field.FieldElement51.Insts.CoreOpsArithSubAssignSharedAFieldElement51.sub_assign
+  backend.serial.curve_models.ProjectivePoint.Insts.Curve25519TraitsIdentity.identity
+  : Result backend.serial.curve_models.ProjectivePoint := do
+  let fe ← backend.serial.u64.field.FieldElement51.ZERO
+  let fe1 ← backend.serial.u64.field.FieldElement51.ONE
+  ok { X := fe, Y := fe1, Z := fe1 }
+
+/-- Trait implementation: [curve25519::backend::serial::curve_models::{impl curve25519::traits::Identity for curve25519::backend::serial::curve_models::ProjectivePoint}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 229:0-237:1 -/
+@[reducible]
+def backend.serial.curve_models.ProjectivePoint.Insts.Curve25519TraitsIdentity
+  : traits.Identity backend.serial.curve_models.ProjectivePoint := {
+  identity :=
+    backend.serial.curve_models.ProjectivePoint.Insts.Curve25519TraitsIdentity.identity
 }
 
-/-- Trait implementation: [curve25519::backend::serial::u64::field::{impl core::ops::arith::Sub<&'a curve25519::backend::serial::u64::field::FieldElement51, curve25519::backend::serial::u64::field::FieldElement51> for &'_1 curve25519::backend::serial::u64::field::FieldElement51}]
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 78:0-98:1 -/
+/-- [curve25519::backend::serial::curve_models::{impl curve25519::traits::Identity for curve25519::backend::serial::curve_models::ProjectiveNielsPoint}::identity]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 240:4-247:5
+    Visibility: public -/
+def
+  backend.serial.curve_models.ProjectiveNielsPoint.Insts.Curve25519TraitsIdentity.identity
+  : Result backend.serial.curve_models.ProjectiveNielsPoint := do
+  let fe ← backend.serial.u64.field.FieldElement51.ONE
+  let fe1 ← backend.serial.u64.field.FieldElement51.ZERO
+  ok { Y_plus_X := fe, Y_minus_X := fe, Z := fe, T2d := fe1 }
+
+/-- Trait implementation: [curve25519::backend::serial::curve_models::{impl curve25519::traits::Identity for curve25519::backend::serial::curve_models::ProjectiveNielsPoint}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 239:0-248:1 -/
 @[reducible]
 def
-  Shared0FieldElement51.Insts.CoreOpsArithSubSharedAFieldElement51FieldElement51
-  : core.ops.arith.Sub backend.serial.u64.field.FieldElement51
-  backend.serial.u64.field.FieldElement51
-  backend.serial.u64.field.FieldElement51 := {
-  sub :=
-    Shared0FieldElement51.Insts.CoreOpsArithSubSharedAFieldElement51FieldElement51.sub
+  backend.serial.curve_models.ProjectiveNielsPoint.Insts.Curve25519TraitsIdentity
+  : traits.Identity backend.serial.curve_models.ProjectiveNielsPoint := {
+  identity :=
+    backend.serial.curve_models.ProjectiveNielsPoint.Insts.Curve25519TraitsIdentity.identity
 }
+
+/-- [curve25519::backend::serial::curve_models::{impl core::default::Default for curve25519::backend::serial::curve_models::ProjectiveNielsPoint}::default]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 251:4-253:5
+    Visibility: public -/
+def
+  backend.serial.curve_models.ProjectiveNielsPoint.Insts.CoreDefaultDefault.default
+  : Result backend.serial.curve_models.ProjectiveNielsPoint := do
+  backend.serial.curve_models.ProjectiveNielsPoint.Insts.Curve25519TraitsIdentity.identity
+
+/-- Trait implementation: [curve25519::backend::serial::curve_models::{impl core::default::Default for curve25519::backend::serial::curve_models::ProjectiveNielsPoint}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 250:0-254:1 -/
+@[reducible]
+def backend.serial.curve_models.ProjectiveNielsPoint.Insts.CoreDefaultDefault :
+  core.default.Default backend.serial.curve_models.ProjectiveNielsPoint := {
+  default :=
+    backend.serial.curve_models.ProjectiveNielsPoint.Insts.CoreDefaultDefault.default
+}
+
+/-- [curve25519::backend::serial::curve_models::{impl curve25519::traits::Identity for curve25519::backend::serial::curve_models::AffineNielsPoint}::identity]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 257:4-263:5
+    Visibility: public -/
+def
+  backend.serial.curve_models.AffineNielsPoint.Insts.Curve25519TraitsIdentity.identity
+  : Result backend.serial.curve_models.AffineNielsPoint := do
+  let fe ← backend.serial.u64.field.FieldElement51.ONE
+  let fe1 ← backend.serial.u64.field.FieldElement51.ZERO
+  ok { y_plus_x := fe, y_minus_x := fe, xy2d := fe1 }
+
+/-- Trait implementation: [curve25519::backend::serial::curve_models::{impl curve25519::traits::Identity for curve25519::backend::serial::curve_models::AffineNielsPoint}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 256:0-264:1 -/
+@[reducible]
+def backend.serial.curve_models.AffineNielsPoint.Insts.Curve25519TraitsIdentity
+  : traits.Identity backend.serial.curve_models.AffineNielsPoint := {
+  identity :=
+    backend.serial.curve_models.AffineNielsPoint.Insts.Curve25519TraitsIdentity.identity
+}
+
+/-- [curve25519::backend::serial::curve_models::{impl core::default::Default for curve25519::backend::serial::curve_models::AffineNielsPoint}::default]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 267:4-269:5
+    Visibility: public -/
+def
+  backend.serial.curve_models.AffineNielsPoint.Insts.CoreDefaultDefault.default
+  : Result backend.serial.curve_models.AffineNielsPoint := do
+  backend.serial.curve_models.AffineNielsPoint.Insts.Curve25519TraitsIdentity.identity
+
+/-- Trait implementation: [curve25519::backend::serial::curve_models::{impl core::default::Default for curve25519::backend::serial::curve_models::AffineNielsPoint}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 266:0-270:1 -/
+@[reducible]
+def backend.serial.curve_models.AffineNielsPoint.Insts.CoreDefaultDefault :
+  core.default.Default backend.serial.curve_models.AffineNielsPoint := {
+  default :=
+    backend.serial.curve_models.AffineNielsPoint.Insts.CoreDefaultDefault.default
+}
+
+/-- [curve25519::backend::serial::u64::field::{curve25519::backend::serial::u64::field::FieldElement51}::pow2k::LOW_51_BIT_MASK]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 507:12-507:58 -/
+@[global_simps, irreducible]
+def backend.serial.u64.field.FieldElement51.pow2k.LOW_51_BIT_MASK
+  : Result Std.U64 := do
+  let i ← 1#u64 <<< 51#i32
+  i - 1#u64
+
+/-- [curve25519::backend::serial::u64::field::{curve25519::backend::serial::u64::field::FieldElement51}::pow2k::m]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 456:8-458:9 -/
+def backend.serial.u64.field.FieldElement51.pow2k.m
+  (x : Std.U64) (y : Std.U64) : Result Std.U128 := do
+  let i ← lift (UScalar.cast .U128 x)
+  let i1 ← lift (UScalar.cast .U128 y)
+  i * i1
+
+/-- [curve25519::backend::serial::u64::field::{curve25519::backend::serial::u64::field::FieldElement51}::pow2k]: loop body 0:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 476:16-488:86
+    Visibility: public -/
+@[rust_loop_body]
+def backend.serial.u64.field.FieldElement51.pow2k_loop.body
+  (k : Std.U32) (a : Array Std.U64 5#usize) :
+  Result (ControlFlow (Std.U32 × (Array Std.U64 5#usize)) (Array Std.U64
+    5#usize))
+  := do
+  let i ← Array.index_usize a 3#usize
+  let a3_19 ← 19#u64 * i
+  let i1 ← Array.index_usize a 4#usize
+  let a4_19 ← 19#u64 * i1
+  let i2 ← Array.index_usize a 0#usize
+  let i3 ← backend.serial.u64.field.FieldElement51.pow2k.m i2 i2
+  let i4 ← Array.index_usize a 1#usize
+  let i5 ← backend.serial.u64.field.FieldElement51.pow2k.m i4 a4_19
+  let i6 ← Array.index_usize a 2#usize
+  let i7 ← backend.serial.u64.field.FieldElement51.pow2k.m i6 a3_19
+  let i8 ← i5 + i7
+  let i9 ← 2#u128 * i8
+  let c0 ← i3 + i9
+  let i10 ← backend.serial.u64.field.FieldElement51.pow2k.m i a3_19
+  let i11 ← backend.serial.u64.field.FieldElement51.pow2k.m i2 i4
+  let i12 ← backend.serial.u64.field.FieldElement51.pow2k.m i6 a4_19
+  let i13 ← i11 + i12
+  let i14 ← 2#u128 * i13
+  let c1 ← i10 + i14
+  let i15 ← backend.serial.u64.field.FieldElement51.pow2k.m i4 i4
+  let i16 ← backend.serial.u64.field.FieldElement51.pow2k.m i2 i6
+  let i17 ← backend.serial.u64.field.FieldElement51.pow2k.m i1 a3_19
+  let i18 ← i16 + i17
+  let i19 ← 2#u128 * i18
+  let c2 ← i15 + i19
+  let i20 ← backend.serial.u64.field.FieldElement51.pow2k.m i1 a4_19
+  let i21 ← backend.serial.u64.field.FieldElement51.pow2k.m i2 i
+  let i22 ← backend.serial.u64.field.FieldElement51.pow2k.m i4 i6
+  let i23 ← i21 + i22
+  let i24 ← 2#u128 * i23
+  let c3 ← i20 + i24
+  let i25 ← backend.serial.u64.field.FieldElement51.pow2k.m i6 i6
+  let i26 ← backend.serial.u64.field.FieldElement51.pow2k.m i2 i1
+  let i27 ← backend.serial.u64.field.FieldElement51.pow2k.m i4 i
+  let i28 ← i26 + i27
+  let i29 ← 2#u128 * i28
+  let c4 ← i25 + i29
+  let i30 ← 1#u64 <<< 54#i32
+  massert (i2 < i30)
+  massert (i4 < i30)
+  massert (i6 < i30)
+  massert (i < i30)
+  massert (i1 < i30)
+  let i31 ← c0 >>> 51#i32
+  let i32 ← lift (UScalar.cast .U64 i31)
+  let i33 ← lift (UScalar.cast .U128 i32)
+  let c11 ← c1 + i33
+  let i34 ← lift (UScalar.cast .U64 c0)
+  let i35 ← backend.serial.u64.field.FieldElement51.pow2k.LOW_51_BIT_MASK
+  let i36 ← lift (i34 &&& i35)
+  let a1 ← Array.update a 0#usize i36
+  let i37 ← c11 >>> 51#i32
+  let i38 ← lift (UScalar.cast .U64 i37)
+  let i39 ← lift (UScalar.cast .U128 i38)
+  let c21 ← c2 + i39
+  let i40 ← lift (UScalar.cast .U64 c11)
+  let i41 ← lift (i40 &&& i35)
+  let a2 ← Array.update a1 1#usize i41
+  let i42 ← c21 >>> 51#i32
+  let i43 ← lift (UScalar.cast .U64 i42)
+  let i44 ← lift (UScalar.cast .U128 i43)
+  let c31 ← c3 + i44
+  let i45 ← lift (UScalar.cast .U64 c21)
+  let i46 ← lift (i45 &&& i35)
+  let a3 ← Array.update a2 2#usize i46
+  let i47 ← c31 >>> 51#i32
+  let i48 ← lift (UScalar.cast .U64 i47)
+  let i49 ← lift (UScalar.cast .U128 i48)
+  let c41 ← c4 + i49
+  let i50 ← lift (UScalar.cast .U64 c31)
+  let i51 ← lift (i50 &&& i35)
+  let a4 ← Array.update a3 3#usize i51
+  let i52 ← c41 >>> 51#i32
+  let carry ← lift (UScalar.cast .U64 i52)
+  let i53 ← lift (UScalar.cast .U64 c41)
+  let i54 ← lift (i53 &&& i35)
+  let a5 ← Array.update a4 4#usize i54
+  let i55 ← carry * 19#u64
+  let i56 ← Array.index_usize a5 0#usize
+  let i57 ← i56 + i55
+  let a6 ← Array.update a5 0#usize i57
+  let i58 ← Array.index_usize a6 0#usize
+  let i59 ← i58 >>> 51#i32
+  let i60 ← Array.index_usize a6 1#usize
+  let i61 ← i60 + i59
+  let a7 ← Array.update a6 1#usize i61
+  let i62 ← Array.index_usize a7 0#usize
+  let i63 ← lift (i62 &&& i35)
+  let (_, index_mut_back) ← Array.index_mut_usize a7 0#usize
+  let k1 ← k - 1#u32
+  if k1 = 0#u32
+  then let a8 := index_mut_back i63
+       ok (done a8)
+  else let a8 := index_mut_back i63
+       ok (cont (k1, a8))
+
+/-- [curve25519::backend::serial::u64::field::{curve25519::backend::serial::u64::field::FieldElement51}::pow2k]: loop 0:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 476:16-488:86
+    Visibility: public -/
+@[rust_loop]
+def backend.serial.u64.field.FieldElement51.pow2k_loop
+  (k : Std.U32) (a : Array Std.U64 5#usize) :
+  Result (Array Std.U64 5#usize)
+  := do
+  loop
+    (fun (k1, a1) => backend.serial.u64.field.FieldElement51.pow2k_loop.body k1
+      a1)
+    (k, a)
+
+/-- [curve25519::backend::serial::u64::field::{curve25519::backend::serial::u64::field::FieldElement51}::pow2k]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 450:4-555:5
+    Visibility: public -/
+def backend.serial.u64.field.FieldElement51.pow2k
+  (self : backend.serial.u64.field.FieldElement51) (k : Std.U32) :
+  Result backend.serial.u64.field.FieldElement51
+  := do
+  massert (k > 0#u32)
+  let a ← backend.serial.u64.field.FieldElement51.pow2k_loop k self
+  ok a
+
+/-- [curve25519::backend::serial::u64::field::{curve25519::backend::serial::u64::field::FieldElement51}::square]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 558:4-560:5
+    Visibility: public -/
+def backend.serial.u64.field.FieldElement51.square
+  (self : backend.serial.u64.field.FieldElement51) :
+  Result backend.serial.u64.field.FieldElement51
+  := do
+  backend.serial.u64.field.FieldElement51.pow2k self 1#u32
 
 /-- [curve25519::backend::serial::u64::field::{impl core::ops::arith::Mul<&'a curve25519::backend::serial::u64::field::FieldElement51, curve25519::backend::serial::u64::field::FieldElement51> for &'_1 curve25519::backend::serial::u64::field::FieldElement51}::mul::LOW_51_BIT_MASK]
     Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 168:8-168:54 -/
@@ -574,81 +1016,152 @@ def
   let out8 ← Array.update out7 0#usize i83
   ok out8
 
-/-- [curve25519::backend::serial::u64::field::{impl core::ops::arith::MulAssign<&'a curve25519::backend::serial::u64::field::FieldElement51> for curve25519::backend::serial::u64::field::FieldElement51}::mul_assign]:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 101:4-104:5
+/-- [curve25519::backend::serial::u64::field::{impl core::ops::arith::Sub<&'a curve25519::backend::serial::u64::field::FieldElement51, curve25519::backend::serial::u64::field::FieldElement51> for &'_1 curve25519::backend::serial::u64::field::FieldElement51}::sub]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 80:4-97:5
     Visibility: public -/
 def
-  backend.serial.u64.field.FieldElement51.Insts.CoreOpsArithMulAssignSharedAFieldElement51.mul_assign
+  Shared0FieldElement51.Insts.CoreOpsArithSubSharedAFieldElement51FieldElement51.sub
   (self : backend.serial.u64.field.FieldElement51)
   (_rhs : backend.serial.u64.field.FieldElement51) :
   Result backend.serial.u64.field.FieldElement51
   := do
-  let result ←
-    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
-      self _rhs
-  ok result
-
-/-- Trait implementation: [curve25519::backend::serial::u64::field::{impl core::ops::arith::MulAssign<&'a curve25519::backend::serial::u64::field::FieldElement51> for curve25519::backend::serial::u64::field::FieldElement51}]
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 100:0-105:1 -/
-@[reducible]
-def
-  backend.serial.u64.field.FieldElement51.Insts.CoreOpsArithMulAssignSharedAFieldElement51
-  : core.ops.arith.MulAssign backend.serial.u64.field.FieldElement51
-  backend.serial.u64.field.FieldElement51 := {
-  mul_assign :=
-    backend.serial.u64.field.FieldElement51.Insts.CoreOpsArithMulAssignSharedAFieldElement51.mul_assign
-}
-
-/-- Trait implementation: [curve25519::backend::serial::u64::field::{impl core::ops::arith::Mul<&'a curve25519::backend::serial::u64::field::FieldElement51, curve25519::backend::serial::u64::field::FieldElement51> for &'_1 curve25519::backend::serial::u64::field::FieldElement51}]
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 107:0-210:1 -/
-@[reducible]
-def
-  Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51
-  : core.ops.arith.Mul backend.serial.u64.field.FieldElement51
-  backend.serial.u64.field.FieldElement51
-  backend.serial.u64.field.FieldElement51 := {
-  mul :=
-    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
-}
-
-/-- [curve25519::backend::serial::u64::field::{curve25519::backend::serial::u64::field::FieldElement51}::negate]:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 272:4-282:5
-    Visibility: public -/
-def backend.serial.u64.field.FieldElement51.negate
-  (self : backend.serial.u64.field.FieldElement51) :
-  Result backend.serial.u64.field.FieldElement51
-  := do
   let i ← Array.index_usize self 0#usize
-  let i1 ← 36028797018963664#u64 - i
-  let i2 ← Array.index_usize self 1#usize
-  let i3 ← 36028797018963952#u64 - i2
-  let i4 ← Array.index_usize self 2#usize
-  let i5 ← 36028797018963952#u64 - i4
-  let i6 ← Array.index_usize self 3#usize
-  let i7 ← 36028797018963952#u64 - i6
-  let i8 ← Array.index_usize self 4#usize
-  let i9 ← 36028797018963952#u64 - i8
-  let neg ←
-    backend.serial.u64.field.FieldElement51.reduce
-      (Array.make 5#usize [ i1, i3, i5, i7, i9 ])
-  ok neg
+  let i1 ← i + 36028797018963664#u64
+  let i2 ← Array.index_usize _rhs 0#usize
+  let i3 ← i1 - i2
+  let i4 ← Array.index_usize self 1#usize
+  let i5 ← i4 + 36028797018963952#u64
+  let i6 ← Array.index_usize _rhs 1#usize
+  let i7 ← i5 - i6
+  let i8 ← Array.index_usize self 2#usize
+  let i9 ← i8 + 36028797018963952#u64
+  let i10 ← Array.index_usize _rhs 2#usize
+  let i11 ← i9 - i10
+  let i12 ← Array.index_usize self 3#usize
+  let i13 ← i12 + 36028797018963952#u64
+  let i14 ← Array.index_usize _rhs 3#usize
+  let i15 ← i13 - i14
+  let i16 ← Array.index_usize self 4#usize
+  let i17 ← i16 + 36028797018963952#u64
+  let i18 ← Array.index_usize _rhs 4#usize
+  let i19 ← i17 - i18
+  backend.serial.u64.field.FieldElement51.reduce
+    (Array.make 5#usize [ i3, i7, i11, i15, i19 ])
 
-/-- [curve25519::backend::serial::u64::field::{impl core::ops::arith::Neg<curve25519::backend::serial::u64::field::FieldElement51> for &'_0 curve25519::backend::serial::u64::field::FieldElement51}::neg]:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 214:4-218:5
+/-- [curve25519::backend::serial::u64::field::{impl core::ops::arith::AddAssign<&'a curve25519::backend::serial::u64::field::FieldElement51> for curve25519::backend::serial::u64::field::FieldElement51}::add_assign]: loop body 0:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 56:8-58:9
     Visibility: public -/
-def Shared0FieldElement51.Insts.CoreOpsArithNegFieldElement51.neg
-  (self : backend.serial.u64.field.FieldElement51) :
+@[rust_loop_body]
+def
+  backend.serial.u64.field.FieldElement51.Insts.CoreOpsArithAddAssignSharedAFieldElement51.add_assign_loop.body
+  (iter : core.ops.range.Range Std.Usize)
+  (self : backend.serial.u64.field.FieldElement51)
+  (_rhs : backend.serial.u64.field.FieldElement51) :
+  Result (ControlFlow ((core.ops.range.Range Std.Usize) ×
+    backend.serial.u64.field.FieldElement51 ×
+    backend.serial.u64.field.FieldElement51)
+    backend.serial.u64.field.FieldElement51)
+  := do
+  let (o, iter1) ←
+    core.iter.range.IteratorRange.next core.iter.range.StepUsize iter
+  match o with
+  | none => ok (done self)
+  | some i =>
+    let i1 ← Array.index_usize _rhs i
+    let i2 ← Array.index_usize self i
+    let i3 ← i2 + i1
+    let a ← Array.update self i i3
+    ok (cont (iter1, a, _rhs))
+
+/-- [curve25519::backend::serial::u64::field::{impl core::ops::arith::AddAssign<&'a curve25519::backend::serial::u64::field::FieldElement51> for curve25519::backend::serial::u64::field::FieldElement51}::add_assign]: loop 0:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 56:8-58:9
+    Visibility: public -/
+@[rust_loop]
+def
+  backend.serial.u64.field.FieldElement51.Insts.CoreOpsArithAddAssignSharedAFieldElement51.add_assign_loop
+  (iter : core.ops.range.Range Std.Usize)
+  (self : backend.serial.u64.field.FieldElement51)
+  (_rhs : backend.serial.u64.field.FieldElement51) :
   Result backend.serial.u64.field.FieldElement51
   := do
-  backend.serial.u64.field.FieldElement51.negate self
+  loop
+    (fun (iter1, self1, _rhs1) =>
+      backend.serial.u64.field.FieldElement51.Insts.CoreOpsArithAddAssignSharedAFieldElement51.add_assign_loop.body
+      iter1 self1 _rhs1)
+    (iter, self, _rhs)
 
-/-- Trait implementation: [curve25519::backend::serial::u64::field::{impl core::ops::arith::Neg<curve25519::backend::serial::u64::field::FieldElement51> for &'_0 curve25519::backend::serial::u64::field::FieldElement51}]
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 212:0-219:1 -/
+/-- [curve25519::backend::serial::u64::field::{impl core::ops::arith::AddAssign<&'a curve25519::backend::serial::u64::field::FieldElement51> for curve25519::backend::serial::u64::field::FieldElement51}::add_assign]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 55:4-59:5
+    Visibility: public -/
 @[reducible]
-def Shared0FieldElement51.Insts.CoreOpsArithNegFieldElement51 :
-  core.ops.arith.Neg backend.serial.u64.field.FieldElement51
-  backend.serial.u64.field.FieldElement51 := {
-  neg := Shared0FieldElement51.Insts.CoreOpsArithNegFieldElement51.neg
+def
+  backend.serial.u64.field.FieldElement51.Insts.CoreOpsArithAddAssignSharedAFieldElement51.add_assign
+  (self : backend.serial.u64.field.FieldElement51)
+  (_rhs : backend.serial.u64.field.FieldElement51) :
+  Result backend.serial.u64.field.FieldElement51
+  := do
+  backend.serial.u64.field.FieldElement51.Insts.CoreOpsArithAddAssignSharedAFieldElement51.add_assign_loop
+    { start := 0#usize, «end» := 5#usize } self _rhs
+
+/-- [curve25519::backend::serial::u64::field::{impl core::ops::arith::Add<&'a curve25519::backend::serial::u64::field::FieldElement51, curve25519::backend::serial::u64::field::FieldElement51> for &'_1 curve25519::backend::serial::u64::field::FieldElement51}::add]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 64:4-68:5
+    Visibility: public -/
+def
+  Shared0FieldElement51.Insts.CoreOpsArithAddSharedAFieldElement51FieldElement51.add
+  (self : backend.serial.u64.field.FieldElement51)
+  (_rhs : backend.serial.u64.field.FieldElement51) :
+  Result backend.serial.u64.field.FieldElement51
+  := do
+  backend.serial.u64.field.FieldElement51.Insts.CoreOpsArithAddAssignSharedAFieldElement51.add_assign
+    self _rhs
+
+/-- [curve25519::backend::serial::u64::constants::EDWARDS_D]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/constants.rs', lines 45:0-51:3 -/
+@[global_simps, irreducible]
+def backend.serial.u64.constants.EDWARDS_D
+  : Result backend.serial.u64.field.FieldElement51 :=
+  backend.serial.u64.field.FieldElement51.from_limbs
+    (Array.make 5#usize [
+      929955233495203#u64, 466365720129213#u64, 1662059464998953#u64,
+      2033849074728123#u64, 1442794654840575#u64
+      ])
+
+/-- [curve25519::backend::serial::curve_models::{impl curve25519::traits::ValidityCheck for curve25519::backend::serial::curve_models::ProjectivePoint}::is_valid]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 277:4-288:5 -/
+def
+  backend.serial.curve_models.ProjectivePoint.Insts.Curve25519TraitsValidityCheck.is_valid
+  (self : backend.serial.curve_models.ProjectivePoint) : Result Bool := do
+  let XX ← backend.serial.u64.field.FieldElement51.square self.X
+  let YY ← backend.serial.u64.field.FieldElement51.square self.Y
+  let ZZ ← backend.serial.u64.field.FieldElement51.square self.Z
+  let ZZZZ ← backend.serial.u64.field.FieldElement51.square ZZ
+  let fe ←
+    Shared0FieldElement51.Insts.CoreOpsArithSubSharedAFieldElement51FieldElement51.sub
+      YY XX
+  let lhs ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      fe ZZ
+  let fe1 ← backend.serial.u64.constants.EDWARDS_D
+  let fe2 ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      XX YY
+  let fe3 ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      fe1 fe2
+  let rhs ←
+    Shared0FieldElement51.Insts.CoreOpsArithAddSharedAFieldElement51FieldElement51.add
+      ZZZZ fe3
+  backend.serial.u64.field.FieldElement51.Insts.CoreCmpPartialEqFieldElement51.eq
+    lhs rhs
+
+/-- Trait implementation: [curve25519::backend::serial::curve_models::{impl curve25519::traits::ValidityCheck for curve25519::backend::serial::curve_models::ProjectivePoint}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 276:0-289:1 -/
+@[reducible]
+def
+  backend.serial.curve_models.ProjectivePoint.Insts.Curve25519TraitsValidityCheck
+  : traits.ValidityCheck backend.serial.curve_models.ProjectivePoint := {
+  is_valid :=
+    backend.serial.curve_models.ProjectivePoint.Insts.Curve25519TraitsValidityCheck.is_valid
 }
 
 /-- [curve25519::backend::serial::u64::field::{impl subtle::ConditionallySelectable for curve25519::backend::serial::u64::field::FieldElement51}::conditional_assign]:
@@ -686,6 +1199,959 @@ def
     U64.Insts.SubtleConditionallySelectable.conditional_assign i12 i13 choice
   let a4 := index_mut_back4 i14
   ok a4
+
+/-- [curve25519::backend::serial::curve_models::{impl subtle::ConditionallySelectable for curve25519::backend::serial::curve_models::ProjectiveNielsPoint}::conditional_assign]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 305:4-310:5
+    Visibility: public -/
+def
+  backend.serial.curve_models.ProjectiveNielsPoint.Insts.SubtleConditionallySelectable.conditional_assign
+  (self : backend.serial.curve_models.ProjectiveNielsPoint)
+  (other : backend.serial.curve_models.ProjectiveNielsPoint)
+  (choice : subtle.Choice) :
+  Result backend.serial.curve_models.ProjectiveNielsPoint
+  := do
+  let fe ←
+    backend.serial.u64.field.FieldElement51.Insts.SubtleConditionallySelectable.conditional_assign
+      self.Y_plus_X other.Y_plus_X choice
+  let fe1 ←
+    backend.serial.u64.field.FieldElement51.Insts.SubtleConditionallySelectable.conditional_assign
+      self.Y_minus_X other.Y_minus_X choice
+  let fe2 ←
+    backend.serial.u64.field.FieldElement51.Insts.SubtleConditionallySelectable.conditional_assign
+      self.Z other.Z choice
+  let fe3 ←
+    backend.serial.u64.field.FieldElement51.Insts.SubtleConditionallySelectable.conditional_assign
+      self.T2d other.T2d choice
+  ok { Y_plus_X := fe, Y_minus_X := fe1, Z := fe2, T2d := fe3 }
+
+/-- [curve25519::backend::serial::u64::field::{impl subtle::ConditionallySelectable for curve25519::backend::serial::u64::field::FieldElement51}::conditional_select]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 222:4-234:5
+    Visibility: public -/
+def
+  backend.serial.u64.field.FieldElement51.Insts.SubtleConditionallySelectable.conditional_select
+  (a : backend.serial.u64.field.FieldElement51)
+  (b : backend.serial.u64.field.FieldElement51) (choice : subtle.Choice) :
+  Result backend.serial.u64.field.FieldElement51
+  := do
+  let i ← Array.index_usize a 0#usize
+  let i1 ← Array.index_usize b 0#usize
+  let i2 ←
+    U64.Insts.SubtleConditionallySelectable.conditional_select i i1 choice
+  let i3 ← Array.index_usize a 1#usize
+  let i4 ← Array.index_usize b 1#usize
+  let i5 ←
+    U64.Insts.SubtleConditionallySelectable.conditional_select i3 i4 choice
+  let i6 ← Array.index_usize a 2#usize
+  let i7 ← Array.index_usize b 2#usize
+  let i8 ←
+    U64.Insts.SubtleConditionallySelectable.conditional_select i6 i7 choice
+  let i9 ← Array.index_usize a 3#usize
+  let i10 ← Array.index_usize b 3#usize
+  let i11 ←
+    U64.Insts.SubtleConditionallySelectable.conditional_select i9 i10 choice
+  let i12 ← Array.index_usize a 4#usize
+  let i13 ← Array.index_usize b 4#usize
+  let i14 ←
+    U64.Insts.SubtleConditionallySelectable.conditional_select i12 i13 choice
+  ok (Array.make 5#usize [ i2, i5, i8, i11, i14 ])
+
+/-- [curve25519::backend::serial::curve_models::{impl subtle::ConditionallySelectable for curve25519::backend::serial::curve_models::ProjectiveNielsPoint}::conditional_select]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 296:4-303:5
+    Visibility: public -/
+def
+  backend.serial.curve_models.ProjectiveNielsPoint.Insts.SubtleConditionallySelectable.conditional_select
+  (a : backend.serial.curve_models.ProjectiveNielsPoint)
+  (b : backend.serial.curve_models.ProjectiveNielsPoint)
+  (choice : subtle.Choice) :
+  Result backend.serial.curve_models.ProjectiveNielsPoint
+  := do
+  let fe ←
+    backend.serial.u64.field.FieldElement51.Insts.SubtleConditionallySelectable.conditional_select
+      a.Y_plus_X b.Y_plus_X choice
+  let fe1 ←
+    backend.serial.u64.field.FieldElement51.Insts.SubtleConditionallySelectable.conditional_select
+      a.Y_minus_X b.Y_minus_X choice
+  let fe2 ←
+    backend.serial.u64.field.FieldElement51.Insts.SubtleConditionallySelectable.conditional_select
+      a.Z b.Z choice
+  let fe3 ←
+    backend.serial.u64.field.FieldElement51.Insts.SubtleConditionallySelectable.conditional_select
+      a.T2d b.T2d choice
+  ok { Y_plus_X := fe, Y_minus_X := fe1, Z := fe2, T2d := fe3 }
+
+/-- Trait implementation: [curve25519::backend::serial::curve_models::{impl subtle::ConditionallySelectable for curve25519::backend::serial::curve_models::ProjectiveNielsPoint}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 295:0-311:1 -/
+@[reducible]
+def
+  backend.serial.curve_models.ProjectiveNielsPoint.Insts.SubtleConditionallySelectable
+  : subtle.ConditionallySelectable
+  backend.serial.curve_models.ProjectiveNielsPoint := {
+  coremarkerCopyInst :=
+    backend.serial.curve_models.ProjectiveNielsPoint.Insts.CoreMarkerCopy
+  conditional_select :=
+    backend.serial.curve_models.ProjectiveNielsPoint.Insts.SubtleConditionallySelectable.conditional_select
+  conditional_assign :=
+    backend.serial.curve_models.ProjectiveNielsPoint.Insts.SubtleConditionallySelectable.conditional_assign
+  conditional_swap :=
+    backend.serial.curve_models.ProjectiveNielsPoint.Insts.SubtleConditionallySelectable.conditional_swap
+}
+
+/-- [curve25519::backend::serial::curve_models::{impl subtle::ConditionallySelectable for curve25519::backend::serial::curve_models::AffineNielsPoint}::conditional_assign]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 322:4-326:5
+    Visibility: public -/
+def
+  backend.serial.curve_models.AffineNielsPoint.Insts.SubtleConditionallySelectable.conditional_assign
+  (self : backend.serial.curve_models.AffineNielsPoint)
+  (other : backend.serial.curve_models.AffineNielsPoint)
+  (choice : subtle.Choice) :
+  Result backend.serial.curve_models.AffineNielsPoint
+  := do
+  let fe ←
+    backend.serial.u64.field.FieldElement51.Insts.SubtleConditionallySelectable.conditional_assign
+      self.y_plus_x other.y_plus_x choice
+  let fe1 ←
+    backend.serial.u64.field.FieldElement51.Insts.SubtleConditionallySelectable.conditional_assign
+      self.y_minus_x other.y_minus_x choice
+  let fe2 ←
+    backend.serial.u64.field.FieldElement51.Insts.SubtleConditionallySelectable.conditional_assign
+      self.xy2d other.xy2d choice
+  ok { y_plus_x := fe, y_minus_x := fe1, xy2d := fe2 }
+
+/-- [curve25519::backend::serial::curve_models::{impl subtle::ConditionallySelectable for curve25519::backend::serial::curve_models::AffineNielsPoint}::conditional_select]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 314:4-320:5
+    Visibility: public -/
+def
+  backend.serial.curve_models.AffineNielsPoint.Insts.SubtleConditionallySelectable.conditional_select
+  (a : backend.serial.curve_models.AffineNielsPoint)
+  (b : backend.serial.curve_models.AffineNielsPoint) (choice : subtle.Choice) :
+  Result backend.serial.curve_models.AffineNielsPoint
+  := do
+  let fe ←
+    backend.serial.u64.field.FieldElement51.Insts.SubtleConditionallySelectable.conditional_select
+      a.y_plus_x b.y_plus_x choice
+  let fe1 ←
+    backend.serial.u64.field.FieldElement51.Insts.SubtleConditionallySelectable.conditional_select
+      a.y_minus_x b.y_minus_x choice
+  let fe2 ←
+    backend.serial.u64.field.FieldElement51.Insts.SubtleConditionallySelectable.conditional_select
+      a.xy2d b.xy2d choice
+  ok { y_plus_x := fe, y_minus_x := fe1, xy2d := fe2 }
+
+/-- Trait implementation: [curve25519::backend::serial::curve_models::{impl subtle::ConditionallySelectable for curve25519::backend::serial::curve_models::AffineNielsPoint}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 313:0-327:1 -/
+@[reducible]
+def
+  backend.serial.curve_models.AffineNielsPoint.Insts.SubtleConditionallySelectable
+  : subtle.ConditionallySelectable backend.serial.curve_models.AffineNielsPoint
+  := {
+  coremarkerCopyInst :=
+    backend.serial.curve_models.AffineNielsPoint.Insts.CoreMarkerCopy
+  conditional_select :=
+    backend.serial.curve_models.AffineNielsPoint.Insts.SubtleConditionallySelectable.conditional_select
+  conditional_assign :=
+    backend.serial.curve_models.AffineNielsPoint.Insts.SubtleConditionallySelectable.conditional_assign
+  conditional_swap :=
+    backend.serial.curve_models.AffineNielsPoint.Insts.SubtleConditionallySelectable.conditional_swap
+}
+
+/-- [curve25519::backend::serial::curve_models::{curve25519::backend::serial::curve_models::ProjectivePoint}::as_extended]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 338:4-345:5
+    Visibility: public -/
+def backend.serial.curve_models.ProjectivePoint.as_extended
+  (self : backend.serial.curve_models.ProjectivePoint) :
+  Result edwards.EdwardsPoint
+  := do
+  let fe ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      self.X self.Z
+  let fe1 ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      self.Y self.Z
+  let fe2 ← backend.serial.u64.field.FieldElement51.square self.Z
+  let fe3 ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      self.X self.Y
+  ok { X := fe, Y := fe1, Z := fe2, T := fe3 }
+
+/-- [curve25519::backend::serial::curve_models::{curve25519::backend::serial::curve_models::CompletedPoint}::as_projective]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 353:4-359:5
+    Visibility: public -/
+def backend.serial.curve_models.CompletedPoint.as_projective
+  (self : backend.serial.curve_models.CompletedPoint) :
+  Result backend.serial.curve_models.ProjectivePoint
+  := do
+  let fe ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      self.X self.T
+  let fe1 ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      self.Y self.Z
+  let fe2 ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      self.Z self.T
+  ok { X := fe, Y := fe1, Z := fe2 }
+
+/-- [curve25519::backend::serial::curve_models::{curve25519::backend::serial::curve_models::CompletedPoint}::as_extended]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 365:4-372:5
+    Visibility: public -/
+def backend.serial.curve_models.CompletedPoint.as_extended
+  (self : backend.serial.curve_models.CompletedPoint) :
+  Result edwards.EdwardsPoint
+  := do
+  let fe ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      self.X self.T
+  let fe1 ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      self.Y self.Z
+  let fe2 ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      self.Z self.T
+  let fe3 ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      self.X self.Y
+  ok { X := fe, Y := fe1, Z := fe2, T := fe3 }
+
+/-- [curve25519::backend::serial::u64::field::{curve25519::backend::serial::u64::field::FieldElement51}::square2]: loop body 0:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 565:8-567:9
+    Visibility: public -/
+@[rust_loop_body]
+def backend.serial.u64.field.FieldElement51.square2_loop.body
+  (iter : core.ops.range.Range Std.Usize)
+  (square : backend.serial.u64.field.FieldElement51) :
+  Result (ControlFlow ((core.ops.range.Range Std.Usize) ×
+    backend.serial.u64.field.FieldElement51)
+    backend.serial.u64.field.FieldElement51)
+  := do
+  let (o, iter1) ←
+    core.iter.range.IteratorRange.next core.iter.range.StepUsize iter
+  match o with
+  | none => ok (done square)
+  | some i =>
+    let i1 ← Array.index_usize square i
+    let i2 ← i1 * 2#u64
+    let a ← Array.update square i i2
+    ok (cont (iter1, a))
+
+/-- [curve25519::backend::serial::u64::field::{curve25519::backend::serial::u64::field::FieldElement51}::square2]: loop 0:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 565:8-567:9
+    Visibility: public -/
+@[rust_loop]
+def backend.serial.u64.field.FieldElement51.square2_loop
+  (iter : core.ops.range.Range Std.Usize)
+  (square : backend.serial.u64.field.FieldElement51) :
+  Result backend.serial.u64.field.FieldElement51
+  := do
+  loop
+    (fun (iter1, square1) =>
+      backend.serial.u64.field.FieldElement51.square2_loop.body iter1 square1)
+    (iter, square)
+
+/-- [curve25519::backend::serial::u64::field::{curve25519::backend::serial::u64::field::FieldElement51}::square2]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 563:4-570:5
+    Visibility: public -/
+def backend.serial.u64.field.FieldElement51.square2
+  (self : backend.serial.u64.field.FieldElement51) :
+  Result backend.serial.u64.field.FieldElement51
+  := do
+  let square ← backend.serial.u64.field.FieldElement51.pow2k self 1#u32
+  backend.serial.u64.field.FieldElement51.square2_loop
+    { start := 0#usize, «end» := 5#usize } square
+
+/-- [curve25519::backend::serial::curve_models::{curve25519::backend::serial::curve_models::ProjectivePoint}::double]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 381:4-397:5
+    Visibility: public -/
+def backend.serial.curve_models.ProjectivePoint.double
+  (self : backend.serial.curve_models.ProjectivePoint) :
+  Result backend.serial.curve_models.CompletedPoint
+  := do
+  let XX ← backend.serial.u64.field.FieldElement51.square self.X
+  let YY ← backend.serial.u64.field.FieldElement51.square self.Y
+  let ZZ2 ← backend.serial.u64.field.FieldElement51.square2 self.Z
+  let X_plus_Y ←
+    Shared0FieldElement51.Insts.CoreOpsArithAddSharedAFieldElement51FieldElement51.add
+      self.X self.Y
+  let X_plus_Y_sq ← backend.serial.u64.field.FieldElement51.square X_plus_Y
+  let YY_plus_XX ←
+    Shared0FieldElement51.Insts.CoreOpsArithAddSharedAFieldElement51FieldElement51.add
+      YY XX
+  let YY_minus_XX ←
+    Shared0FieldElement51.Insts.CoreOpsArithSubSharedAFieldElement51FieldElement51.sub
+      YY XX
+  let fe ←
+    Shared0FieldElement51.Insts.CoreOpsArithSubSharedAFieldElement51FieldElement51.sub
+      X_plus_Y_sq YY_plus_XX
+  let fe1 ←
+    Shared0FieldElement51.Insts.CoreOpsArithSubSharedAFieldElement51FieldElement51.sub
+      ZZ2 YY_minus_XX
+  ok { X := fe, Y := YY_plus_XX, Z := YY_minus_XX, T := fe1 }
+
+/-- [curve25519::backend::serial::curve_models::{impl core::ops::arith::Add<&'a curve25519::backend::serial::curve_models::ProjectiveNielsPoint, curve25519::backend::serial::curve_models::CompletedPoint> for &'_1 curve25519::edwards::EdwardsPoint}::add]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 414:4-429:5
+    Visibility: public -/
+def
+  Shared0EdwardsPoint.Insts.CoreOpsArithAddSharedAProjectiveNielsPointCompletedPoint.add
+  (self : edwards.EdwardsPoint)
+  (other : backend.serial.curve_models.ProjectiveNielsPoint) :
+  Result backend.serial.curve_models.CompletedPoint
+  := do
+  let Y_plus_X ←
+    Shared0FieldElement51.Insts.CoreOpsArithAddSharedAFieldElement51FieldElement51.add
+      self.Y self.X
+  let Y_minus_X ←
+    Shared0FieldElement51.Insts.CoreOpsArithSubSharedAFieldElement51FieldElement51.sub
+      self.Y self.X
+  let PP ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      Y_plus_X other.Y_plus_X
+  let MM ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      Y_minus_X other.Y_minus_X
+  let TT2d ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      self.T other.T2d
+  let ZZ ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      self.Z other.Z
+  let ZZ2 ←
+    Shared0FieldElement51.Insts.CoreOpsArithAddSharedAFieldElement51FieldElement51.add
+      ZZ ZZ
+  let fe ←
+    Shared0FieldElement51.Insts.CoreOpsArithSubSharedAFieldElement51FieldElement51.sub
+      PP MM
+  let fe1 ←
+    Shared0FieldElement51.Insts.CoreOpsArithAddSharedAFieldElement51FieldElement51.add
+      PP MM
+  let fe2 ←
+    Shared0FieldElement51.Insts.CoreOpsArithAddSharedAFieldElement51FieldElement51.add
+      ZZ2 TT2d
+  let fe3 ←
+    Shared0FieldElement51.Insts.CoreOpsArithSubSharedAFieldElement51FieldElement51.sub
+      ZZ2 TT2d
+  ok { X := fe, Y := fe1, Z := fe2, T := fe3 }
+
+/-- Trait implementation: [curve25519::backend::serial::curve_models::{impl core::ops::arith::Add<&'a curve25519::backend::serial::curve_models::ProjectiveNielsPoint, curve25519::backend::serial::curve_models::CompletedPoint> for &'_1 curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 411:0-430:1 -/
+@[reducible]
+def
+  Shared0EdwardsPoint.Insts.CoreOpsArithAddSharedAProjectiveNielsPointCompletedPoint
+  : core.ops.arith.Add edwards.EdwardsPoint
+  backend.serial.curve_models.ProjectiveNielsPoint
+  backend.serial.curve_models.CompletedPoint := {
+  add :=
+    Shared0EdwardsPoint.Insts.CoreOpsArithAddSharedAProjectiveNielsPointCompletedPoint.add
+}
+
+/-- [curve25519::backend::serial::curve_models::{impl core::ops::arith::Sub<&'a curve25519::backend::serial::curve_models::ProjectiveNielsPoint, curve25519::backend::serial::curve_models::CompletedPoint> for &'_1 curve25519::edwards::EdwardsPoint}::sub]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 436:4-451:5
+    Visibility: public -/
+def
+  Shared0EdwardsPoint.Insts.CoreOpsArithSubSharedAProjectiveNielsPointCompletedPoint.sub
+  (self : edwards.EdwardsPoint)
+  (other : backend.serial.curve_models.ProjectiveNielsPoint) :
+  Result backend.serial.curve_models.CompletedPoint
+  := do
+  let Y_plus_X ←
+    Shared0FieldElement51.Insts.CoreOpsArithAddSharedAFieldElement51FieldElement51.add
+      self.Y self.X
+  let Y_minus_X ←
+    Shared0FieldElement51.Insts.CoreOpsArithSubSharedAFieldElement51FieldElement51.sub
+      self.Y self.X
+  let PM ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      Y_plus_X other.Y_minus_X
+  let MP ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      Y_minus_X other.Y_plus_X
+  let TT2d ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      self.T other.T2d
+  let ZZ ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      self.Z other.Z
+  let ZZ2 ←
+    Shared0FieldElement51.Insts.CoreOpsArithAddSharedAFieldElement51FieldElement51.add
+      ZZ ZZ
+  let fe ←
+    Shared0FieldElement51.Insts.CoreOpsArithSubSharedAFieldElement51FieldElement51.sub
+      PM MP
+  let fe1 ←
+    Shared0FieldElement51.Insts.CoreOpsArithAddSharedAFieldElement51FieldElement51.add
+      PM MP
+  let fe2 ←
+    Shared0FieldElement51.Insts.CoreOpsArithSubSharedAFieldElement51FieldElement51.sub
+      ZZ2 TT2d
+  let fe3 ←
+    Shared0FieldElement51.Insts.CoreOpsArithAddSharedAFieldElement51FieldElement51.add
+      ZZ2 TT2d
+  ok { X := fe, Y := fe1, Z := fe2, T := fe3 }
+
+/-- Trait implementation: [curve25519::backend::serial::curve_models::{impl core::ops::arith::Sub<&'a curve25519::backend::serial::curve_models::ProjectiveNielsPoint, curve25519::backend::serial::curve_models::CompletedPoint> for &'_1 curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 433:0-452:1 -/
+@[reducible]
+def
+  Shared0EdwardsPoint.Insts.CoreOpsArithSubSharedAProjectiveNielsPointCompletedPoint
+  : core.ops.arith.Sub edwards.EdwardsPoint
+  backend.serial.curve_models.ProjectiveNielsPoint
+  backend.serial.curve_models.CompletedPoint := {
+  sub :=
+    Shared0EdwardsPoint.Insts.CoreOpsArithSubSharedAProjectiveNielsPointCompletedPoint.sub
+}
+
+/-- [curve25519::backend::serial::curve_models::{impl core::ops::arith::Add<&'a curve25519::backend::serial::curve_models::AffineNielsPoint, curve25519::backend::serial::curve_models::CompletedPoint> for &'_1 curve25519::edwards::EdwardsPoint}::add]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 458:4-472:5
+    Visibility: public -/
+def
+  Shared0EdwardsPoint.Insts.CoreOpsArithAddSharedAAffineNielsPointCompletedPoint.add
+  (self : edwards.EdwardsPoint)
+  (other : backend.serial.curve_models.AffineNielsPoint) :
+  Result backend.serial.curve_models.CompletedPoint
+  := do
+  let Y_plus_X ←
+    Shared0FieldElement51.Insts.CoreOpsArithAddSharedAFieldElement51FieldElement51.add
+      self.Y self.X
+  let Y_minus_X ←
+    Shared0FieldElement51.Insts.CoreOpsArithSubSharedAFieldElement51FieldElement51.sub
+      self.Y self.X
+  let PP ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      Y_plus_X other.y_plus_x
+  let MM ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      Y_minus_X other.y_minus_x
+  let Txy2d ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      self.T other.xy2d
+  let Z2 ←
+    Shared0FieldElement51.Insts.CoreOpsArithAddSharedAFieldElement51FieldElement51.add
+      self.Z self.Z
+  let fe ←
+    Shared0FieldElement51.Insts.CoreOpsArithSubSharedAFieldElement51FieldElement51.sub
+      PP MM
+  let fe1 ←
+    Shared0FieldElement51.Insts.CoreOpsArithAddSharedAFieldElement51FieldElement51.add
+      PP MM
+  let fe2 ←
+    Shared0FieldElement51.Insts.CoreOpsArithAddSharedAFieldElement51FieldElement51.add
+      Z2 Txy2d
+  let fe3 ←
+    Shared0FieldElement51.Insts.CoreOpsArithSubSharedAFieldElement51FieldElement51.sub
+      Z2 Txy2d
+  ok { X := fe, Y := fe1, Z := fe2, T := fe3 }
+
+/-- Trait implementation: [curve25519::backend::serial::curve_models::{impl core::ops::arith::Add<&'a curve25519::backend::serial::curve_models::AffineNielsPoint, curve25519::backend::serial::curve_models::CompletedPoint> for &'_1 curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 455:0-473:1 -/
+@[reducible]
+def
+  Shared0EdwardsPoint.Insts.CoreOpsArithAddSharedAAffineNielsPointCompletedPoint
+  : core.ops.arith.Add edwards.EdwardsPoint
+  backend.serial.curve_models.AffineNielsPoint
+  backend.serial.curve_models.CompletedPoint := {
+  add :=
+    Shared0EdwardsPoint.Insts.CoreOpsArithAddSharedAAffineNielsPointCompletedPoint.add
+}
+
+/-- [curve25519::backend::serial::curve_models::{impl core::ops::arith::Sub<&'a curve25519::backend::serial::curve_models::AffineNielsPoint, curve25519::backend::serial::curve_models::CompletedPoint> for &'_1 curve25519::edwards::EdwardsPoint}::sub]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 479:4-493:5
+    Visibility: public -/
+def
+  Shared0EdwardsPoint.Insts.CoreOpsArithSubSharedAAffineNielsPointCompletedPoint.sub
+  (self : edwards.EdwardsPoint)
+  (other : backend.serial.curve_models.AffineNielsPoint) :
+  Result backend.serial.curve_models.CompletedPoint
+  := do
+  let Y_plus_X ←
+    Shared0FieldElement51.Insts.CoreOpsArithAddSharedAFieldElement51FieldElement51.add
+      self.Y self.X
+  let Y_minus_X ←
+    Shared0FieldElement51.Insts.CoreOpsArithSubSharedAFieldElement51FieldElement51.sub
+      self.Y self.X
+  let PM ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      Y_plus_X other.y_minus_x
+  let MP ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      Y_minus_X other.y_plus_x
+  let Txy2d ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      self.T other.xy2d
+  let Z2 ←
+    Shared0FieldElement51.Insts.CoreOpsArithAddSharedAFieldElement51FieldElement51.add
+      self.Z self.Z
+  let fe ←
+    Shared0FieldElement51.Insts.CoreOpsArithSubSharedAFieldElement51FieldElement51.sub
+      PM MP
+  let fe1 ←
+    Shared0FieldElement51.Insts.CoreOpsArithAddSharedAFieldElement51FieldElement51.add
+      PM MP
+  let fe2 ←
+    Shared0FieldElement51.Insts.CoreOpsArithSubSharedAFieldElement51FieldElement51.sub
+      Z2 Txy2d
+  let fe3 ←
+    Shared0FieldElement51.Insts.CoreOpsArithAddSharedAFieldElement51FieldElement51.add
+      Z2 Txy2d
+  ok { X := fe, Y := fe1, Z := fe2, T := fe3 }
+
+/-- Trait implementation: [curve25519::backend::serial::curve_models::{impl core::ops::arith::Sub<&'a curve25519::backend::serial::curve_models::AffineNielsPoint, curve25519::backend::serial::curve_models::CompletedPoint> for &'_1 curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 476:0-494:1 -/
+@[reducible]
+def
+  Shared0EdwardsPoint.Insts.CoreOpsArithSubSharedAAffineNielsPointCompletedPoint
+  : core.ops.arith.Sub edwards.EdwardsPoint
+  backend.serial.curve_models.AffineNielsPoint
+  backend.serial.curve_models.CompletedPoint := {
+  sub :=
+    Shared0EdwardsPoint.Insts.CoreOpsArithSubSharedAAffineNielsPointCompletedPoint.sub
+}
+
+/-- [curve25519::backend::serial::u64::field::{curve25519::backend::serial::u64::field::FieldElement51}::negate]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 272:4-282:5
+    Visibility: public -/
+def backend.serial.u64.field.FieldElement51.negate
+  (self : backend.serial.u64.field.FieldElement51) :
+  Result backend.serial.u64.field.FieldElement51
+  := do
+  let i ← Array.index_usize self 0#usize
+  let i1 ← 36028797018963664#u64 - i
+  let i2 ← Array.index_usize self 1#usize
+  let i3 ← 36028797018963952#u64 - i2
+  let i4 ← Array.index_usize self 2#usize
+  let i5 ← 36028797018963952#u64 - i4
+  let i6 ← Array.index_usize self 3#usize
+  let i7 ← 36028797018963952#u64 - i6
+  let i8 ← Array.index_usize self 4#usize
+  let i9 ← 36028797018963952#u64 - i8
+  let neg ←
+    backend.serial.u64.field.FieldElement51.reduce
+      (Array.make 5#usize [ i1, i3, i5, i7, i9 ])
+  ok neg
+
+/-- [curve25519::backend::serial::u64::field::{impl core::ops::arith::Neg<curve25519::backend::serial::u64::field::FieldElement51> for &'_0 curve25519::backend::serial::u64::field::FieldElement51}::neg]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 214:4-218:5
+    Visibility: public -/
+def Shared0FieldElement51.Insts.CoreOpsArithNegFieldElement51.neg
+  (self : backend.serial.u64.field.FieldElement51) :
+  Result backend.serial.u64.field.FieldElement51
+  := do
+  backend.serial.u64.field.FieldElement51.negate self
+
+/-- [curve25519::backend::serial::curve_models::{impl core::ops::arith::Neg<curve25519::backend::serial::curve_models::ProjectiveNielsPoint> for &'_0 curve25519::backend::serial::curve_models::ProjectiveNielsPoint}::neg]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 503:4-510:5
+    Visibility: public -/
+def Shared0ProjectiveNielsPoint.Insts.CoreOpsArithNegProjectiveNielsPoint.neg
+  (self : backend.serial.curve_models.ProjectiveNielsPoint) :
+  Result backend.serial.curve_models.ProjectiveNielsPoint
+  := do
+  let fe ←
+    Shared0FieldElement51.Insts.CoreOpsArithNegFieldElement51.neg self.T2d
+  ok
+    {
+      self
+        with
+        Y_plus_X := self.Y_minus_X, Y_minus_X := self.Y_plus_X, T2d := fe
+    }
+
+/-- Trait implementation: [curve25519::backend::serial::curve_models::{impl core::ops::arith::Neg<curve25519::backend::serial::curve_models::ProjectiveNielsPoint> for &'_0 curve25519::backend::serial::curve_models::ProjectiveNielsPoint}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 500:0-511:1 -/
+@[reducible]
+def Shared0ProjectiveNielsPoint.Insts.CoreOpsArithNegProjectiveNielsPoint :
+  core.ops.arith.Neg backend.serial.curve_models.ProjectiveNielsPoint
+  backend.serial.curve_models.ProjectiveNielsPoint := {
+  neg :=
+    Shared0ProjectiveNielsPoint.Insts.CoreOpsArithNegProjectiveNielsPoint.neg
+}
+
+/-- [curve25519::backend::serial::curve_models::{impl core::ops::arith::Neg<curve25519::backend::serial::curve_models::AffineNielsPoint> for &'_0 curve25519::backend::serial::curve_models::AffineNielsPoint}::neg]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 516:4-522:5
+    Visibility: public -/
+def Shared0AffineNielsPoint.Insts.CoreOpsArithNegAffineNielsPoint.neg
+  (self : backend.serial.curve_models.AffineNielsPoint) :
+  Result backend.serial.curve_models.AffineNielsPoint
+  := do
+  let fe ←
+    Shared0FieldElement51.Insts.CoreOpsArithNegFieldElement51.neg self.xy2d
+  ok { y_plus_x := self.y_minus_x, y_minus_x := self.y_plus_x, xy2d := fe }
+
+/-- Trait implementation: [curve25519::backend::serial::curve_models::{impl core::ops::arith::Neg<curve25519::backend::serial::curve_models::AffineNielsPoint> for &'_0 curve25519::backend::serial::curve_models::AffineNielsPoint}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 513:0-523:1 -/
+@[reducible]
+def Shared0AffineNielsPoint.Insts.CoreOpsArithNegAffineNielsPoint :
+  core.ops.arith.Neg backend.serial.curve_models.AffineNielsPoint
+  backend.serial.curve_models.AffineNielsPoint := {
+  neg := Shared0AffineNielsPoint.Insts.CoreOpsArithNegAffineNielsPoint.neg
+}
+
+/-- [curve25519::backend::serial::u64::field::{impl core::fmt::Debug for curve25519::backend::serial::u64::field::FieldElement51}::fmt]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 46:4-48:5
+    Visibility: public -/
+def backend.serial.u64.field.FieldElement51.Insts.CoreFmtDebug.fmt
+  (self : backend.serial.u64.field.FieldElement51) (f : core.fmt.Formatter) :
+  Result ((core.result.Result Unit core.fmt.Error) × core.fmt.Formatter)
+  := do
+  let args ←
+    core.array.Array.index (core.ops.index.IndexSlice
+      (core.ops.range.RangeFull.Insts.CoreSliceIndexSliceIndexSliceSlice
+      Std.U64)) self ()
+  let a ←
+    core.fmt.rt.Argument.new_debug (core.fmt.DebugShared
+      (Slice.Insts.CoreFmtDebug core.fmt.DebugU64)) args
+  let a1 ←
+    core.fmt.Arguments.new
+      (Array.make 20#usize [
+        15#u8, 70#u8, 105#u8, 101#u8, 108#u8, 100#u8, 69#u8, 108#u8, 101#u8,
+        109#u8, 101#u8, 110#u8, 116#u8, 53#u8, 49#u8, 40#u8, 192#u8, 1#u8,
+        41#u8, 0#u8
+        ]) (Array.make 1#usize [ a ])
+  core.fmt.Formatter.write_fmt f a1
+
+/-- Trait implementation: [curve25519::backend::serial::u64::field::{impl core::fmt::Debug for curve25519::backend::serial::u64::field::FieldElement51}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 45:0-49:1 -/
+@[reducible]
+def backend.serial.u64.field.FieldElement51.Insts.CoreFmtDebug : core.fmt.Debug
+  backend.serial.u64.field.FieldElement51 := {
+  fmt := backend.serial.u64.field.FieldElement51.Insts.CoreFmtDebug.fmt
+}
+
+/-- [curve25519::backend::serial::curve_models::{impl core::fmt::Debug for curve25519::backend::serial::curve_models::ProjectivePoint}::fmt]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 530:4-536:5
+    Visibility: public -/
+def backend.serial.curve_models.ProjectivePoint.Insts.CoreFmtDebug.fmt
+  (self : backend.serial.curve_models.ProjectivePoint) (f : core.fmt.Formatter)
+  :
+  Result ((core.result.Result Unit core.fmt.Error) × core.fmt.Formatter)
+  := do
+  let a ←
+    core.fmt.rt.Argument.new_debug (core.fmt.DebugShared
+      backend.serial.u64.field.FieldElement51.Insts.CoreFmtDebug) self.X
+  let a1 ←
+    core.fmt.rt.Argument.new_debug (core.fmt.DebugShared
+      backend.serial.u64.field.FieldElement51.Insts.CoreFmtDebug) self.Y
+  let a2 ←
+    core.fmt.rt.Argument.new_debug (core.fmt.DebugShared
+      backend.serial.u64.field.FieldElement51.Insts.CoreFmtDebug) self.Z
+  let a3 ←
+    core.fmt.Arguments.new
+      (Array.make 43#usize [
+        21#u8, 80#u8, 114#u8, 111#u8, 106#u8, 101#u8, 99#u8, 116#u8, 105#u8,
+        118#u8, 101#u8, 80#u8, 111#u8, 105#u8, 110#u8, 116#u8, 123#u8, 10#u8,
+        9#u8, 88#u8, 58#u8, 32#u8, 192#u8, 6#u8, 44#u8, 10#u8, 9#u8, 89#u8,
+        58#u8, 32#u8, 192#u8, 6#u8, 44#u8, 10#u8, 9#u8, 90#u8, 58#u8, 32#u8,
+        192#u8, 2#u8, 10#u8, 125#u8, 0#u8
+        ]) (Array.make 3#usize [ a, a1, a2 ])
+  core.fmt.Formatter.write_fmt f a3
+
+/-- Trait implementation: [curve25519::backend::serial::curve_models::{impl core::fmt::Debug for curve25519::backend::serial::curve_models::ProjectivePoint}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 529:0-537:1 -/
+@[reducible]
+def backend.serial.curve_models.ProjectivePoint.Insts.CoreFmtDebug :
+  core.fmt.Debug backend.serial.curve_models.ProjectivePoint := {
+  fmt := backend.serial.curve_models.ProjectivePoint.Insts.CoreFmtDebug.fmt
+}
+
+/-- [curve25519::backend::serial::curve_models::{impl core::fmt::Debug for curve25519::backend::serial::curve_models::CompletedPoint}::fmt]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 540:4-546:5
+    Visibility: public -/
+def backend.serial.curve_models.CompletedPoint.Insts.CoreFmtDebug.fmt
+  (self : backend.serial.curve_models.CompletedPoint) (f : core.fmt.Formatter)
+  :
+  Result ((core.result.Result Unit core.fmt.Error) × core.fmt.Formatter)
+  := do
+  let a ←
+    core.fmt.rt.Argument.new_debug (core.fmt.DebugShared
+      backend.serial.u64.field.FieldElement51.Insts.CoreFmtDebug) self.X
+  let a1 ←
+    core.fmt.rt.Argument.new_debug (core.fmt.DebugShared
+      backend.serial.u64.field.FieldElement51.Insts.CoreFmtDebug) self.Y
+  let a2 ←
+    core.fmt.rt.Argument.new_debug (core.fmt.DebugShared
+      backend.serial.u64.field.FieldElement51.Insts.CoreFmtDebug) self.Z
+  let a3 ←
+    core.fmt.rt.Argument.new_debug (core.fmt.DebugShared
+      backend.serial.u64.field.FieldElement51.Insts.CoreFmtDebug) self.T
+  let a4 ←
+    core.fmt.Arguments.new
+      (Array.make 50#usize [
+        20#u8, 67#u8, 111#u8, 109#u8, 112#u8, 108#u8, 101#u8, 116#u8, 101#u8,
+        100#u8, 80#u8, 111#u8, 105#u8, 110#u8, 116#u8, 123#u8, 10#u8, 9#u8,
+        88#u8, 58#u8, 32#u8, 192#u8, 6#u8, 44#u8, 10#u8, 9#u8, 89#u8, 58#u8,
+        32#u8, 192#u8, 6#u8, 44#u8, 10#u8, 9#u8, 90#u8, 58#u8, 32#u8, 192#u8,
+        6#u8, 44#u8, 10#u8, 9#u8, 84#u8, 58#u8, 32#u8, 192#u8, 2#u8, 10#u8,
+        125#u8, 0#u8
+        ]) (Array.make 4#usize [ a, a1, a2, a3 ])
+  core.fmt.Formatter.write_fmt f a4
+
+/-- Trait implementation: [curve25519::backend::serial::curve_models::{impl core::fmt::Debug for curve25519::backend::serial::curve_models::CompletedPoint}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 539:0-547:1 -/
+@[reducible]
+def backend.serial.curve_models.CompletedPoint.Insts.CoreFmtDebug :
+  core.fmt.Debug backend.serial.curve_models.CompletedPoint := {
+  fmt := backend.serial.curve_models.CompletedPoint.Insts.CoreFmtDebug.fmt
+}
+
+/-- [curve25519::backend::serial::curve_models::{impl core::fmt::Debug for curve25519::backend::serial::curve_models::AffineNielsPoint}::fmt]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 550:4-556:5
+    Visibility: public -/
+def backend.serial.curve_models.AffineNielsPoint.Insts.CoreFmtDebug.fmt
+  (self : backend.serial.curve_models.AffineNielsPoint)
+  (f : core.fmt.Formatter) :
+  Result ((core.result.Result Unit core.fmt.Error) × core.fmt.Formatter)
+  := do
+  let a ←
+    core.fmt.rt.Argument.new_debug (core.fmt.DebugShared
+      backend.serial.u64.field.FieldElement51.Insts.CoreFmtDebug) self.y_plus_x
+  let a1 ←
+    core.fmt.rt.Argument.new_debug (core.fmt.DebugShared
+      backend.serial.u64.field.FieldElement51.Insts.CoreFmtDebug)
+      self.y_minus_x
+  let a2 ←
+    core.fmt.rt.Argument.new_debug (core.fmt.DebugShared
+      backend.serial.u64.field.FieldElement51.Insts.CoreFmtDebug) self.xy2d
+  let a3 ←
+    core.fmt.Arguments.new
+      (Array.make 62#usize [
+        29#u8, 65#u8, 102#u8, 102#u8, 105#u8, 110#u8, 101#u8, 78#u8, 105#u8,
+        101#u8, 108#u8, 115#u8, 80#u8, 111#u8, 105#u8, 110#u8, 116#u8, 123#u8,
+        10#u8, 9#u8, 121#u8, 95#u8, 112#u8, 108#u8, 117#u8, 115#u8, 95#u8,
+        120#u8, 58#u8, 32#u8, 192#u8, 14#u8, 44#u8, 10#u8, 9#u8, 121#u8, 95#u8,
+        109#u8, 105#u8, 110#u8, 117#u8, 115#u8, 95#u8, 120#u8, 58#u8, 32#u8,
+        192#u8, 9#u8, 44#u8, 10#u8, 9#u8, 120#u8, 121#u8, 50#u8, 100#u8, 58#u8,
+        32#u8, 192#u8, 2#u8, 10#u8, 125#u8, 0#u8
+        ]) (Array.make 3#usize [ a, a1, a2 ])
+  core.fmt.Formatter.write_fmt f a3
+
+/-- Trait implementation: [curve25519::backend::serial::curve_models::{impl core::fmt::Debug for curve25519::backend::serial::curve_models::AffineNielsPoint}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 549:0-557:1 -/
+@[reducible]
+def backend.serial.curve_models.AffineNielsPoint.Insts.CoreFmtDebug :
+  core.fmt.Debug backend.serial.curve_models.AffineNielsPoint := {
+  fmt := backend.serial.curve_models.AffineNielsPoint.Insts.CoreFmtDebug.fmt
+}
+
+/-- [curve25519::backend::serial::curve_models::{impl core::fmt::Debug for curve25519::backend::serial::curve_models::ProjectiveNielsPoint}::fmt]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 560:4-566:5
+    Visibility: public -/
+def backend.serial.curve_models.ProjectiveNielsPoint.Insts.CoreFmtDebug.fmt
+  (self : backend.serial.curve_models.ProjectiveNielsPoint)
+  (f : core.fmt.Formatter) :
+  Result ((core.result.Result Unit core.fmt.Error) × core.fmt.Formatter)
+  := do
+  let a ←
+    core.fmt.rt.Argument.new_debug (core.fmt.DebugShared
+      backend.serial.u64.field.FieldElement51.Insts.CoreFmtDebug) self.Y_plus_X
+  let a1 ←
+    core.fmt.rt.Argument.new_debug (core.fmt.DebugShared
+      backend.serial.u64.field.FieldElement51.Insts.CoreFmtDebug)
+      self.Y_minus_X
+  let a2 ←
+    core.fmt.rt.Argument.new_debug (core.fmt.DebugShared
+      backend.serial.u64.field.FieldElement51.Insts.CoreFmtDebug) self.Z
+  let a3 ←
+    core.fmt.rt.Argument.new_debug (core.fmt.DebugShared
+      backend.serial.u64.field.FieldElement51.Insts.CoreFmtDebug) self.T2d
+  let a4 ←
+    core.fmt.Arguments.new
+      (Array.make 73#usize [
+        33#u8, 80#u8, 114#u8, 111#u8, 106#u8, 101#u8, 99#u8, 116#u8, 105#u8,
+        118#u8, 101#u8, 78#u8, 105#u8, 101#u8, 108#u8, 115#u8, 80#u8, 111#u8,
+        105#u8, 110#u8, 116#u8, 123#u8, 10#u8, 9#u8, 89#u8, 95#u8, 112#u8,
+        108#u8, 117#u8, 115#u8, 95#u8, 88#u8, 58#u8, 32#u8, 192#u8, 14#u8,
+        44#u8, 10#u8, 9#u8, 89#u8, 95#u8, 109#u8, 105#u8, 110#u8, 117#u8,
+        115#u8, 95#u8, 88#u8, 58#u8, 32#u8, 192#u8, 6#u8, 44#u8, 10#u8, 9#u8,
+        90#u8, 58#u8, 32#u8, 192#u8, 8#u8, 44#u8, 10#u8, 9#u8, 84#u8, 50#u8,
+        100#u8, 58#u8, 32#u8, 192#u8, 2#u8, 10#u8, 125#u8, 0#u8
+        ]) (Array.make 4#usize [ a, a1, a2, a3 ])
+  core.fmt.Formatter.write_fmt f a4
+
+/-- Trait implementation: [curve25519::backend::serial::curve_models::{impl core::fmt::Debug for curve25519::backend::serial::curve_models::ProjectiveNielsPoint}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 559:0-567:1 -/
+@[reducible]
+def backend.serial.curve_models.ProjectiveNielsPoint.Insts.CoreFmtDebug :
+  core.fmt.Debug backend.serial.curve_models.ProjectiveNielsPoint := {
+  fmt :=
+    backend.serial.curve_models.ProjectiveNielsPoint.Insts.CoreFmtDebug.fmt
+}
+
+/-- [curve25519::backend::serial::u64::constants::EDWARDS_D2]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/constants.rs', lines 54:0-60:3 -/
+@[global_simps, irreducible]
+def backend.serial.u64.constants.EDWARDS_D2
+  : Result backend.serial.u64.field.FieldElement51 :=
+  backend.serial.u64.field.FieldElement51.from_limbs
+    (Array.make 5#usize [
+      1859910466990425#u64, 932731440258426#u64, 1072319116312658#u64,
+      1815898335770999#u64, 633789495995903#u64
+      ])
+
+/-- [curve25519::backend::serial::u64::constants::SQRT_M1]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/constants.rs', lines 99:0-105:3 -/
+@[global_simps, irreducible]
+def backend.serial.u64.constants.SQRT_M1
+  : Result backend.serial.u64.field.FieldElement51 :=
+  backend.serial.u64.field.FieldElement51.from_limbs
+    (Array.make 5#usize [
+      1718705420411056#u64, 234908883556509#u64, 2233514472574048#u64,
+      2117202627021982#u64, 765476049583133#u64
+      ])
+
+/-- [curve25519::backend::serial::u64::constants::ED25519_BASEPOINT_POINT]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/constants.rs', lines 163:0-186:2
+    Visibility: public -/
+@[global_simps, irreducible]
+def backend.serial.u64.constants.ED25519_BASEPOINT_POINT
+  : Result edwards.EdwardsPoint := do
+  let fe ←
+    backend.serial.u64.field.FieldElement51.from_limbs
+      (Array.make 5#usize [
+        1738742601995546#u64, 1146398526822698#u64, 2070867633025821#u64,
+        562264141797630#u64, 587772402128613#u64
+        ])
+  let fe1 ←
+    backend.serial.u64.field.FieldElement51.from_limbs
+      (Array.make 5#usize [
+        1801439850948184#u64, 1351079888211148#u64, 450359962737049#u64,
+        900719925474099#u64, 1801439850948198#u64
+        ])
+  let fe2 ←
+    backend.serial.u64.field.FieldElement51.from_limbs
+      (Array.make 5#usize [ 1#u64, 0#u64, 0#u64, 0#u64, 0#u64 ])
+  let fe3 ←
+    backend.serial.u64.field.FieldElement51.from_limbs
+      (Array.make 5#usize [
+        1841354044333475#u64, 16398895984059#u64, 755974180946558#u64,
+        900171276175154#u64, 1821297809914039#u64
+        ])
+  ok { X := fe, Y := fe1, Z := fe2, T := fe3 }
+
+/-- [curve25519::backend::serial::u64::field::{impl core::clone::Clone for curve25519::backend::serial::u64::field::FieldElement51}::clone]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 42:15-42:20
+    Visibility: public -/
+def backend.serial.u64.field.FieldElement51.Insts.CoreCloneClone.clone
+  (self : backend.serial.u64.field.FieldElement51) :
+  Result backend.serial.u64.field.FieldElement51
+  := do
+  ok self
+
+/-- Trait implementation: [curve25519::backend::serial::u64::field::{impl core::clone::Clone for curve25519::backend::serial::u64::field::FieldElement51}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 42:15-42:20 -/
+@[reducible]
+def backend.serial.u64.field.FieldElement51.Insts.CoreCloneClone :
+  core.clone.Clone backend.serial.u64.field.FieldElement51 := {
+  clone := backend.serial.u64.field.FieldElement51.Insts.CoreCloneClone.clone
+}
+
+/-- Trait implementation: [curve25519::backend::serial::u64::field::{impl core::marker::Copy for curve25519::backend::serial::u64::field::FieldElement51}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 42:9-42:13 -/
+@[reducible]
+def backend.serial.u64.field.FieldElement51.Insts.CoreMarkerCopy :
+  core.marker.Copy backend.serial.u64.field.FieldElement51 := {
+  cloneInst := backend.serial.u64.field.FieldElement51.Insts.CoreCloneClone
+}
+
+/-- Trait implementation: [curve25519::backend::serial::u64::field::{impl core::ops::arith::AddAssign<&'a curve25519::backend::serial::u64::field::FieldElement51> for curve25519::backend::serial::u64::field::FieldElement51}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 54:0-60:1 -/
+@[reducible]
+def
+  backend.serial.u64.field.FieldElement51.Insts.CoreOpsArithAddAssignSharedAFieldElement51
+  : core.ops.arith.AddAssign backend.serial.u64.field.FieldElement51
+  backend.serial.u64.field.FieldElement51 := {
+  add_assign :=
+    backend.serial.u64.field.FieldElement51.Insts.CoreOpsArithAddAssignSharedAFieldElement51.add_assign
+}
+
+/-- Trait implementation: [curve25519::backend::serial::u64::field::{impl core::ops::arith::Add<&'a curve25519::backend::serial::u64::field::FieldElement51, curve25519::backend::serial::u64::field::FieldElement51> for &'_1 curve25519::backend::serial::u64::field::FieldElement51}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 62:0-69:1 -/
+@[reducible]
+def
+  Shared0FieldElement51.Insts.CoreOpsArithAddSharedAFieldElement51FieldElement51
+  : core.ops.arith.Add backend.serial.u64.field.FieldElement51
+  backend.serial.u64.field.FieldElement51
+  backend.serial.u64.field.FieldElement51 := {
+  add :=
+    Shared0FieldElement51.Insts.CoreOpsArithAddSharedAFieldElement51FieldElement51.add
+}
+
+/-- [curve25519::backend::serial::u64::field::{impl core::ops::arith::SubAssign<&'a curve25519::backend::serial::u64::field::FieldElement51> for curve25519::backend::serial::u64::field::FieldElement51}::sub_assign]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 72:4-75:5
+    Visibility: public -/
+def
+  backend.serial.u64.field.FieldElement51.Insts.CoreOpsArithSubAssignSharedAFieldElement51.sub_assign
+  (self : backend.serial.u64.field.FieldElement51)
+  (_rhs : backend.serial.u64.field.FieldElement51) :
+  Result backend.serial.u64.field.FieldElement51
+  := do
+  let result ←
+    Shared0FieldElement51.Insts.CoreOpsArithSubSharedAFieldElement51FieldElement51.sub
+      self _rhs
+  ok result
+
+/-- Trait implementation: [curve25519::backend::serial::u64::field::{impl core::ops::arith::SubAssign<&'a curve25519::backend::serial::u64::field::FieldElement51> for curve25519::backend::serial::u64::field::FieldElement51}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 71:0-76:1 -/
+@[reducible]
+def
+  backend.serial.u64.field.FieldElement51.Insts.CoreOpsArithSubAssignSharedAFieldElement51
+  : core.ops.arith.SubAssign backend.serial.u64.field.FieldElement51
+  backend.serial.u64.field.FieldElement51 := {
+  sub_assign :=
+    backend.serial.u64.field.FieldElement51.Insts.CoreOpsArithSubAssignSharedAFieldElement51.sub_assign
+}
+
+/-- Trait implementation: [curve25519::backend::serial::u64::field::{impl core::ops::arith::Sub<&'a curve25519::backend::serial::u64::field::FieldElement51, curve25519::backend::serial::u64::field::FieldElement51> for &'_1 curve25519::backend::serial::u64::field::FieldElement51}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 78:0-98:1 -/
+@[reducible]
+def
+  Shared0FieldElement51.Insts.CoreOpsArithSubSharedAFieldElement51FieldElement51
+  : core.ops.arith.Sub backend.serial.u64.field.FieldElement51
+  backend.serial.u64.field.FieldElement51
+  backend.serial.u64.field.FieldElement51 := {
+  sub :=
+    Shared0FieldElement51.Insts.CoreOpsArithSubSharedAFieldElement51FieldElement51.sub
+}
+
+/-- [curve25519::backend::serial::u64::field::{impl core::ops::arith::MulAssign<&'a curve25519::backend::serial::u64::field::FieldElement51> for curve25519::backend::serial::u64::field::FieldElement51}::mul_assign]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 101:4-104:5
+    Visibility: public -/
+def
+  backend.serial.u64.field.FieldElement51.Insts.CoreOpsArithMulAssignSharedAFieldElement51.mul_assign
+  (self : backend.serial.u64.field.FieldElement51)
+  (_rhs : backend.serial.u64.field.FieldElement51) :
+  Result backend.serial.u64.field.FieldElement51
+  := do
+  let result ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      self _rhs
+  ok result
+
+/-- Trait implementation: [curve25519::backend::serial::u64::field::{impl core::ops::arith::MulAssign<&'a curve25519::backend::serial::u64::field::FieldElement51> for curve25519::backend::serial::u64::field::FieldElement51}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 100:0-105:1 -/
+@[reducible]
+def
+  backend.serial.u64.field.FieldElement51.Insts.CoreOpsArithMulAssignSharedAFieldElement51
+  : core.ops.arith.MulAssign backend.serial.u64.field.FieldElement51
+  backend.serial.u64.field.FieldElement51 := {
+  mul_assign :=
+    backend.serial.u64.field.FieldElement51.Insts.CoreOpsArithMulAssignSharedAFieldElement51.mul_assign
+}
+
+/-- Trait implementation: [curve25519::backend::serial::u64::field::{impl core::ops::arith::Mul<&'a curve25519::backend::serial::u64::field::FieldElement51, curve25519::backend::serial::u64::field::FieldElement51> for &'_1 curve25519::backend::serial::u64::field::FieldElement51}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 107:0-210:1 -/
+@[reducible]
+def
+  Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51
+  : core.ops.arith.Mul backend.serial.u64.field.FieldElement51
+  backend.serial.u64.field.FieldElement51
+  backend.serial.u64.field.FieldElement51 := {
+  mul :=
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+}
+
+/-- Trait implementation: [curve25519::backend::serial::u64::field::{impl core::ops::arith::Neg<curve25519::backend::serial::u64::field::FieldElement51> for &'_0 curve25519::backend::serial::u64::field::FieldElement51}]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 212:0-219:1 -/
+@[reducible]
+def Shared0FieldElement51.Insts.CoreOpsArithNegFieldElement51 :
+  core.ops.arith.Neg backend.serial.u64.field.FieldElement51
+  backend.serial.u64.field.FieldElement51 := {
+  neg := Shared0FieldElement51.Insts.CoreOpsArithNegFieldElement51.neg
+}
 
 /-- [curve25519::backend::serial::u64::field::{impl subtle::ConditionallySelectable for curve25519::backend::serial::u64::field::FieldElement51}::conditional_swap]:
     Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 236:4-242:5
@@ -729,37 +2195,6 @@ def
   let a10 := index_mut_back9 i19
   ok (a9, a10)
 
-/-- [curve25519::backend::serial::u64::field::{impl subtle::ConditionallySelectable for curve25519::backend::serial::u64::field::FieldElement51}::conditional_select]:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 222:4-234:5
-    Visibility: public -/
-def
-  backend.serial.u64.field.FieldElement51.Insts.SubtleConditionallySelectable.conditional_select
-  (a : backend.serial.u64.field.FieldElement51)
-  (b : backend.serial.u64.field.FieldElement51) (choice : subtle.Choice) :
-  Result backend.serial.u64.field.FieldElement51
-  := do
-  let i ← Array.index_usize a 0#usize
-  let i1 ← Array.index_usize b 0#usize
-  let i2 ←
-    U64.Insts.SubtleConditionallySelectable.conditional_select i i1 choice
-  let i3 ← Array.index_usize a 1#usize
-  let i4 ← Array.index_usize b 1#usize
-  let i5 ←
-    U64.Insts.SubtleConditionallySelectable.conditional_select i3 i4 choice
-  let i6 ← Array.index_usize a 2#usize
-  let i7 ← Array.index_usize b 2#usize
-  let i8 ←
-    U64.Insts.SubtleConditionallySelectable.conditional_select i6 i7 choice
-  let i9 ← Array.index_usize a 3#usize
-  let i10 ← Array.index_usize b 3#usize
-  let i11 ←
-    U64.Insts.SubtleConditionallySelectable.conditional_select i9 i10 choice
-  let i12 ← Array.index_usize a 4#usize
-  let i13 ← Array.index_usize b 4#usize
-  let i14 ←
-    U64.Insts.SubtleConditionallySelectable.conditional_select i12 i13 choice
-  ok (Array.make 5#usize [ i2, i5, i8, i11, i14 ])
-
 /-- Trait implementation: [curve25519::backend::serial::u64::field::{impl subtle::ConditionallySelectable for curve25519::backend::serial::u64::field::FieldElement51}]
     Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 221:0-251:1 -/
 @[reducible]
@@ -774,24 +2209,6 @@ def backend.serial.u64.field.FieldElement51.Insts.SubtleConditionallySelectable
   conditional_swap :=
     backend.serial.u64.field.FieldElement51.Insts.SubtleConditionallySelectable.conditional_swap
 }
-
-/-- [curve25519::backend::serial::u64::field::{curve25519::backend::serial::u64::field::FieldElement51}::ZERO]
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 259:4-259:81
-    Visibility: public -/
-@[global_simps, irreducible]
-def backend.serial.u64.field.FieldElement51.ZERO
-  : Result backend.serial.u64.field.FieldElement51 :=
-  let a := Array.repeat 5#usize 0#u64
-  backend.serial.u64.field.FieldElement51.from_limbs a
-
-/-- [curve25519::backend::serial::u64::field::{curve25519::backend::serial::u64::field::FieldElement51}::ONE]
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 261:4-261:80
-    Visibility: public -/
-@[global_simps, irreducible]
-def backend.serial.u64.field.FieldElement51.ONE
-  : Result backend.serial.u64.field.FieldElement51 :=
-  backend.serial.u64.field.FieldElement51.from_limbs
-    (Array.make 5#usize [ 1#u64, 0#u64, 0#u64, 0#u64, 0#u64 ])
 
 /-- [curve25519::backend::serial::u64::field::{curve25519::backend::serial::u64::field::FieldElement51}::MINUS_ONE]
     Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 263:4-269:7
@@ -882,455 +2299,356 @@ def backend.serial.u64.field.FieldElement51.from_bytes
   let i14 ← lift (i13 &&& low_51_bit_mask)
   ok (Array.make 5#usize [ i2, i5, i8, i11, i14 ])
 
-/-- [curve25519::backend::serial::u64::field::{curve25519::backend::serial::u64::field::FieldElement51}::to_bytes]:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 364:4-446:5
+/-- [curve25519::backend::variable_base_mul]:
+    Source: 'curve25519/solana-ed25519/src/backend.rs', lines 221:0-227:1
     Visibility: public -/
-def backend.serial.u64.field.FieldElement51.to_bytes
-  (self : backend.serial.u64.field.FieldElement51) :
-  Result (Array Std.U8 32#usize)
+def backend.variable_base_mul
+  (point : edwards.EdwardsPoint) (scalar : scalar.Scalar) :
+  Result edwards.EdwardsPoint
   := do
-  let fe ← backend.serial.u64.field.FieldElement51.reduce self
-  let i ← Array.index_usize fe 0#usize
-  let i1 ← i + 19#u64
-  let q ← i1 >>> 51#i32
-  let i2 ← Array.index_usize fe 1#usize
-  let i3 ← i2 + q
-  let q1 ← i3 >>> 51#i32
-  let i4 ← Array.index_usize fe 2#usize
-  let i5 ← i4 + q1
-  let q2 ← i5 >>> 51#i32
-  let i6 ← Array.index_usize fe 3#usize
-  let i7 ← i6 + q2
-  let q3 ← i7 >>> 51#i32
-  let i8 ← Array.index_usize fe 4#usize
-  let i9 ← i8 + q3
-  let q4 ← i9 >>> 51#i32
-  let i10 ← 19#u64 * q4
-  let i11 ← i + i10
-  let limbs ← Array.update fe 0#usize i11
-  let i12 ← 1#u64 <<< 51#i32
-  let low_51_bit_mask ← i12 - 1#u64
-  let i13 ← Array.index_usize limbs 0#usize
-  let i14 ← i13 >>> 51#i32
-  let i15 ← Array.index_usize limbs 1#usize
-  let i16 ← i15 + i14
-  let limbs1 ← Array.update limbs 1#usize i16
-  let i17 ← Array.index_usize limbs1 0#usize
-  let i18 ← lift (i17 &&& low_51_bit_mask)
-  let limbs2 ← Array.update limbs1 0#usize i18
-  let i19 ← Array.index_usize limbs2 1#usize
-  let i20 ← i19 >>> 51#i32
-  let i21 ← Array.index_usize limbs2 2#usize
-  let i22 ← i21 + i20
-  let limbs3 ← Array.update limbs2 2#usize i22
-  let i23 ← Array.index_usize limbs3 1#usize
-  let i24 ← lift (i23 &&& low_51_bit_mask)
-  let limbs4 ← Array.update limbs3 1#usize i24
-  let i25 ← Array.index_usize limbs4 2#usize
-  let i26 ← i25 >>> 51#i32
-  let i27 ← Array.index_usize limbs4 3#usize
-  let i28 ← i27 + i26
-  let limbs5 ← Array.update limbs4 3#usize i28
-  let i29 ← Array.index_usize limbs5 2#usize
-  let i30 ← lift (i29 &&& low_51_bit_mask)
-  let limbs6 ← Array.update limbs5 2#usize i30
-  let i31 ← Array.index_usize limbs6 3#usize
-  let i32 ← i31 >>> 51#i32
-  let i33 ← Array.index_usize limbs6 4#usize
-  let i34 ← i33 + i32
-  let limbs7 ← Array.update limbs6 4#usize i34
-  let i35 ← Array.index_usize limbs7 3#usize
-  let i36 ← lift (i35 &&& low_51_bit_mask)
-  let limbs8 ← Array.update limbs7 3#usize i36
-  let i37 ← Array.index_usize limbs8 4#usize
-  let i38 ← lift (i37 &&& low_51_bit_mask)
-  let limbs9 ← Array.update limbs8 4#usize i38
-  let s := Array.repeat 32#usize 0#u8
-  let i39 ← Array.index_usize limbs9 0#usize
-  let i40 ← lift (UScalar.cast .U8 i39)
-  let s1 ← Array.update s 0#usize i40
-  let i41 ← i39 >>> 8#i32
-  let i42 ← lift (UScalar.cast .U8 i41)
-  let s2 ← Array.update s1 1#usize i42
-  let i43 ← i39 >>> 16#i32
-  let i44 ← lift (UScalar.cast .U8 i43)
-  let s3 ← Array.update s2 2#usize i44
-  let i45 ← i39 >>> 24#i32
-  let i46 ← lift (UScalar.cast .U8 i45)
-  let s4 ← Array.update s3 3#usize i46
-  let i47 ← i39 >>> 32#i32
-  let i48 ← lift (UScalar.cast .U8 i47)
-  let s5 ← Array.update s4 4#usize i48
-  let i49 ← i39 >>> 40#i32
-  let i50 ← lift (UScalar.cast .U8 i49)
-  let s6 ← Array.update s5 5#usize i50
-  let i51 ← i39 >>> 48#i32
-  let i52 ← Array.index_usize limbs9 1#usize
-  let i53 ← i52 <<< 3#i32
-  let i54 ← lift (i51 ||| i53)
-  let i55 ← lift (UScalar.cast .U8 i54)
-  let s7 ← Array.update s6 6#usize i55
-  let i56 ← i52 >>> 5#i32
-  let i57 ← lift (UScalar.cast .U8 i56)
-  let s8 ← Array.update s7 7#usize i57
-  let i58 ← i52 >>> 13#i32
-  let i59 ← lift (UScalar.cast .U8 i58)
-  let s9 ← Array.update s8 8#usize i59
-  let i60 ← i52 >>> 21#i32
-  let i61 ← lift (UScalar.cast .U8 i60)
-  let s10 ← Array.update s9 9#usize i61
-  let i62 ← i52 >>> 29#i32
-  let i63 ← lift (UScalar.cast .U8 i62)
-  let s11 ← Array.update s10 10#usize i63
-  let i64 ← i52 >>> 37#i32
-  let i65 ← lift (UScalar.cast .U8 i64)
-  let s12 ← Array.update s11 11#usize i65
-  let i66 ← i52 >>> 45#i32
-  let i67 ← Array.index_usize limbs9 2#usize
-  let i68 ← i67 <<< 6#i32
-  let i69 ← lift (i66 ||| i68)
-  let i70 ← lift (UScalar.cast .U8 i69)
-  let s13 ← Array.update s12 12#usize i70
-  let i71 ← i67 >>> 2#i32
-  let i72 ← lift (UScalar.cast .U8 i71)
-  let s14 ← Array.update s13 13#usize i72
-  let i73 ← i67 >>> 10#i32
-  let i74 ← lift (UScalar.cast .U8 i73)
-  let s15 ← Array.update s14 14#usize i74
-  let i75 ← i67 >>> 18#i32
-  let i76 ← lift (UScalar.cast .U8 i75)
-  let s16 ← Array.update s15 15#usize i76
-  let i77 ← i67 >>> 26#i32
-  let i78 ← lift (UScalar.cast .U8 i77)
-  let s17 ← Array.update s16 16#usize i78
-  let i79 ← i67 >>> 34#i32
-  let i80 ← lift (UScalar.cast .U8 i79)
-  let s18 ← Array.update s17 17#usize i80
-  let i81 ← i67 >>> 42#i32
-  let i82 ← lift (UScalar.cast .U8 i81)
-  let s19 ← Array.update s18 18#usize i82
-  let i83 ← i67 >>> 50#i32
-  let i84 ← Array.index_usize limbs9 3#usize
-  let i85 ← i84 <<< 1#i32
-  let i86 ← lift (i83 ||| i85)
-  let i87 ← lift (UScalar.cast .U8 i86)
-  let s20 ← Array.update s19 19#usize i87
-  let i88 ← i84 >>> 7#i32
-  let i89 ← lift (UScalar.cast .U8 i88)
-  let s21 ← Array.update s20 20#usize i89
-  let i90 ← i84 >>> 15#i32
-  let i91 ← lift (UScalar.cast .U8 i90)
-  let s22 ← Array.update s21 21#usize i91
-  let i92 ← i84 >>> 23#i32
-  let i93 ← lift (UScalar.cast .U8 i92)
-  let s23 ← Array.update s22 22#usize i93
-  let i94 ← i84 >>> 31#i32
-  let i95 ← lift (UScalar.cast .U8 i94)
-  let s24 ← Array.update s23 23#usize i95
-  let i96 ← i84 >>> 39#i32
-  let i97 ← lift (UScalar.cast .U8 i96)
-  let s25 ← Array.update s24 24#usize i97
-  let i98 ← i84 >>> 47#i32
-  let i99 ← Array.index_usize limbs9 4#usize
-  let i100 ← i99 <<< 4#i32
-  let i101 ← lift (i98 ||| i100)
-  let i102 ← lift (UScalar.cast .U8 i101)
-  let s26 ← Array.update s25 25#usize i102
-  let i103 ← i99 >>> 4#i32
-  let i104 ← lift (UScalar.cast .U8 i103)
-  let s27 ← Array.update s26 26#usize i104
-  let i105 ← i99 >>> 12#i32
-  let i106 ← lift (UScalar.cast .U8 i105)
-  let s28 ← Array.update s27 27#usize i106
-  let i107 ← i99 >>> 20#i32
-  let i108 ← lift (UScalar.cast .U8 i107)
-  let s29 ← Array.update s28 28#usize i108
-  let i109 ← i99 >>> 28#i32
-  let i110 ← lift (UScalar.cast .U8 i109)
-  let s30 ← Array.update s29 29#usize i110
-  let i111 ← i99 >>> 36#i32
-  let i112 ← lift (UScalar.cast .U8 i111)
-  let s31 ← Array.update s30 30#usize i112
-  let i113 ← i99 >>> 44#i32
-  let i114 ← lift (UScalar.cast .U8 i113)
-  let s32 ← Array.update s31 31#usize i114
-  let i115 ← Array.index_usize s32 31#usize
-  let i116 ← lift (i115 &&& 128#u8)
-  massert (i116 = 0#u8)
-  ok s32
+  let bk ← backend.get_selected_backend
+  match bk with
+  | backend.BackendKind.Avx2 =>
+    backend.vector.scalar_mul.variable_base.spec_avx2.mul point scalar
+  | backend.BackendKind.Serial =>
+    backend.serial.scalar_mul.variable_base.mul point scalar
 
-/-- [curve25519::backend::serial::u64::field::{curve25519::backend::serial::u64::field::FieldElement51}::pow2k::LOW_51_BIT_MASK]
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 507:12-507:58 -/
-@[global_simps, irreducible]
-def backend.serial.u64.field.FieldElement51.pow2k.LOW_51_BIT_MASK
-  : Result Std.U64 := do
-  let i ← 1#u64 <<< 51#i32
-  i - 1#u64
-
-/-- [curve25519::backend::serial::u64::field::{curve25519::backend::serial::u64::field::FieldElement51}::pow2k::m]:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 456:8-458:9 -/
-def backend.serial.u64.field.FieldElement51.pow2k.m
-  (x : Std.U64) (y : Std.U64) : Result Std.U128 := do
-  let i ← lift (UScalar.cast .U128 x)
-  let i1 ← lift (UScalar.cast .U128 y)
-  i * i1
-
-/-- [curve25519::backend::serial::u64::field::{curve25519::backend::serial::u64::field::FieldElement51}::pow2k]: loop body 0:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 476:16-488:86
+/-- [curve25519::backend::vartime_double_base_mul]:
+    Source: 'curve25519/solana-ed25519/src/backend.rs', lines 231:0-237:1
     Visibility: public -/
-@[rust_loop_body]
-def backend.serial.u64.field.FieldElement51.pow2k_loop.body
-  (k : Std.U32) (a : Array Std.U64 5#usize) :
-  Result (ControlFlow (Std.U32 × (Array Std.U64 5#usize)) (Array Std.U64
-    5#usize))
+def backend.vartime_double_base_mul
+  (a : scalar.Scalar) (A : edwards.EdwardsPoint) (b : scalar.Scalar) :
+  Result edwards.EdwardsPoint
   := do
-  let i ← Array.index_usize a 3#usize
-  let a3_19 ← 19#u64 * i
-  let i1 ← Array.index_usize a 4#usize
-  let a4_19 ← 19#u64 * i1
-  let i2 ← Array.index_usize a 0#usize
-  let i3 ← backend.serial.u64.field.FieldElement51.pow2k.m i2 i2
-  let i4 ← Array.index_usize a 1#usize
-  let i5 ← backend.serial.u64.field.FieldElement51.pow2k.m i4 a4_19
-  let i6 ← Array.index_usize a 2#usize
-  let i7 ← backend.serial.u64.field.FieldElement51.pow2k.m i6 a3_19
-  let i8 ← i5 + i7
-  let i9 ← 2#u128 * i8
-  let c0 ← i3 + i9
-  let i10 ← backend.serial.u64.field.FieldElement51.pow2k.m i a3_19
-  let i11 ← backend.serial.u64.field.FieldElement51.pow2k.m i2 i4
-  let i12 ← backend.serial.u64.field.FieldElement51.pow2k.m i6 a4_19
-  let i13 ← i11 + i12
-  let i14 ← 2#u128 * i13
-  let c1 ← i10 + i14
-  let i15 ← backend.serial.u64.field.FieldElement51.pow2k.m i4 i4
-  let i16 ← backend.serial.u64.field.FieldElement51.pow2k.m i2 i6
-  let i17 ← backend.serial.u64.field.FieldElement51.pow2k.m i1 a3_19
-  let i18 ← i16 + i17
-  let i19 ← 2#u128 * i18
-  let c2 ← i15 + i19
-  let i20 ← backend.serial.u64.field.FieldElement51.pow2k.m i1 a4_19
-  let i21 ← backend.serial.u64.field.FieldElement51.pow2k.m i2 i
-  let i22 ← backend.serial.u64.field.FieldElement51.pow2k.m i4 i6
-  let i23 ← i21 + i22
-  let i24 ← 2#u128 * i23
-  let c3 ← i20 + i24
-  let i25 ← backend.serial.u64.field.FieldElement51.pow2k.m i6 i6
-  let i26 ← backend.serial.u64.field.FieldElement51.pow2k.m i2 i1
-  let i27 ← backend.serial.u64.field.FieldElement51.pow2k.m i4 i
-  let i28 ← i26 + i27
-  let i29 ← 2#u128 * i28
-  let c4 ← i25 + i29
-  let i30 ← 1#u64 <<< 54#i32
-  massert (i2 < i30)
-  massert (i4 < i30)
-  massert (i6 < i30)
-  massert (i < i30)
-  massert (i1 < i30)
-  let i31 ← c0 >>> 51#i32
-  let i32 ← lift (UScalar.cast .U64 i31)
-  let i33 ← lift (UScalar.cast .U128 i32)
-  let c11 ← c1 + i33
-  let i34 ← lift (UScalar.cast .U64 c0)
-  let i35 ← backend.serial.u64.field.FieldElement51.pow2k.LOW_51_BIT_MASK
-  let i36 ← lift (i34 &&& i35)
-  let a1 ← Array.update a 0#usize i36
-  let i37 ← c11 >>> 51#i32
-  let i38 ← lift (UScalar.cast .U64 i37)
-  let i39 ← lift (UScalar.cast .U128 i38)
-  let c21 ← c2 + i39
-  let i40 ← lift (UScalar.cast .U64 c11)
-  let i41 ← lift (i40 &&& i35)
-  let a2 ← Array.update a1 1#usize i41
-  let i42 ← c21 >>> 51#i32
-  let i43 ← lift (UScalar.cast .U64 i42)
-  let i44 ← lift (UScalar.cast .U128 i43)
-  let c31 ← c3 + i44
-  let i45 ← lift (UScalar.cast .U64 c21)
-  let i46 ← lift (i45 &&& i35)
-  let a3 ← Array.update a2 2#usize i46
-  let i47 ← c31 >>> 51#i32
-  let i48 ← lift (UScalar.cast .U64 i47)
-  let i49 ← lift (UScalar.cast .U128 i48)
-  let c41 ← c4 + i49
-  let i50 ← lift (UScalar.cast .U64 c31)
-  let i51 ← lift (i50 &&& i35)
-  let a4 ← Array.update a3 3#usize i51
-  let i52 ← c41 >>> 51#i32
-  let carry ← lift (UScalar.cast .U64 i52)
-  let i53 ← lift (UScalar.cast .U64 c41)
-  let i54 ← lift (i53 &&& i35)
-  let a5 ← Array.update a4 4#usize i54
-  let i55 ← carry * 19#u64
-  let i56 ← Array.index_usize a5 0#usize
-  let i57 ← i56 + i55
-  let a6 ← Array.update a5 0#usize i57
-  let i58 ← Array.index_usize a6 0#usize
-  let i59 ← i58 >>> 51#i32
-  let i60 ← Array.index_usize a6 1#usize
-  let i61 ← i60 + i59
-  let a7 ← Array.update a6 1#usize i61
-  let i62 ← Array.index_usize a7 0#usize
-  let i63 ← lift (i62 &&& i35)
-  let (_, index_mut_back) ← Array.index_mut_usize a7 0#usize
-  let k1 ← k - 1#u32
-  if k1 = 0#u32
-  then let a8 := index_mut_back i63
-       ok (done a8)
-  else let a8 := index_mut_back i63
-       ok (cont (k1, a8))
+  let bk ← backend.get_selected_backend
+  match bk with
+  | backend.BackendKind.Avx2 =>
+    backend.vector.scalar_mul.vartime_double_base.spec_avx2.mul a A b
+  | backend.BackendKind.Serial =>
+    backend.serial.scalar_mul.vartime_double_base.mul a A b
 
-/-- [curve25519::backend::serial::u64::field::{curve25519::backend::serial::u64::field::FieldElement51}::pow2k]: loop 0:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 476:16-488:86
-    Visibility: public -/
-@[rust_loop]
-def backend.serial.u64.field.FieldElement51.pow2k_loop
-  (k : Std.U32) (a : Array Std.U64 5#usize) :
-  Result (Array Std.U64 5#usize)
+/-- [curve25519::edwards::{curve25519::edwards::EdwardsPoint}::as_projective_niels]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 528:4-535:5 -/
+def edwards.EdwardsPoint.as_projective_niels
+  (self : edwards.EdwardsPoint) :
+  Result backend.serial.curve_models.ProjectiveNielsPoint
   := do
-  loop
-    (fun (k1, a1) => backend.serial.u64.field.FieldElement51.pow2k_loop.body k1
-      a1)
-    (k, a)
+  let fe ←
+    Shared0FieldElement51.Insts.CoreOpsArithAddSharedAFieldElement51FieldElement51.add
+      self.Y self.X
+  let fe1 ←
+    Shared0FieldElement51.Insts.CoreOpsArithSubSharedAFieldElement51FieldElement51.sub
+      self.Y self.X
+  let fe2 ← backend.serial.u64.constants.EDWARDS_D2
+  let fe3 ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      self.T fe2
+  ok { Y_plus_X := fe, Y_minus_X := fe1, Z := self.Z, T2d := fe3 }
 
-/-- [curve25519::backend::serial::u64::field::{curve25519::backend::serial::u64::field::FieldElement51}::pow2k]:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 450:4-555:5
-    Visibility: public -/
-def backend.serial.u64.field.FieldElement51.pow2k
-  (self : backend.serial.u64.field.FieldElement51) (k : Std.U32) :
-  Result backend.serial.u64.field.FieldElement51
-  := do
-  massert (k > 0#u32)
-  let a ← backend.serial.u64.field.FieldElement51.pow2k_loop k self
-  ok a
-
-/-- [curve25519::backend::serial::u64::field::{curve25519::backend::serial::u64::field::FieldElement51}::square]:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 558:4-560:5
-    Visibility: public -/
-def backend.serial.u64.field.FieldElement51.square
-  (self : backend.serial.u64.field.FieldElement51) :
-  Result backend.serial.u64.field.FieldElement51
-  := do
-  backend.serial.u64.field.FieldElement51.pow2k self 1#u32
-
-/-- [curve25519::backend::serial::u64::field::{curve25519::backend::serial::u64::field::FieldElement51}::square2]: loop body 0:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 565:8-567:9
-    Visibility: public -/
-@[rust_loop_body]
-def backend.serial.u64.field.FieldElement51.square2_loop.body
-  (iter : core.ops.range.Range Std.Usize)
-  (square : backend.serial.u64.field.FieldElement51) :
-  Result (ControlFlow ((core.ops.range.Range Std.Usize) ×
-    backend.serial.u64.field.FieldElement51)
-    backend.serial.u64.field.FieldElement51)
-  := do
-  let (o, iter1) ←
-    core.iter.range.IteratorRange.next core.iter.range.StepUsize iter
-  match o with
-  | none => ok (done square)
-  | some i =>
-    let i1 ← Array.index_usize square i
-    let i2 ← i1 * 2#u64
-    let a ← Array.update square i i2
-    ok (cont (iter1, a))
-
-/-- [curve25519::backend::serial::u64::field::{curve25519::backend::serial::u64::field::FieldElement51}::square2]: loop 0:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 565:8-567:9
-    Visibility: public -/
-@[rust_loop]
-def backend.serial.u64.field.FieldElement51.square2_loop
-  (iter : core.ops.range.Range Std.Usize)
-  (square : backend.serial.u64.field.FieldElement51) :
-  Result backend.serial.u64.field.FieldElement51
-  := do
-  loop
-    (fun (iter1, square1) =>
-      backend.serial.u64.field.FieldElement51.square2_loop.body iter1 square1)
-    (iter, square)
-
-/-- [curve25519::backend::serial::u64::field::{curve25519::backend::serial::u64::field::FieldElement51}::square2]:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 563:4-570:5
-    Visibility: public -/
-def backend.serial.u64.field.FieldElement51.square2
-  (self : backend.serial.u64.field.FieldElement51) :
-  Result backend.serial.u64.field.FieldElement51
-  := do
-  let square ← backend.serial.u64.field.FieldElement51.pow2k self 1#u32
-  backend.serial.u64.field.FieldElement51.square2_loop
-    { start := 0#usize, «end» := 5#usize } square
-
-/-- [curve25519::field::{impl subtle::ConstantTimeEq for curve25519::backend::serial::u64::field::FieldElement51}::ct_eq]:
-    Source: 'curve25519/solana-ed25519/src/field.rs', lines 64:4-66:5
-    Visibility: public -/
-def backend.serial.u64.field.FieldElement51.Insts.SubtleConstantTimeEq.ct_eq
-  (self : backend.serial.u64.field.FieldElement51)
-  (other : backend.serial.u64.field.FieldElement51) :
-  Result subtle.Choice
-  := do
-  let a ← backend.serial.u64.field.FieldElement51.to_bytes self
-  let s ← lift (Array.to_slice a)
-  let a1 ← backend.serial.u64.field.FieldElement51.to_bytes other
-  let s1 ← lift (Array.to_slice a1)
-  Slice.Insts.SubtleConstantTimeEq.ct_eq U8.Insts.SubtleConstantTimeEq s s1
-
-/-- [curve25519::field::{impl core::cmp::PartialEq<curve25519::backend::serial::u64::field::FieldElement51> for curve25519::backend::serial::u64::field::FieldElement51}::eq]:
-    Source: 'curve25519/solana-ed25519/src/field.rs', lines 55:4-57:5
+/-- [curve25519::edwards::{impl core::ops::arith::Add<&'a curve25519::edwards::EdwardsPoint, curve25519::edwards::EdwardsPoint> for &'_1 curve25519::edwards::EdwardsPoint}::add]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 785:4-787:5
     Visibility: public -/
 def
-  backend.serial.u64.field.FieldElement51.Insts.CoreCmpPartialEqFieldElement51.eq
-  (self : backend.serial.u64.field.FieldElement51)
-  (other : backend.serial.u64.field.FieldElement51) :
-  Result Bool
+  Shared0EdwardsPoint.Insts.CoreOpsArithAddSharedAEdwardsPointEdwardsPoint.add
+  (self : edwards.EdwardsPoint) (other : edwards.EdwardsPoint) :
+  Result edwards.EdwardsPoint
+  := do
+  let pnp ← edwards.EdwardsPoint.as_projective_niels other
+  let cp ←
+    Shared0EdwardsPoint.Insts.CoreOpsArithAddSharedAProjectiveNielsPointCompletedPoint.add
+      self pnp
+  backend.serial.curve_models.CompletedPoint.as_extended cp
+
+/-- [curve25519::edwards::{impl core::ops::arith::Add<curve25519::edwards::EdwardsPoint, curve25519::edwards::EdwardsPoint> for curve25519::edwards::EdwardsPoint}::add]:
+    Source: 'curve25519/solana-ed25519/src/macros.rs', lines 33:12-35:13
+    Visibility: public -/
+def edwards.EdwardsPoint.Insts.CoreOpsArithAddEdwardsPointEdwardsPoint.add
+  (self : edwards.EdwardsPoint) (rhs : edwards.EdwardsPoint) :
+  Result edwards.EdwardsPoint
+  := do
+  Shared0EdwardsPoint.Insts.CoreOpsArithAddSharedAEdwardsPointEdwardsPoint.add
+    self rhs
+
+/-- [curve25519::edwards::{impl core::ops::arith::Mul<&'a curve25519::scalar::Scalar, curve25519::edwards::EdwardsPoint> for &'_1 curve25519::edwards::EdwardsPoint}::mul]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 884:4-886:5
+    Visibility: public -/
+def Shared0EdwardsPoint.Insts.CoreOpsArithMulSharedAScalarEdwardsPoint.mul
+  (self : edwards.EdwardsPoint) (scalar : scalar.Scalar) :
+  Result edwards.EdwardsPoint
+  := do
+  backend.variable_base_mul self scalar
+
+/-- [curve25519::edwards::{impl core::ops::arith::Mul<&'a curve25519::edwards::EdwardsPoint, curve25519::edwards::EdwardsPoint> for &'_1 curve25519::scalar::Scalar}::mul]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 896:4-898:5
+    Visibility: public -/
+def Shared0Scalar.Insts.CoreOpsArithMulSharedAEdwardsPointEdwardsPoint.mul
+  (self : scalar.Scalar) (point : edwards.EdwardsPoint) :
+  Result edwards.EdwardsPoint
+  := do
+  Shared0EdwardsPoint.Insts.CoreOpsArithMulSharedAScalarEdwardsPoint.mul point
+    self
+
+/-- [curve25519::edwards::{impl core::ops::arith::Mul<curve25519::edwards::EdwardsPoint, curve25519::edwards::EdwardsPoint> for &'a curve25519::scalar::Scalar}::mul]:
+    Source: 'curve25519/solana-ed25519/src/macros.rs', lines 100:12-102:13
+    Visibility: public -/
+def SharedAScalar.Insts.CoreOpsArithMulEdwardsPointEdwardsPoint.mul
+  (self : scalar.Scalar) (rhs : edwards.EdwardsPoint) :
+  Result edwards.EdwardsPoint
+  := do
+  Shared0Scalar.Insts.CoreOpsArithMulSharedAEdwardsPointEdwardsPoint.mul self
+    rhs
+
+/-- [curve25519::edwards::{curve25519::edwards::EdwardsPoint}::mul_base]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 906:4-916:5
+    Visibility: public -/
+def edwards.EdwardsPoint.mul_base
+  (scalar : scalar.Scalar) : Result edwards.EdwardsPoint := do
+  let ep ← backend.serial.u64.constants.ED25519_BASEPOINT_POINT
+  SharedAScalar.Insts.CoreOpsArithMulEdwardsPointEdwardsPoint.mul scalar ep
+
+/-- [curve25519::backend::vartime_triple_base_mul_128_128_256_prechecked]:
+    Source: 'curve25519/solana-ed25519/src/backend.rs', lines 262:0-280:1 -/
+def backend.vartime_triple_base_mul_128_128_256_prechecked
+  (a1 : scalar.Scalar) (A1 : edwards.EdwardsPoint) (a2 : scalar.Scalar)
+  (A2 : edwards.EdwardsPoint) (b : scalar.Scalar) :
+  Result edwards.EdwardsPoint
+  := do
+  let bk ← backend.get_selected_backend
+  match bk with
+  | backend.BackendKind.Avx2 =>
+    backend.vector.scalar_mul.vartime_triple_base.spec_avx2.mul_128_128_256_prechecked
+      a1 A1 a2 A2 b
+  | backend.BackendKind.Serial =>
+    backend.serial.scalar_mul.vartime_triple_base.mul_128_128_256_prechecked a1
+      A1 a2 A2 b
+
+/-- [curve25519::backend::vartime_triple_base_mul_128_128_256]:
+    Source: 'curve25519/solana-ed25519/src/backend.rs', lines 244:0-256:1
+    Visibility: public -/
+def backend.vartime_triple_base_mul_128_128_256
+  (a1 : scalar.Scalar) (A1 : edwards.EdwardsPoint) (a2 : scalar.Scalar)
+  (A2 : edwards.EdwardsPoint) (b : scalar.Scalar) :
+  Result edwards.EdwardsPoint
+  := do
+  let b1 ← backend.scalar_fits_in_128_bits a1
+  if b1
+  then
+    let b2 ← backend.scalar_fits_in_128_bits a2
+    if b2
+    then backend.vartime_triple_base_mul_128_128_256_prechecked a1 A1 a2 A2 b
+    else
+      let ep ←
+        Shared0Scalar.Insts.CoreOpsArithMulSharedAEdwardsPointEdwardsPoint.mul
+          a1 A1
+      let ep1 ←
+        Shared0Scalar.Insts.CoreOpsArithMulSharedAEdwardsPointEdwardsPoint.mul
+          a2 A2
+      let ep2 ←
+        edwards.EdwardsPoint.Insts.CoreOpsArithAddEdwardsPointEdwardsPoint.add
+          ep ep1
+      let ep3 ← edwards.EdwardsPoint.mul_base b
+      edwards.EdwardsPoint.Insts.CoreOpsArithAddEdwardsPointEdwardsPoint.add
+        ep2 ep3
+  else
+    let ep ←
+      Shared0Scalar.Insts.CoreOpsArithMulSharedAEdwardsPointEdwardsPoint.mul a1
+        A1
+    let ep1 ←
+      Shared0Scalar.Insts.CoreOpsArithMulSharedAEdwardsPointEdwardsPoint.mul a2
+        A2
+    let ep2 ←
+      edwards.EdwardsPoint.Insts.CoreOpsArithAddEdwardsPointEdwardsPoint.add ep
+        ep1
+    let ep3 ← edwards.EdwardsPoint.mul_base b
+    edwards.EdwardsPoint.Insts.CoreOpsArithAddEdwardsPointEdwardsPoint.add ep2
+      ep3
+
+/-- [curve25519::constants::BASEPOINT_ORDER]
+    Source: 'curve25519/solana-ed25519/src/constants.rs', lines 58:0-64:2 -/
+@[global_simps, irreducible]
+def constants.BASEPOINT_ORDER : scalar.Scalar :=
+  {
+    bytes :=
+      (Array.make 32#usize [
+        237#u8, 211#u8, 245#u8, 92#u8, 26#u8, 99#u8, 18#u8, 88#u8, 214#u8,
+        156#u8, 247#u8, 162#u8, 222#u8, 249#u8, 222#u8, 20#u8, 0#u8, 0#u8,
+        0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8,
+        0#u8, 16#u8
+        ])
+  }
+
+/-- [curve25519::edwards::affine::{impl core::clone::Clone for curve25519::edwards::affine::AffinePoint}::clone]:
+    Source: 'curve25519/solana-ed25519/src/edwards/affine.rs', lines 11:15-11:20
+    Visibility: public -/
+def edwards.affine.AffinePoint.Insts.CoreCloneClone.clone
+  (self : edwards.affine.AffinePoint) : Result edwards.affine.AffinePoint := do
+  ok self
+
+/-- Trait implementation: [curve25519::edwards::affine::{impl core::clone::Clone for curve25519::edwards::affine::AffinePoint}]
+    Source: 'curve25519/solana-ed25519/src/edwards/affine.rs', lines 11:15-11:20 -/
+@[reducible]
+def edwards.affine.AffinePoint.Insts.CoreCloneClone : core.clone.Clone
+  edwards.affine.AffinePoint := {
+  clone := edwards.affine.AffinePoint.Insts.CoreCloneClone.clone
+}
+
+/-- Trait implementation: [curve25519::edwards::affine::{impl core::marker::Copy for curve25519::edwards::affine::AffinePoint}]
+    Source: 'curve25519/solana-ed25519/src/edwards/affine.rs', lines 11:9-11:13 -/
+@[reducible]
+def edwards.affine.AffinePoint.Insts.CoreMarkerCopy : core.marker.Copy
+  edwards.affine.AffinePoint := {
+  cloneInst := edwards.affine.AffinePoint.Insts.CoreCloneClone
+}
+
+/-- [curve25519::edwards::affine::{impl core::fmt::Debug for curve25519::edwards::affine::AffinePoint}::fmt]:
+    Source: 'curve25519/solana-ed25519/src/edwards/affine.rs', lines 11:22-11:27
+    Visibility: public -/
+def edwards.affine.AffinePoint.Insts.CoreFmtDebug.fmt
+  (self : edwards.affine.AffinePoint) (f : core.fmt.Formatter) :
+  Result ((core.result.Result Unit core.fmt.Error) × core.fmt.Formatter)
+  := do
+  let dyn :=
+    Dyn.mk _ backend.serial.u64.field.FieldElement51.Insts.CoreFmtDebug self.x
+  let dyn1 :=
+    Dyn.mk _ (core.fmt.DebugShared
+      backend.serial.u64.field.FieldElement51.Insts.CoreFmtDebug) self.y
+  core.fmt.Formatter.debug_struct_field2_finish f (toStr "AffinePoint") (toStr
+    "x") dyn (toStr "y") dyn1
+
+/-- Trait implementation: [curve25519::edwards::affine::{impl core::fmt::Debug for curve25519::edwards::affine::AffinePoint}]
+    Source: 'curve25519/solana-ed25519/src/edwards/affine.rs', lines 11:22-11:27 -/
+@[reducible]
+def edwards.affine.AffinePoint.Insts.CoreFmtDebug : core.fmt.Debug
+  edwards.affine.AffinePoint := {
+  fmt := edwards.affine.AffinePoint.Insts.CoreFmtDebug.fmt
+}
+
+/-- [curve25519::edwards::affine::{impl subtle::ConstantTimeEq for curve25519::edwards::affine::AffinePoint}::ct_eq]:
+    Source: 'curve25519/solana-ed25519/src/edwards/affine.rs', lines 18:4-20:5
+    Visibility: public -/
+def edwards.affine.AffinePoint.Insts.SubtleConstantTimeEq.ct_eq
+  (self : edwards.affine.AffinePoint) (other : edwards.affine.AffinePoint) :
+  Result subtle.Choice
   := do
   let c ←
     backend.serial.u64.field.FieldElement51.Insts.SubtleConstantTimeEq.ct_eq
-      self other
+      self.x other.x
+  let c1 ←
+    backend.serial.u64.field.FieldElement51.Insts.SubtleConstantTimeEq.ct_eq
+      self.y other.y
+  subtle.Choice.Insts.CoreOpsBitBitAndChoiceChoice.bitand c c1
+
+/-- Trait implementation: [curve25519::edwards::affine::{impl subtle::ConstantTimeEq for curve25519::edwards::affine::AffinePoint}]
+    Source: 'curve25519/solana-ed25519/src/edwards/affine.rs', lines 17:0-21:1 -/
+@[reducible]
+def edwards.affine.AffinePoint.Insts.SubtleConstantTimeEq :
+  subtle.ConstantTimeEq edwards.affine.AffinePoint := {
+  ct_eq := edwards.affine.AffinePoint.Insts.SubtleConstantTimeEq.ct_eq
+}
+
+/-- [curve25519::edwards::affine::{impl subtle::ConditionallySelectable for curve25519::edwards::affine::AffinePoint}::conditional_select]:
+    Source: 'curve25519/solana-ed25519/src/edwards/affine.rs', lines 24:4-29:5
+    Visibility: public -/
+def
+  edwards.affine.AffinePoint.Insts.SubtleConditionallySelectable.conditional_select
+  (a : edwards.affine.AffinePoint) (b : edwards.affine.AffinePoint)
+  (choice : subtle.Choice) :
+  Result edwards.affine.AffinePoint
+  := do
+  let fe ←
+    backend.serial.u64.field.FieldElement51.Insts.SubtleConditionallySelectable.conditional_select
+      a.x b.x choice
+  let fe1 ←
+    backend.serial.u64.field.FieldElement51.Insts.SubtleConditionallySelectable.conditional_select
+      a.y b.y choice
+  ok { x := fe, y := fe1 }
+
+/-- Trait implementation: [curve25519::edwards::affine::{impl subtle::ConditionallySelectable for curve25519::edwards::affine::AffinePoint}]
+    Source: 'curve25519/solana-ed25519/src/edwards/affine.rs', lines 23:0-30:1 -/
+@[reducible]
+def edwards.affine.AffinePoint.Insts.SubtleConditionallySelectable :
+  subtle.ConditionallySelectable edwards.affine.AffinePoint := {
+  coremarkerCopyInst := edwards.affine.AffinePoint.Insts.CoreMarkerCopy
+  conditional_select :=
+    edwards.affine.AffinePoint.Insts.SubtleConditionallySelectable.conditional_select
+  conditional_assign :=
+    edwards.affine.AffinePoint.Insts.SubtleConditionallySelectable.conditional_assign
+  conditional_swap :=
+    edwards.affine.AffinePoint.Insts.SubtleConditionallySelectable.conditional_swap
+}
+
+/-- [curve25519::edwards::affine::{impl curve25519::traits::Identity for curve25519::edwards::affine::AffinePoint}::identity]:
+    Source: 'curve25519/solana-ed25519/src/edwards/affine.rs', lines 39:4-44:5
+    Visibility: public -/
+def edwards.affine.AffinePoint.Insts.Curve25519TraitsIdentity.identity
+  : Result edwards.affine.AffinePoint := do
+  let fe ← backend.serial.u64.field.FieldElement51.ZERO
+  let fe1 ← backend.serial.u64.field.FieldElement51.ONE
+  ok { x := fe, y := fe1 }
+
+/-- [curve25519::edwards::affine::{impl core::default::Default for curve25519::edwards::affine::AffinePoint}::default]:
+    Source: 'curve25519/solana-ed25519/src/edwards/affine.rs', lines 33:4-35:5
+    Visibility: public -/
+def edwards.affine.AffinePoint.Insts.CoreDefaultDefault.default
+  : Result edwards.affine.AffinePoint := do
+  edwards.affine.AffinePoint.Insts.Curve25519TraitsIdentity.identity
+
+/-- Trait implementation: [curve25519::edwards::affine::{impl core::default::Default for curve25519::edwards::affine::AffinePoint}]
+    Source: 'curve25519/solana-ed25519/src/edwards/affine.rs', lines 32:0-36:1 -/
+@[reducible]
+def edwards.affine.AffinePoint.Insts.CoreDefaultDefault : core.default.Default
+  edwards.affine.AffinePoint := {
+  default := edwards.affine.AffinePoint.Insts.CoreDefaultDefault.default
+}
+
+/-- Trait implementation: [curve25519::edwards::affine::{impl curve25519::traits::Identity for curve25519::edwards::affine::AffinePoint}]
+    Source: 'curve25519/solana-ed25519/src/edwards/affine.rs', lines 38:0-45:1 -/
+@[reducible]
+def edwards.affine.AffinePoint.Insts.Curve25519TraitsIdentity : traits.Identity
+  edwards.affine.AffinePoint := {
+  identity :=
+    edwards.affine.AffinePoint.Insts.Curve25519TraitsIdentity.identity
+}
+
+/-- [curve25519::edwards::affine::{impl core::cmp::PartialEq<curve25519::edwards::affine::AffinePoint> for curve25519::edwards::affine::AffinePoint}::eq]:
+    Source: 'curve25519/solana-ed25519/src/edwards/affine.rs', lines 48:4-50:5
+    Visibility: public -/
+def edwards.affine.AffinePoint.Insts.CoreCmpPartialEqAffinePoint.eq
+  (self : edwards.affine.AffinePoint) (other : edwards.affine.AffinePoint) :
+  Result Bool
+  := do
+  let c ←
+    edwards.affine.AffinePoint.Insts.SubtleConstantTimeEq.ct_eq self other
   core.convert.IntoFrom.into Bool.Insts.CoreConvertFromChoice c
 
-/-- Trait implementation: [curve25519::field::{impl core::cmp::PartialEq<curve25519::backend::serial::u64::field::FieldElement51> for curve25519::backend::serial::u64::field::FieldElement51}]
-    Source: 'curve25519/solana-ed25519/src/field.rs', lines 54:0-58:1 -/
+/-- Trait implementation: [curve25519::edwards::affine::{impl core::cmp::PartialEq<curve25519::edwards::affine::AffinePoint> for curve25519::edwards::affine::AffinePoint}]
+    Source: 'curve25519/solana-ed25519/src/edwards/affine.rs', lines 47:0-51:1 -/
 @[reducible]
-def
-  backend.serial.u64.field.FieldElement51.Insts.CoreCmpPartialEqFieldElement51
-  : core.cmp.PartialEq backend.serial.u64.field.FieldElement51
-  backend.serial.u64.field.FieldElement51 := {
-  eq :=
-    backend.serial.u64.field.FieldElement51.Insts.CoreCmpPartialEqFieldElement51.eq
+def edwards.affine.AffinePoint.Insts.CoreCmpPartialEqAffinePoint :
+  core.cmp.PartialEq edwards.affine.AffinePoint edwards.affine.AffinePoint := {
+  eq := edwards.affine.AffinePoint.Insts.CoreCmpPartialEqAffinePoint.eq
 }
 
-/-- Trait implementation: [curve25519::field::{impl core::cmp::Eq for curve25519::backend::serial::u64::field::FieldElement51}]
-    Source: 'curve25519/solana-ed25519/src/field.rs', lines 52:0-52:27 -/
+/-- Trait implementation: [curve25519::edwards::affine::{impl core::cmp::Eq for curve25519::edwards::affine::AffinePoint}]
+    Source: 'curve25519/solana-ed25519/src/edwards/affine.rs', lines 53:0-53:26 -/
 @[reducible]
-def backend.serial.u64.field.FieldElement51.Insts.CoreCmpEq : core.cmp.Eq
-  backend.serial.u64.field.FieldElement51 := {
-  partialEqInst :=
-    backend.serial.u64.field.FieldElement51.Insts.CoreCmpPartialEqFieldElement51
+def edwards.affine.AffinePoint.Insts.CoreCmpEq : core.cmp.Eq
+  edwards.affine.AffinePoint := {
+  partialEqInst := edwards.affine.AffinePoint.Insts.CoreCmpPartialEqAffinePoint
+  assert_fields_are_eq :=
+    edwards.affine.AffinePoint.Insts.CoreCmpEq.assert_fields_are_eq
 }
 
-/-- Trait implementation: [curve25519::field::{impl subtle::ConstantTimeEq for curve25519::backend::serial::u64::field::FieldElement51}]
-    Source: 'curve25519/solana-ed25519/src/field.rs', lines 60:0-67:1 -/
-@[reducible]
-def backend.serial.u64.field.FieldElement51.Insts.SubtleConstantTimeEq :
-  subtle.ConstantTimeEq backend.serial.u64.field.FieldElement51 := {
-  ct_eq :=
-    backend.serial.u64.field.FieldElement51.Insts.SubtleConstantTimeEq.ct_eq
-}
-
-/-- [curve25519::field::{impl core::default::Default for curve25519::backend::serial::u64::field::FieldElement51}::default]:
-    Source: 'curve25519/solana-ed25519/src/field.rs', lines 70:4-72:5
+/-- [curve25519::edwards::affine::{curve25519::edwards::affine::AffinePoint}::to_edwards]:
+    Source: 'curve25519/solana-ed25519/src/edwards/affine.rs', lines 60:4-67:5
     Visibility: public -/
-def backend.serial.u64.field.FieldElement51.Insts.CoreDefaultDefault.default
-  : Result backend.serial.u64.field.FieldElement51 := do
-  backend.serial.u64.field.FieldElement51.ZERO
-
-/-- Trait implementation: [curve25519::field::{impl core::default::Default for curve25519::backend::serial::u64::field::FieldElement51}]
-    Source: 'curve25519/solana-ed25519/src/field.rs', lines 69:0-73:1 -/
-@[reducible]
-def backend.serial.u64.field.FieldElement51.Insts.CoreDefaultDefault :
-  core.default.Default backend.serial.u64.field.FieldElement51 := {
-  default :=
-    backend.serial.u64.field.FieldElement51.Insts.CoreDefaultDefault.default
-}
+def edwards.affine.AffinePoint.to_edwards
+  (self : edwards.affine.AffinePoint) : Result edwards.EdwardsPoint := do
+  let fe ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      self.x self.y
+  let fe1 ← backend.serial.u64.field.FieldElement51.ONE
+  ok { X := self.x, Y := self.y, Z := fe1, T := fe }
 
 /-- [curve25519::field::{curve25519::backend::serial::u64::field::FieldElement51}::is_negative]:
     Source: 'curve25519/solana-ed25519/src/field.rs', lines 139:4-142:5 -/
@@ -1341,15 +2659,468 @@ def field.FieldElement51.is_negative
   let i1 ← lift (i &&& 1#u8)
   core.convert.IntoFrom.into subtle.Choice.Insts.CoreConvertFromU8 i1
 
-/-- [curve25519::field::{curve25519::backend::serial::u64::field::FieldElement51}::is_zero]:
-    Source: 'curve25519/solana-ed25519/src/field.rs', lines 149:4-154:5 -/
-def field.FieldElement51.is_zero
-  (self : backend.serial.u64.field.FieldElement51) : Result subtle.Choice := do
-  let zero := Array.repeat 32#usize 0#u8
-  let bytes ← backend.serial.u64.field.FieldElement51.to_bytes self
-  let s ← lift (Array.to_slice bytes)
-  let s1 ← lift (Array.to_slice zero)
+/-- [curve25519::edwards::affine::{curve25519::edwards::affine::AffinePoint}::compress]:
+    Source: 'curve25519/solana-ed25519/src/edwards/affine.rs', lines 71:4-75:5
+    Visibility: public -/
+def edwards.affine.AffinePoint.compress
+  (self : edwards.affine.AffinePoint) : Result edwards.CompressedEdwardsY := do
+  let s ← backend.serial.u64.field.FieldElement51.to_bytes self.y
+  let c ← field.FieldElement51.is_negative self.x
+  let i ← subtle.Choice.unwrap_u8 c
+  let i1 ← i <<< 7#i32
+  let i2 ← Array.index_usize s 31#usize
+  let i3 ← lift (i2 ^^^ i1)
+  let s1 ← Array.update s 31#usize i3
+  ok s1
+
+/-- [curve25519::edwards::{impl core::ops::arith::Mul<curve25519::scalar::Scalar, curve25519::edwards::EdwardsPoint> for curve25519::edwards::EdwardsPoint}::mul]:
+    Source: 'curve25519/solana-ed25519/src/macros.rs', lines 107:12-109:13
+    Visibility: public -/
+def edwards.EdwardsPoint.Insts.CoreOpsArithMulScalarEdwardsPoint.mul
+  (self : edwards.EdwardsPoint) (rhs : scalar.Scalar) :
+  Result edwards.EdwardsPoint
+  := do
+  Shared0EdwardsPoint.Insts.CoreOpsArithMulSharedAScalarEdwardsPoint.mul self
+    rhs
+
+/-- [curve25519::edwards::affine::{impl core::ops::arith::Mul<&'_0 curve25519::edwards::affine::AffinePoint, curve25519::edwards::EdwardsPoint> for curve25519::scalar::Scalar}::mul]:
+    Source: 'curve25519/solana-ed25519/src/edwards/affine.rs', lines 91:4-93:5
+    Visibility: public -/
+def scalar.Scalar.Insts.CoreOpsArithMulShared0AffinePointEdwardsPoint.mul
+  (self : scalar.Scalar) (rhs : edwards.affine.AffinePoint) :
+  Result edwards.EdwardsPoint
+  := do
+  let ep ← edwards.affine.AffinePoint.to_edwards rhs
+  edwards.EdwardsPoint.Insts.CoreOpsArithMulScalarEdwardsPoint.mul ep self
+
+/-- [curve25519::edwards::affine::{impl core::ops::arith::Mul<curve25519::edwards::affine::AffinePoint, curve25519::edwards::EdwardsPoint> for curve25519::scalar::Scalar}::mul]:
+    Source: 'curve25519/solana-ed25519/src/edwards/affine.rs', lines 82:4-84:5
+    Visibility: public -/
+def scalar.Scalar.Insts.CoreOpsArithMulAffinePointEdwardsPoint.mul
+  (self : scalar.Scalar) (rhs : edwards.affine.AffinePoint) :
+  Result edwards.EdwardsPoint
+  := do
+  scalar.Scalar.Insts.CoreOpsArithMulShared0AffinePointEdwardsPoint.mul self
+    rhs
+
+/-- Trait implementation: [curve25519::edwards::affine::{impl core::ops::arith::Mul<curve25519::edwards::affine::AffinePoint, curve25519::edwards::EdwardsPoint> for curve25519::scalar::Scalar}]
+    Source: 'curve25519/solana-ed25519/src/edwards/affine.rs', lines 78:0-85:1 -/
+@[reducible]
+def scalar.Scalar.Insts.CoreOpsArithMulAffinePointEdwardsPoint :
+  core.ops.arith.Mul scalar.Scalar edwards.affine.AffinePoint
+  edwards.EdwardsPoint := {
+  mul := scalar.Scalar.Insts.CoreOpsArithMulAffinePointEdwardsPoint.mul
+}
+
+/-- Trait implementation: [curve25519::edwards::affine::{impl core::ops::arith::Mul<&'_0 curve25519::edwards::affine::AffinePoint, curve25519::edwards::EdwardsPoint> for curve25519::scalar::Scalar}]
+    Source: 'curve25519/solana-ed25519/src/edwards/affine.rs', lines 87:0-94:1 -/
+@[reducible]
+def scalar.Scalar.Insts.CoreOpsArithMulShared0AffinePointEdwardsPoint :
+  core.ops.arith.Mul scalar.Scalar edwards.affine.AffinePoint
+  edwards.EdwardsPoint := {
+  mul := scalar.Scalar.Insts.CoreOpsArithMulShared0AffinePointEdwardsPoint.mul
+}
+
+/-- [curve25519::edwards::{impl core::clone::Clone for curve25519::edwards::CompressedEdwardsY}::clone]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 174:15-174:20
+    Visibility: public -/
+def edwards.CompressedEdwardsY.Insts.CoreCloneClone.clone
+  (self : edwards.CompressedEdwardsY) : Result edwards.CompressedEdwardsY := do
+  ok self
+
+/-- Trait implementation: [curve25519::edwards::{impl core::clone::Clone for curve25519::edwards::CompressedEdwardsY}]
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 174:15-174:20 -/
+@[reducible]
+def edwards.CompressedEdwardsY.Insts.CoreCloneClone : core.clone.Clone
+  edwards.CompressedEdwardsY := {
+  clone := edwards.CompressedEdwardsY.Insts.CoreCloneClone.clone
+}
+
+/-- Trait implementation: [curve25519::edwards::{impl core::marker::Copy for curve25519::edwards::CompressedEdwardsY}]
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 174:9-174:13 -/
+@[reducible]
+def edwards.CompressedEdwardsY.Insts.CoreMarkerCopy : core.marker.Copy
+  edwards.CompressedEdwardsY := {
+  cloneInst := edwards.CompressedEdwardsY.Insts.CoreCloneClone
+}
+
+/-- [curve25519::edwards::{impl core::hash::Hash for curve25519::edwards::CompressedEdwardsY}::hash]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 174:22-174:26
+    Visibility: public -/
+def edwards.CompressedEdwardsY.Insts.CoreHashHash.hash
+  {__H : Type} (corehashHasherInst : core.hash.Hasher __H)
+  (self : edwards.CompressedEdwardsY) (state : __H) :
+  Result __H
+  := do
+  Array.Insts.CoreHashHash.hash U8.Insts.CoreHashHash corehashHasherInst self
+    state
+
+/-- Trait implementation: [curve25519::edwards::{impl core::hash::Hash for curve25519::edwards::CompressedEdwardsY}]
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 174:22-174:26 -/
+@[reducible]
+def edwards.CompressedEdwardsY.Insts.CoreHashHash : core.hash.Hash
+  edwards.CompressedEdwardsY := {
+  hash := fun {H : Type} (corehashHasherInst : core.hash.Hasher H) =>
+    edwards.CompressedEdwardsY.Insts.CoreHashHash.hash corehashHasherInst
+}
+
+/-- [curve25519::edwards::{curve25519::edwards::CompressedEdwardsY}::as_bytes]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 198:4-200:5
+    Visibility: public -/
+def edwards.CompressedEdwardsY.as_bytes
+  (self : edwards.CompressedEdwardsY) : Result (Array Std.U8 32#usize) := do
+  ok self
+
+/-- [curve25519::edwards::{impl subtle::ConstantTimeEq for curve25519::edwards::CompressedEdwardsY}::ct_eq]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 178:4-180:5
+    Visibility: public -/
+def edwards.CompressedEdwardsY.Insts.SubtleConstantTimeEq.ct_eq
+  (self : edwards.CompressedEdwardsY) (other : edwards.CompressedEdwardsY) :
+  Result subtle.Choice
+  := do
+  let a ← edwards.CompressedEdwardsY.as_bytes self
+  let s ← lift (Array.to_slice a)
+  let a1 ← edwards.CompressedEdwardsY.as_bytes other
+  let s1 ← lift (Array.to_slice a1)
   Slice.Insts.SubtleConstantTimeEq.ct_eq U8.Insts.SubtleConstantTimeEq s s1
+
+/-- Trait implementation: [curve25519::edwards::{impl subtle::ConstantTimeEq for curve25519::edwards::CompressedEdwardsY}]
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 177:0-181:1 -/
+@[reducible]
+def edwards.CompressedEdwardsY.Insts.SubtleConstantTimeEq :
+  subtle.ConstantTimeEq edwards.CompressedEdwardsY := {
+  ct_eq := edwards.CompressedEdwardsY.Insts.SubtleConstantTimeEq.ct_eq
+}
+
+/-- [curve25519::edwards::{impl core::cmp::PartialEq<curve25519::edwards::CompressedEdwardsY> for curve25519::edwards::CompressedEdwardsY}::eq]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 185:4-187:5
+    Visibility: public -/
+def edwards.CompressedEdwardsY.Insts.CoreCmpPartialEqCompressedEdwardsY.eq
+  (self : edwards.CompressedEdwardsY) (other : edwards.CompressedEdwardsY) :
+  Result Bool
+  := do
+  let c ←
+    edwards.CompressedEdwardsY.Insts.SubtleConstantTimeEq.ct_eq self other
+  core.convert.IntoFrom.into Bool.Insts.CoreConvertFromChoice c
+
+/-- Trait implementation: [curve25519::edwards::{impl core::cmp::PartialEq<curve25519::edwards::CompressedEdwardsY> for curve25519::edwards::CompressedEdwardsY}]
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 184:0-188:1 -/
+@[reducible]
+def edwards.CompressedEdwardsY.Insts.CoreCmpPartialEqCompressedEdwardsY :
+  core.cmp.PartialEq edwards.CompressedEdwardsY edwards.CompressedEdwardsY := {
+  eq := edwards.CompressedEdwardsY.Insts.CoreCmpPartialEqCompressedEdwardsY.eq
+}
+
+/-- Trait implementation: [curve25519::edwards::{impl core::cmp::Eq for curve25519::edwards::CompressedEdwardsY}]
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 183:0-183:33 -/
+@[reducible]
+def edwards.CompressedEdwardsY.Insts.CoreCmpEq : core.cmp.Eq
+  edwards.CompressedEdwardsY := {
+  partialEqInst :=
+    edwards.CompressedEdwardsY.Insts.CoreCmpPartialEqCompressedEdwardsY
+  assert_fields_are_eq :=
+    edwards.CompressedEdwardsY.Insts.CoreCmpEq.assert_fields_are_eq
+}
+
+/-- [curve25519::edwards::{impl core::fmt::Debug for curve25519::edwards::CompressedEdwardsY}::fmt]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 191:4-193:5
+    Visibility: public -/
+def edwards.CompressedEdwardsY.Insts.CoreFmtDebug.fmt
+  (self : edwards.CompressedEdwardsY) (f : core.fmt.Formatter) :
+  Result ((core.result.Result Unit core.fmt.Error) × core.fmt.Formatter)
+  := do
+  let args ← edwards.CompressedEdwardsY.as_bytes self
+  let a ←
+    core.fmt.rt.Argument.new_debug (core.fmt.DebugShared
+      (Array.Insts.CoreFmtDebug 32#usize core.fmt.DebugU8)) args
+  let a1 ←
+    core.fmt.Arguments.new
+      (Array.make 23#usize [
+        20#u8, 67#u8, 111#u8, 109#u8, 112#u8, 114#u8, 101#u8, 115#u8, 115#u8,
+        101#u8, 100#u8, 69#u8, 100#u8, 119#u8, 97#u8, 114#u8, 100#u8, 115#u8,
+        89#u8, 58#u8, 32#u8, 192#u8, 0#u8
+        ]) (Array.make 1#usize [ a ])
+  core.fmt.Formatter.write_fmt f a1
+
+/-- Trait implementation: [curve25519::edwards::{impl core::fmt::Debug for curve25519::edwards::CompressedEdwardsY}]
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 190:0-194:1 -/
+@[reducible]
+def edwards.CompressedEdwardsY.Insts.CoreFmtDebug : core.fmt.Debug
+  edwards.CompressedEdwardsY := {
+  fmt := edwards.CompressedEdwardsY.Insts.CoreFmtDebug.fmt
+}
+
+/-- [curve25519::edwards::{curve25519::edwards::CompressedEdwardsY}::to_bytes]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 203:4-205:5
+    Visibility: public -/
+def edwards.CompressedEdwardsY.to_bytes
+  (self : edwards.CompressedEdwardsY) : Result (Array Std.U8 32#usize) := do
+  ok self
+
+/-- [curve25519::edwards::{curve25519::edwards::CompressedEdwardsY}::decompress]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 211:4-219:5
+    Visibility: public -/
+def edwards.CompressedEdwardsY.decompress
+  (self : edwards.CompressedEdwardsY) :
+  Result (Option edwards.EdwardsPoint)
+  := do
+  let (is_valid_y_coord, X, Y, Z) ← edwards.decompress.step_1 self
+  let b ←
+    core.convert.IntoFrom.into Bool.Insts.CoreConvertFromChoice
+      is_valid_y_coord
+  if b
+  then let ep ← edwards.decompress.step_2 self X Y Z
+       ok (some ep)
+  else ok none
+
+/-- [curve25519::edwards::{impl core::convert::TryFrom<&'_0 [u8], core::array::TryFromSliceError> for curve25519::edwards::CompressedEdwardsY}::try_from]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 263:4-265:5
+    Visibility: public -/
+def
+  edwards.CompressedEdwardsY.Insts.CoreConvertTryFromShared0SliceU8TryFromSliceError.try_from
+  (slice : Slice Std.U8) :
+  Result (core.result.Result edwards.CompressedEdwardsY
+    core.array.TryFromSliceError)
+  := do
+  edwards.CompressedEdwardsY.from_slice slice
+
+/-- Trait implementation: [curve25519::edwards::{impl core::convert::TryFrom<&'_0 [u8], core::array::TryFromSliceError> for curve25519::edwards::CompressedEdwardsY}]
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 260:0-266:1 -/
+@[reducible]
+def
+  edwards.CompressedEdwardsY.Insts.CoreConvertTryFromShared0SliceU8TryFromSliceError
+  : core.convert.TryFrom edwards.CompressedEdwardsY (Slice Std.U8)
+  core.array.TryFromSliceError := {
+  try_from :=
+    edwards.CompressedEdwardsY.Insts.CoreConvertTryFromShared0SliceU8TryFromSliceError.try_from
+}
+
+/-- [curve25519::edwards::{impl core::clone::Clone for curve25519::edwards::EdwardsPoint}::clone]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 388:15-388:20
+    Visibility: public -/
+def edwards.EdwardsPoint.Insts.CoreCloneClone.clone
+  (self : edwards.EdwardsPoint) : Result edwards.EdwardsPoint := do
+  ok self
+
+/-- Trait implementation: [curve25519::edwards::{impl core::clone::Clone for curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 388:15-388:20 -/
+@[reducible]
+def edwards.EdwardsPoint.Insts.CoreCloneClone : core.clone.Clone
+  edwards.EdwardsPoint := {
+  clone := edwards.EdwardsPoint.Insts.CoreCloneClone.clone
+}
+
+/-- Trait implementation: [curve25519::edwards::{impl core::marker::Copy for curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 388:9-388:13 -/
+@[reducible]
+def edwards.EdwardsPoint.Insts.CoreMarkerCopy : core.marker.Copy
+  edwards.EdwardsPoint := {
+  cloneInst := edwards.EdwardsPoint.Insts.CoreCloneClone
+}
+
+/-- [curve25519::edwards::{impl curve25519::traits::Identity for curve25519::edwards::CompressedEdwardsY}::identity]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 402:4-407:5
+    Visibility: public -/
+def edwards.CompressedEdwardsY.Insts.Curve25519TraitsIdentity.identity
+  : Result edwards.CompressedEdwardsY := do
+  ok
+    (Array.make 32#usize [
+      1#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8,
+      0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8,
+      0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8
+      ])
+
+/-- Trait implementation: [curve25519::edwards::{impl curve25519::traits::Identity for curve25519::edwards::CompressedEdwardsY}]
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 401:0-408:1 -/
+@[reducible]
+def edwards.CompressedEdwardsY.Insts.Curve25519TraitsIdentity : traits.Identity
+  edwards.CompressedEdwardsY := {
+  identity :=
+    edwards.CompressedEdwardsY.Insts.Curve25519TraitsIdentity.identity
+}
+
+/-- [curve25519::edwards::{impl core::default::Default for curve25519::edwards::CompressedEdwardsY}::default]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 411:4-413:5
+    Visibility: public -/
+def edwards.CompressedEdwardsY.Insts.CoreDefaultDefault.default
+  : Result edwards.CompressedEdwardsY := do
+  edwards.CompressedEdwardsY.Insts.Curve25519TraitsIdentity.identity
+
+/-- Trait implementation: [curve25519::edwards::{impl core::default::Default for curve25519::edwards::CompressedEdwardsY}]
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 410:0-414:1 -/
+@[reducible]
+def edwards.CompressedEdwardsY.Insts.CoreDefaultDefault : core.default.Default
+  edwards.CompressedEdwardsY := {
+  default := edwards.CompressedEdwardsY.Insts.CoreDefaultDefault.default
+}
+
+/-- [curve25519::edwards::{impl curve25519::traits::Identity for curve25519::edwards::EdwardsPoint}::identity]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 429:4-436:5
+    Visibility: public -/
+def edwards.EdwardsPoint.Insts.Curve25519TraitsIdentity.identity
+  : Result edwards.EdwardsPoint := do
+  let fe ← backend.serial.u64.field.FieldElement51.ZERO
+  let fe1 ← backend.serial.u64.field.FieldElement51.ONE
+  ok { X := fe, Y := fe1, Z := fe1, T := fe }
+
+/-- Trait implementation: [curve25519::edwards::{impl curve25519::traits::Identity for curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 428:0-437:1 -/
+@[reducible]
+def edwards.EdwardsPoint.Insts.Curve25519TraitsIdentity : traits.Identity
+  edwards.EdwardsPoint := {
+  identity := edwards.EdwardsPoint.Insts.Curve25519TraitsIdentity.identity
+}
+
+/-- [curve25519::edwards::{impl core::default::Default for curve25519::edwards::EdwardsPoint}::default]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 440:4-442:5
+    Visibility: public -/
+def edwards.EdwardsPoint.Insts.CoreDefaultDefault.default
+  : Result edwards.EdwardsPoint := do
+  edwards.EdwardsPoint.Insts.Curve25519TraitsIdentity.identity
+
+/-- Trait implementation: [curve25519::edwards::{impl core::default::Default for curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 439:0-443:1 -/
+@[reducible]
+def edwards.EdwardsPoint.Insts.CoreDefaultDefault : core.default.Default
+  edwards.EdwardsPoint := {
+  default := edwards.EdwardsPoint.Insts.CoreDefaultDefault.default
+}
+
+/-- [curve25519::edwards::{curve25519::edwards::EdwardsPoint}::as_projective]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 541:4-547:5 -/
+def edwards.EdwardsPoint.as_projective
+  (self : edwards.EdwardsPoint) :
+  Result backend.serial.curve_models.ProjectivePoint
+  := do
+  ok { X := self.X, Y := self.Y, Z := self.Z }
+
+/-- [curve25519::edwards::{impl curve25519::traits::ValidityCheck for curve25519::edwards::EdwardsPoint}::is_valid]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 474:4-479:5 -/
+def edwards.EdwardsPoint.Insts.Curve25519TraitsValidityCheck.is_valid
+  (self : edwards.EdwardsPoint) : Result Bool := do
+  let pp ← edwards.EdwardsPoint.as_projective self
+  let point_on_curve ←
+    backend.serial.curve_models.ProjectivePoint.Insts.Curve25519TraitsValidityCheck.is_valid
+      pp
+  let fe ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      self.X self.Y
+  let fe1 ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      self.Z self.T
+  let on_segre_image ←
+    backend.serial.u64.field.FieldElement51.Insts.CoreCmpPartialEqFieldElement51.eq
+      fe fe1
+  if point_on_curve
+  then ok on_segre_image
+  else ok false
+
+/-- Trait implementation: [curve25519::edwards::{impl curve25519::traits::ValidityCheck for curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 473:0-480:1 -/
+@[reducible]
+def edwards.EdwardsPoint.Insts.Curve25519TraitsValidityCheck :
+  traits.ValidityCheck edwards.EdwardsPoint := {
+  is_valid := edwards.EdwardsPoint.Insts.Curve25519TraitsValidityCheck.is_valid
+}
+
+/-- [curve25519::edwards::{impl subtle::ConditionallySelectable for curve25519::edwards::EdwardsPoint}::conditional_select]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 487:4-494:5
+    Visibility: public -/
+def edwards.EdwardsPoint.Insts.SubtleConditionallySelectable.conditional_select
+  (a : edwards.EdwardsPoint) (b : edwards.EdwardsPoint)
+  (choice : subtle.Choice) :
+  Result edwards.EdwardsPoint
+  := do
+  let fe ←
+    backend.serial.u64.field.FieldElement51.Insts.SubtleConditionallySelectable.conditional_select
+      a.X b.X choice
+  let fe1 ←
+    backend.serial.u64.field.FieldElement51.Insts.SubtleConditionallySelectable.conditional_select
+      a.Y b.Y choice
+  let fe2 ←
+    backend.serial.u64.field.FieldElement51.Insts.SubtleConditionallySelectable.conditional_select
+      a.Z b.Z choice
+  let fe3 ←
+    backend.serial.u64.field.FieldElement51.Insts.SubtleConditionallySelectable.conditional_select
+      a.T b.T choice
+  ok { X := fe, Y := fe1, Z := fe2, T := fe3 }
+
+/-- Trait implementation: [curve25519::edwards::{impl subtle::ConditionallySelectable for curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 486:0-495:1 -/
+@[reducible]
+def edwards.EdwardsPoint.Insts.SubtleConditionallySelectable :
+  subtle.ConditionallySelectable edwards.EdwardsPoint := {
+  coremarkerCopyInst := edwards.EdwardsPoint.Insts.CoreMarkerCopy
+  conditional_select :=
+    edwards.EdwardsPoint.Insts.SubtleConditionallySelectable.conditional_select
+  conditional_assign :=
+    edwards.EdwardsPoint.Insts.SubtleConditionallySelectable.conditional_assign
+  conditional_swap :=
+    edwards.EdwardsPoint.Insts.SubtleConditionallySelectable.conditional_swap
+}
+
+/-- [curve25519::edwards::{impl subtle::ConstantTimeEq for curve25519::edwards::EdwardsPoint}::ct_eq]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 502:4-511:5
+    Visibility: public -/
+def edwards.EdwardsPoint.Insts.SubtleConstantTimeEq.ct_eq
+  (self : edwards.EdwardsPoint) (other : edwards.EdwardsPoint) :
+  Result subtle.Choice
+  := do
+  let fe ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      self.X other.Z
+  let fe1 ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      other.X self.Z
+  let c ←
+    backend.serial.u64.field.FieldElement51.Insts.SubtleConstantTimeEq.ct_eq fe
+      fe1
+  let fe2 ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      self.Y other.Z
+  let fe3 ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      other.Y self.Z
+  let c1 ←
+    backend.serial.u64.field.FieldElement51.Insts.SubtleConstantTimeEq.ct_eq
+      fe2 fe3
+  subtle.Choice.Insts.CoreOpsBitBitAndChoiceChoice.bitand c c1
+
+/-- Trait implementation: [curve25519::edwards::{impl subtle::ConstantTimeEq for curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 501:0-512:1 -/
+@[reducible]
+def edwards.EdwardsPoint.Insts.SubtleConstantTimeEq : subtle.ConstantTimeEq
+  edwards.EdwardsPoint := {
+  ct_eq := edwards.EdwardsPoint.Insts.SubtleConstantTimeEq.ct_eq
+}
+
+/-- [curve25519::edwards::{impl core::cmp::PartialEq<curve25519::edwards::EdwardsPoint> for curve25519::edwards::EdwardsPoint}::eq]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 515:4-517:5
+    Visibility: public -/
+def edwards.EdwardsPoint.Insts.CoreCmpPartialEqEdwardsPoint.eq
+  (self : edwards.EdwardsPoint) (other : edwards.EdwardsPoint) :
+  Result Bool
+  := do
+  let c ← edwards.EdwardsPoint.Insts.SubtleConstantTimeEq.ct_eq self other
+  core.convert.IntoFrom.into Bool.Insts.CoreConvertFromChoice c
+
+/-- Trait implementation: [curve25519::edwards::{impl core::cmp::PartialEq<curve25519::edwards::EdwardsPoint> for curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 514:0-518:1 -/
+@[reducible]
+def edwards.EdwardsPoint.Insts.CoreCmpPartialEqEdwardsPoint :
+  core.cmp.PartialEq edwards.EdwardsPoint edwards.EdwardsPoint := {
+  eq := edwards.EdwardsPoint.Insts.CoreCmpPartialEqEdwardsPoint.eq
+}
+
+/-- Trait implementation: [curve25519::edwards::{impl core::cmp::Eq for curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 520:0-520:27 -/
+@[reducible]
+def edwards.EdwardsPoint.Insts.CoreCmpEq : core.cmp.Eq edwards.EdwardsPoint
+  := {
+  partialEqInst := edwards.EdwardsPoint.Insts.CoreCmpPartialEqEdwardsPoint
+  assert_fields_are_eq :=
+    edwards.EdwardsPoint.Insts.CoreCmpEq.assert_fields_are_eq
+}
 
 /-- [curve25519::field::{curve25519::backend::serial::u64::field::FieldElement51}::pow22501]:
     Source: 'curve25519/solana-ed25519/src/field.rs', lines 159:4-193:5 -/
@@ -1411,6 +3182,493 @@ def field.FieldElement51.invert
   let t20 ← backend.serial.u64.field.FieldElement51.pow2k t19 5#u32
   Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
     t20 t3
+
+/-- [curve25519::edwards::{curve25519::edwards::EdwardsPoint}::as_affine_niels]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 551:4-561:5 -/
+def edwards.EdwardsPoint.as_affine_niels
+  (self : edwards.EdwardsPoint) :
+  Result backend.serial.curve_models.AffineNielsPoint
+  := do
+  let recip ← field.FieldElement51.invert self.Z
+  let x ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      self.X recip
+  let y ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      self.Y recip
+  let fe ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      x y
+  let fe1 ← backend.serial.u64.constants.EDWARDS_D2
+  let xy2d ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      fe fe1
+  let fe2 ←
+    Shared0FieldElement51.Insts.CoreOpsArithAddSharedAFieldElement51FieldElement51.add
+      y x
+  let fe3 ←
+    Shared0FieldElement51.Insts.CoreOpsArithSubSharedAFieldElement51FieldElement51.sub
+      y x
+  ok { y_plus_x := fe2, y_minus_x := fe3, xy2d }
+
+/-- [curve25519::edwards::{curve25519::edwards::EdwardsPoint}::to_affine]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 564:4-569:5 -/
+def edwards.EdwardsPoint.to_affine
+  (self : edwards.EdwardsPoint) : Result edwards.affine.AffinePoint := do
+  let recip ← field.FieldElement51.invert self.Z
+  let x ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      self.X recip
+  let y ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      self.Y recip
+  ok { x, y }
+
+/-- [curve25519::edwards::{curve25519::edwards::EdwardsPoint}::to_montgomery]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 580:4-590:5
+    Visibility: public -/
+def edwards.EdwardsPoint.to_montgomery
+  (self : edwards.EdwardsPoint) : Result montgomery.MontgomeryPoint := do
+  let U ←
+    Shared0FieldElement51.Insts.CoreOpsArithAddSharedAFieldElement51FieldElement51.add
+      self.Z self.Y
+  let W ←
+    Shared0FieldElement51.Insts.CoreOpsArithSubSharedAFieldElement51FieldElement51.sub
+      self.Z self.Y
+  let fe ← field.FieldElement51.invert W
+  let u ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      U fe
+  let a ← backend.serial.u64.field.FieldElement51.to_bytes u
+  ok a
+
+/-- [curve25519::edwards::{curve25519::edwards::EdwardsPoint}::compress]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 615:4-617:5
+    Visibility: public -/
+def edwards.EdwardsPoint.compress
+  (self : edwards.EdwardsPoint) : Result edwards.CompressedEdwardsY := do
+  let ap ← edwards.EdwardsPoint.to_affine self
+  edwards.affine.AffinePoint.compress ap
+
+/-- [curve25519::edwards::{curve25519::edwards::EdwardsPoint}::double]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 774:4-776:5 -/
+def edwards.EdwardsPoint.double
+  (self : edwards.EdwardsPoint) : Result edwards.EdwardsPoint := do
+  let pp ← edwards.EdwardsPoint.as_projective self
+  let cp ← backend.serial.curve_models.ProjectivePoint.double pp
+  backend.serial.curve_models.CompletedPoint.as_extended cp
+
+/-- Trait implementation: [curve25519::edwards::{impl core::ops::arith::Add<&'a curve25519::edwards::EdwardsPoint, curve25519::edwards::EdwardsPoint> for &'_1 curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 783:0-788:1 -/
+@[reducible]
+def Shared0EdwardsPoint.Insts.CoreOpsArithAddSharedAEdwardsPointEdwardsPoint :
+  core.ops.arith.Add edwards.EdwardsPoint edwards.EdwardsPoint
+  edwards.EdwardsPoint := {
+  add :=
+    Shared0EdwardsPoint.Insts.CoreOpsArithAddSharedAEdwardsPointEdwardsPoint.add
+}
+
+/-- [curve25519::edwards::{impl core::ops::arith::AddAssign<&'a curve25519::edwards::EdwardsPoint> for curve25519::edwards::EdwardsPoint}::add_assign]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 797:4-799:5
+    Visibility: public -/
+def
+  edwards.EdwardsPoint.Insts.CoreOpsArithAddAssignSharedAEdwardsPoint.add_assign
+  (self : edwards.EdwardsPoint) (_rhs : edwards.EdwardsPoint) :
+  Result edwards.EdwardsPoint
+  := do
+  Shared0EdwardsPoint.Insts.CoreOpsArithAddSharedAEdwardsPointEdwardsPoint.add
+    self _rhs
+
+/-- Trait implementation: [curve25519::edwards::{impl core::ops::arith::AddAssign<&'a curve25519::edwards::EdwardsPoint> for curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 796:0-800:1 -/
+@[reducible]
+def edwards.EdwardsPoint.Insts.CoreOpsArithAddAssignSharedAEdwardsPoint :
+  core.ops.arith.AddAssign edwards.EdwardsPoint edwards.EdwardsPoint := {
+  add_assign :=
+    edwards.EdwardsPoint.Insts.CoreOpsArithAddAssignSharedAEdwardsPoint.add_assign
+}
+
+/-- [curve25519::edwards::{impl core::ops::arith::Sub<&'a curve25519::edwards::EdwardsPoint, curve25519::edwards::EdwardsPoint> for &'_1 curve25519::edwards::EdwardsPoint}::sub]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 806:4-808:5
+    Visibility: public -/
+def
+  Shared0EdwardsPoint.Insts.CoreOpsArithSubSharedAEdwardsPointEdwardsPoint.sub
+  (self : edwards.EdwardsPoint) (other : edwards.EdwardsPoint) :
+  Result edwards.EdwardsPoint
+  := do
+  let pnp ← edwards.EdwardsPoint.as_projective_niels other
+  let cp ←
+    Shared0EdwardsPoint.Insts.CoreOpsArithSubSharedAProjectiveNielsPointCompletedPoint.sub
+      self pnp
+  backend.serial.curve_models.CompletedPoint.as_extended cp
+
+/-- Trait implementation: [curve25519::edwards::{impl core::ops::arith::Sub<&'a curve25519::edwards::EdwardsPoint, curve25519::edwards::EdwardsPoint> for &'_1 curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 804:0-809:1 -/
+@[reducible]
+def Shared0EdwardsPoint.Insts.CoreOpsArithSubSharedAEdwardsPointEdwardsPoint :
+  core.ops.arith.Sub edwards.EdwardsPoint edwards.EdwardsPoint
+  edwards.EdwardsPoint := {
+  sub :=
+    Shared0EdwardsPoint.Insts.CoreOpsArithSubSharedAEdwardsPointEdwardsPoint.sub
+}
+
+/-- [curve25519::edwards::{impl core::ops::arith::SubAssign<&'a curve25519::edwards::EdwardsPoint> for curve25519::edwards::EdwardsPoint}::sub_assign]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 818:4-820:5
+    Visibility: public -/
+def
+  edwards.EdwardsPoint.Insts.CoreOpsArithSubAssignSharedAEdwardsPoint.sub_assign
+  (self : edwards.EdwardsPoint) (_rhs : edwards.EdwardsPoint) :
+  Result edwards.EdwardsPoint
+  := do
+  Shared0EdwardsPoint.Insts.CoreOpsArithSubSharedAEdwardsPointEdwardsPoint.sub
+    self _rhs
+
+/-- Trait implementation: [curve25519::edwards::{impl core::ops::arith::SubAssign<&'a curve25519::edwards::EdwardsPoint> for curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 817:0-821:1 -/
+@[reducible]
+def edwards.EdwardsPoint.Insts.CoreOpsArithSubAssignSharedAEdwardsPoint :
+  core.ops.arith.SubAssign edwards.EdwardsPoint edwards.EdwardsPoint := {
+  sub_assign :=
+    edwards.EdwardsPoint.Insts.CoreOpsArithSubAssignSharedAEdwardsPoint.sub_assign
+}
+
+/-- Trait implementation: [curve25519::edwards::{impl core::iter::traits::accum::Sum<T> for curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 825:0-835:1 -/
+@[reducible]
+def edwards.EdwardsPoint.Insts.CoreIterTraitsAccumSum {T : Type}
+  (coreborrowBorrowTEdwardsPointInst : core.borrow.Borrow T
+  edwards.EdwardsPoint) : core.iter.traits.accum.Sum edwards.EdwardsPoint T
+  := {
+  sum := fun {I : Type} (coreitertraitsiteratorIteratorInst :
+    core.iter.traits.iterator.Iterator I T) =>
+    edwards.EdwardsPoint.Insts.CoreIterTraitsAccumSum.sum
+    coreborrowBorrowTEdwardsPointInst coreitertraitsiteratorIteratorInst
+}
+
+/-- [curve25519::edwards::{impl core::ops::arith::Neg<curve25519::edwards::EdwardsPoint> for &'_0 curve25519::edwards::EdwardsPoint}::neg]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 844:4-851:5
+    Visibility: public -/
+def Shared0EdwardsPoint.Insts.CoreOpsArithNegEdwardsPoint.neg
+  (self : edwards.EdwardsPoint) : Result edwards.EdwardsPoint := do
+  let fe ←
+    Shared0FieldElement51.Insts.CoreOpsArithNegFieldElement51.neg self.X
+  let fe1 ←
+    Shared0FieldElement51.Insts.CoreOpsArithNegFieldElement51.neg self.T
+  ok { self with X := fe, T := fe1 }
+
+/-- Trait implementation: [curve25519::edwards::{impl core::ops::arith::Neg<curve25519::edwards::EdwardsPoint> for &'_0 curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 841:0-852:1 -/
+@[reducible]
+def Shared0EdwardsPoint.Insts.CoreOpsArithNegEdwardsPoint : core.ops.arith.Neg
+  edwards.EdwardsPoint edwards.EdwardsPoint := {
+  neg := Shared0EdwardsPoint.Insts.CoreOpsArithNegEdwardsPoint.neg
+}
+
+/-- [curve25519::edwards::{impl core::ops::arith::Neg<curve25519::edwards::EdwardsPoint> for curve25519::edwards::EdwardsPoint}::neg]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 857:4-859:5
+    Visibility: public -/
+def edwards.EdwardsPoint.Insts.CoreOpsArithNegEdwardsPoint.neg
+  (self : edwards.EdwardsPoint) : Result edwards.EdwardsPoint := do
+  Shared0EdwardsPoint.Insts.CoreOpsArithNegEdwardsPoint.neg self
+
+/-- Trait implementation: [curve25519::edwards::{impl core::ops::arith::Neg<curve25519::edwards::EdwardsPoint> for curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 854:0-860:1 -/
+@[reducible]
+def edwards.EdwardsPoint.Insts.CoreOpsArithNegEdwardsPoint : core.ops.arith.Neg
+  edwards.EdwardsPoint edwards.EdwardsPoint := {
+  neg := edwards.EdwardsPoint.Insts.CoreOpsArithNegEdwardsPoint.neg
+}
+
+/-- [curve25519::edwards::{impl core::ops::arith::MulAssign<&'a curve25519::scalar::Scalar> for curve25519::edwards::EdwardsPoint}::mul_assign]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 867:4-870:5
+    Visibility: public -/
+def edwards.EdwardsPoint.Insts.CoreOpsArithMulAssignSharedAScalar.mul_assign
+  (self : edwards.EdwardsPoint) (scalar : scalar.Scalar) :
+  Result edwards.EdwardsPoint
+  := do
+  Shared0EdwardsPoint.Insts.CoreOpsArithMulSharedAScalarEdwardsPoint.mul self
+    scalar
+
+/-- Trait implementation: [curve25519::edwards::{impl core::ops::arith::MulAssign<&'a curve25519::scalar::Scalar> for curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 866:0-871:1 -/
+@[reducible]
+def edwards.EdwardsPoint.Insts.CoreOpsArithMulAssignSharedAScalar :
+  core.ops.arith.MulAssign edwards.EdwardsPoint scalar.Scalar := {
+  mul_assign :=
+    edwards.EdwardsPoint.Insts.CoreOpsArithMulAssignSharedAScalar.mul_assign
+}
+
+/-- Trait implementation: [curve25519::edwards::{impl core::ops::arith::Mul<&'a curve25519::scalar::Scalar, curve25519::edwards::EdwardsPoint> for &'_1 curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 878:0-887:1 -/
+@[reducible]
+def Shared0EdwardsPoint.Insts.CoreOpsArithMulSharedAScalarEdwardsPoint :
+  core.ops.arith.Mul edwards.EdwardsPoint scalar.Scalar edwards.EdwardsPoint
+  := {
+  mul := Shared0EdwardsPoint.Insts.CoreOpsArithMulSharedAScalarEdwardsPoint.mul
+}
+
+/-- Trait implementation: [curve25519::edwards::{impl core::ops::arith::Mul<&'a curve25519::edwards::EdwardsPoint, curve25519::edwards::EdwardsPoint> for &'_1 curve25519::scalar::Scalar}]
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 889:0-899:1 -/
+@[reducible]
+def Shared0Scalar.Insts.CoreOpsArithMulSharedAEdwardsPointEdwardsPoint :
+  core.ops.arith.Mul scalar.Scalar edwards.EdwardsPoint edwards.EdwardsPoint
+  := {
+  mul := Shared0Scalar.Insts.CoreOpsArithMulSharedAEdwardsPointEdwardsPoint.mul
+}
+
+/-- [curve25519::scalar::clamp_integer]:
+    Source: 'curve25519/solana-ed25519/src/scalar.rs', lines 1597:0-1602:1
+    Visibility: public -/
+def scalar.clamp_integer
+  (bytes : Array Std.U8 32#usize) : Result (Array Std.U8 32#usize) := do
+  let i ← Array.index_usize bytes 0#usize
+  let i1 ← lift (i &&& 248#u8)
+  let bytes1 ← Array.update bytes 0#usize i1
+  let i2 ← Array.index_usize bytes1 31#usize
+  let i3 ← lift (i2 &&& 127#u8)
+  let bytes2 ← Array.update bytes1 31#usize i3
+  let i4 ← Array.index_usize bytes2 31#usize
+  let i5 ← lift (i4 ||| 64#u8)
+  Array.update bytes2 31#usize i5
+
+/-- [curve25519::edwards::{impl core::ops::arith::Mul<curve25519::edwards::EdwardsPoint, curve25519::edwards::EdwardsPoint> for curve25519::scalar::Scalar}::mul]:
+    Source: 'curve25519/solana-ed25519/src/macros.rs', lines 107:12-109:13
+    Visibility: public -/
+def scalar.Scalar.Insts.CoreOpsArithMulEdwardsPointEdwardsPoint.mul
+  (self : scalar.Scalar) (rhs : edwards.EdwardsPoint) :
+  Result edwards.EdwardsPoint
+  := do
+  Shared0Scalar.Insts.CoreOpsArithMulSharedAEdwardsPointEdwardsPoint.mul self
+    rhs
+
+/-- [curve25519::edwards::{curve25519::edwards::EdwardsPoint}::mul_clamped]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 920:4-932:5
+    Visibility: public -/
+def edwards.EdwardsPoint.mul_clamped
+  (self : edwards.EdwardsPoint) (bytes : Array Std.U8 32#usize) :
+  Result edwards.EdwardsPoint
+  := do
+  let a ← scalar.clamp_integer bytes
+  scalar.Scalar.Insts.CoreOpsArithMulEdwardsPointEdwardsPoint.mul
+    { bytes := a } self
+
+/-- [curve25519::edwards::{curve25519::edwards::EdwardsPoint}::mul_base_clamped]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 936:4-944:5
+    Visibility: public -/
+def edwards.EdwardsPoint.mul_base_clamped
+  (bytes : Array Std.U8 32#usize) : Result edwards.EdwardsPoint := do
+  let a ← scalar.clamp_integer bytes
+  edwards.EdwardsPoint.mul_base { bytes := a }
+
+/-- [curve25519::edwards::{curve25519::edwards::EdwardsPoint}::vartime_double_scalar_mul_basepoint]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 1068:4-1074:5
+    Visibility: public -/
+def edwards.EdwardsPoint.vartime_double_scalar_mul_basepoint
+  (a : scalar.Scalar) (A : edwards.EdwardsPoint) (b : scalar.Scalar) :
+  Result edwards.EdwardsPoint
+  := do
+  backend.vartime_double_base_mul a A b
+
+/-- [curve25519::edwards::{curve25519::edwards::EdwardsPoint}::vartime_triple_scalar_mul_basepoint]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 1099:4-1107:5
+    Visibility: public -/
+def edwards.EdwardsPoint.vartime_triple_scalar_mul_basepoint
+  (a1 : scalar.Scalar) (A1 : edwards.EdwardsPoint) (a2 : scalar.Scalar)
+  (A2 : edwards.EdwardsPoint) (b : scalar.Scalar) :
+  Result edwards.EdwardsPoint
+  := do
+  backend.vartime_triple_base_mul_128_128_256 a1 A1 a2 A2 b
+
+/-- [curve25519::edwards::{curve25519::edwards::EdwardsPoint}::mul_by_pow_2]: loop body 0:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 1395:8-1398:9 -/
+@[rust_loop_body]
+def edwards.EdwardsPoint.mul_by_pow_2_loop.body
+  (iter : core.ops.range.Range Std.U32)
+  (s : backend.serial.curve_models.ProjectivePoint) :
+  Result (ControlFlow ((core.ops.range.Range Std.U32) ×
+    backend.serial.curve_models.ProjectivePoint)
+    backend.serial.curve_models.ProjectivePoint)
+  := do
+  let (o, iter1) ←
+    core.iter.range.IteratorRange.next U32.Insts.CoreIterRangeStep iter
+  match o with
+  | none => ok (done s)
+  | some _ =>
+    let r ← backend.serial.curve_models.ProjectivePoint.double s
+    let s1 ← backend.serial.curve_models.CompletedPoint.as_projective r
+    ok (cont (iter1, s1))
+
+/-- [curve25519::edwards::{curve25519::edwards::EdwardsPoint}::mul_by_pow_2]: loop 0:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 1395:8-1398:9 -/
+@[rust_loop]
+def edwards.EdwardsPoint.mul_by_pow_2_loop
+  (iter : core.ops.range.Range Std.U32)
+  (s : backend.serial.curve_models.ProjectivePoint) :
+  Result backend.serial.curve_models.ProjectivePoint
+  := do
+  loop
+    (fun (iter1, s1) => edwards.EdwardsPoint.mul_by_pow_2_loop.body iter1 s1)
+    (iter, s)
+
+/-- [curve25519::edwards::{curve25519::edwards::EdwardsPoint}::mul_by_pow_2]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 1391:4-1401:5 -/
+def edwards.EdwardsPoint.mul_by_pow_2
+  (self : edwards.EdwardsPoint) (k : Std.U32) :
+  Result edwards.EdwardsPoint
+  := do
+  massert (k > 0#u32)
+  let s ← edwards.EdwardsPoint.as_projective self
+  let i ← k - 1#u32
+  let s1 ←
+    edwards.EdwardsPoint.mul_by_pow_2_loop { start := 0#u32, «end» := i } s
+  let cp ← backend.serial.curve_models.ProjectivePoint.double s1
+  backend.serial.curve_models.CompletedPoint.as_extended cp
+
+/-- [curve25519::edwards::{curve25519::edwards::EdwardsPoint}::mul_by_cofactor]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 1386:4-1388:5
+    Visibility: public -/
+def edwards.EdwardsPoint.mul_by_cofactor
+  (self : edwards.EdwardsPoint) : Result edwards.EdwardsPoint := do
+  edwards.EdwardsPoint.mul_by_pow_2 self 3#u32
+
+/-- [curve25519::traits::{impl curve25519::traits::IsIdentity for T}::is_identity]:
+    Source: 'curve25519/solana-ed25519/src/traits.rs', lines 51:4-53:5
+    Visibility: public -/
+def traits.IsIdentity.Blanket.is_identity
+  {T : Type} (subtleConstantTimeEqInst : subtle.ConstantTimeEq T) (IdentityInst
+  : traits.Identity T) (self : T) :
+  Result Bool
+  := do
+  let t ← IdentityInst.identity
+  let c ← subtleConstantTimeEqInst.ct_eq self t
+  core.convert.IntoFrom.into Bool.Insts.CoreConvertFromChoice c
+
+/-- [curve25519::edwards::{curve25519::edwards::EdwardsPoint}::is_small_order]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 1426:4-1428:5
+    Visibility: public -/
+def edwards.EdwardsPoint.is_small_order
+  (self : edwards.EdwardsPoint) : Result Bool := do
+  let ep ← edwards.EdwardsPoint.mul_by_cofactor self
+  traits.IsIdentity.Blanket.is_identity
+    edwards.EdwardsPoint.Insts.SubtleConstantTimeEq
+    edwards.EdwardsPoint.Insts.Curve25519TraitsIdentity ep
+
+/-- [curve25519::edwards::{impl core::ops::arith::Mul<curve25519::scalar::Scalar, curve25519::edwards::EdwardsPoint> for &'a curve25519::edwards::EdwardsPoint}::mul]:
+    Source: 'curve25519/solana-ed25519/src/macros.rs', lines 100:12-102:13
+    Visibility: public -/
+def SharedAEdwardsPoint.Insts.CoreOpsArithMulScalarEdwardsPoint.mul
+  (self : edwards.EdwardsPoint) (rhs : scalar.Scalar) :
+  Result edwards.EdwardsPoint
+  := do
+  Shared0EdwardsPoint.Insts.CoreOpsArithMulSharedAScalarEdwardsPoint.mul self
+    rhs
+
+/-- [curve25519::edwards::{curve25519::edwards::EdwardsPoint}::is_torsion_free]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 1456:4-1458:5
+    Visibility: public -/
+def edwards.EdwardsPoint.is_torsion_free
+  (self : edwards.EdwardsPoint) : Result Bool := do
+  let ep ←
+    SharedAEdwardsPoint.Insts.CoreOpsArithMulScalarEdwardsPoint.mul self
+      constants.BASEPOINT_ORDER
+  traits.IsIdentity.Blanket.is_identity
+    edwards.EdwardsPoint.Insts.SubtleConstantTimeEq
+    edwards.EdwardsPoint.Insts.Curve25519TraitsIdentity ep
+
+/-- [curve25519::edwards::{impl core::fmt::Debug for curve25519::edwards::EdwardsPoint}::fmt]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 1466:4-1472:5
+    Visibility: public -/
+def edwards.EdwardsPoint.Insts.CoreFmtDebug.fmt
+  (self : edwards.EdwardsPoint) (f : core.fmt.Formatter) :
+  Result ((core.result.Result Unit core.fmt.Error) × core.fmt.Formatter)
+  := do
+  let a ←
+    core.fmt.rt.Argument.new_debug (core.fmt.DebugShared
+      backend.serial.u64.field.FieldElement51.Insts.CoreFmtDebug) self.X
+  let a1 ←
+    core.fmt.rt.Argument.new_debug (core.fmt.DebugShared
+      backend.serial.u64.field.FieldElement51.Insts.CoreFmtDebug) self.Y
+  let a2 ←
+    core.fmt.rt.Argument.new_debug (core.fmt.DebugShared
+      backend.serial.u64.field.FieldElement51.Insts.CoreFmtDebug) self.Z
+  let a3 ←
+    core.fmt.rt.Argument.new_debug (core.fmt.DebugShared
+      backend.serial.u64.field.FieldElement51.Insts.CoreFmtDebug) self.T
+  let a4 ←
+    core.fmt.Arguments.new
+      (Array.make 48#usize [
+        18#u8, 69#u8, 100#u8, 119#u8, 97#u8, 114#u8, 100#u8, 115#u8, 80#u8,
+        111#u8, 105#u8, 110#u8, 116#u8, 123#u8, 10#u8, 9#u8, 88#u8, 58#u8,
+        32#u8, 192#u8, 6#u8, 44#u8, 10#u8, 9#u8, 89#u8, 58#u8, 32#u8, 192#u8,
+        6#u8, 44#u8, 10#u8, 9#u8, 90#u8, 58#u8, 32#u8, 192#u8, 6#u8, 44#u8,
+        10#u8, 9#u8, 84#u8, 58#u8, 32#u8, 192#u8, 2#u8, 10#u8, 125#u8, 0#u8
+        ]) (Array.make 4#usize [ a, a1, a2, a3 ])
+  core.fmt.Formatter.write_fmt f a4
+
+/-- Trait implementation: [curve25519::edwards::{impl core::fmt::Debug for curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 1465:0-1473:1 -/
+@[reducible]
+def edwards.EdwardsPoint.Insts.CoreFmtDebug : core.fmt.Debug
+  edwards.EdwardsPoint := {
+  fmt := edwards.EdwardsPoint.Insts.CoreFmtDebug.fmt
+}
+
+/-- Trait implementation: [curve25519::field::{impl core::cmp::PartialEq<curve25519::backend::serial::u64::field::FieldElement51> for curve25519::backend::serial::u64::field::FieldElement51}]
+    Source: 'curve25519/solana-ed25519/src/field.rs', lines 54:0-58:1 -/
+@[reducible]
+def
+  backend.serial.u64.field.FieldElement51.Insts.CoreCmpPartialEqFieldElement51
+  : core.cmp.PartialEq backend.serial.u64.field.FieldElement51
+  backend.serial.u64.field.FieldElement51 := {
+  eq :=
+    backend.serial.u64.field.FieldElement51.Insts.CoreCmpPartialEqFieldElement51.eq
+}
+
+/-- Trait implementation: [curve25519::field::{impl core::cmp::Eq for curve25519::backend::serial::u64::field::FieldElement51}]
+    Source: 'curve25519/solana-ed25519/src/field.rs', lines 52:0-52:27 -/
+@[reducible]
+def backend.serial.u64.field.FieldElement51.Insts.CoreCmpEq : core.cmp.Eq
+  backend.serial.u64.field.FieldElement51 := {
+  partialEqInst :=
+    backend.serial.u64.field.FieldElement51.Insts.CoreCmpPartialEqFieldElement51
+  assert_fields_are_eq :=
+    backend.serial.u64.field.FieldElement51.Insts.CoreCmpEq.assert_fields_are_eq
+}
+
+/-- Trait implementation: [curve25519::field::{impl subtle::ConstantTimeEq for curve25519::backend::serial::u64::field::FieldElement51}]
+    Source: 'curve25519/solana-ed25519/src/field.rs', lines 60:0-67:1 -/
+@[reducible]
+def backend.serial.u64.field.FieldElement51.Insts.SubtleConstantTimeEq :
+  subtle.ConstantTimeEq backend.serial.u64.field.FieldElement51 := {
+  ct_eq :=
+    backend.serial.u64.field.FieldElement51.Insts.SubtleConstantTimeEq.ct_eq
+}
+
+/-- [curve25519::field::{impl core::default::Default for curve25519::backend::serial::u64::field::FieldElement51}::default]:
+    Source: 'curve25519/solana-ed25519/src/field.rs', lines 70:4-72:5
+    Visibility: public -/
+def backend.serial.u64.field.FieldElement51.Insts.CoreDefaultDefault.default
+  : Result backend.serial.u64.field.FieldElement51 := do
+  backend.serial.u64.field.FieldElement51.ZERO
+
+/-- Trait implementation: [curve25519::field::{impl core::default::Default for curve25519::backend::serial::u64::field::FieldElement51}]
+    Source: 'curve25519/solana-ed25519/src/field.rs', lines 69:0-73:1 -/
+@[reducible]
+def backend.serial.u64.field.FieldElement51.Insts.CoreDefaultDefault :
+  core.default.Default backend.serial.u64.field.FieldElement51 := {
+  default :=
+    backend.serial.u64.field.FieldElement51.Insts.CoreDefaultDefault.default
+}
+
+/-- [curve25519::field::{curve25519::backend::serial::u64::field::FieldElement51}::is_zero]:
+    Source: 'curve25519/solana-ed25519/src/field.rs', lines 149:4-154:5 -/
+def field.FieldElement51.is_zero
+  (self : backend.serial.u64.field.FieldElement51) : Result subtle.Choice := do
+  let zero := Array.repeat 32#usize 0#u8
+  let bytes ← backend.serial.u64.field.FieldElement51.to_bytes self
+  let s ← lift (Array.to_slice bytes)
+  let s1 ← lift (Array.to_slice zero)
+  Slice.Insts.SubtleConstantTimeEq.ct_eq U8.Insts.SubtleConstantTimeEq s s1
 
 /-- [curve25519::field::{curve25519::backend::serial::u64::field::FieldElement51}::pow_p58]:
     Source: 'curve25519/solana-ed25519/src/field.rs', lines 294:4-303:5 -/
@@ -1494,5 +3752,245 @@ def field.FieldElement51.invsqrt
   := do
   let fe ← backend.serial.u64.field.FieldElement51.ONE
   field.FieldElement51.sqrt_ratio_i fe self
+
+/-- [curve25519::edwards::{impl core::ops::arith::Add<&'b curve25519::edwards::EdwardsPoint, curve25519::edwards::EdwardsPoint> for curve25519::edwards::EdwardsPoint}::add]:
+    Source: 'curve25519/solana-ed25519/src/macros.rs', lines 19:12-21:13
+    Visibility: public -/
+def
+  edwards.EdwardsPoint.Insts.CoreOpsArithAddSharedBEdwardsPointEdwardsPoint.add
+  (self : edwards.EdwardsPoint) (rhs : edwards.EdwardsPoint) :
+  Result edwards.EdwardsPoint
+  := do
+  Shared0EdwardsPoint.Insts.CoreOpsArithAddSharedAEdwardsPointEdwardsPoint.add
+    self rhs
+
+/-- Trait implementation: [curve25519::edwards::{impl core::ops::arith::Add<&'b curve25519::edwards::EdwardsPoint, curve25519::edwards::EdwardsPoint> for curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/macros.rs', lines 17:8-22:9 -/
+@[reducible]
+def edwards.EdwardsPoint.Insts.CoreOpsArithAddSharedBEdwardsPointEdwardsPoint :
+  core.ops.arith.Add edwards.EdwardsPoint edwards.EdwardsPoint
+  edwards.EdwardsPoint := {
+  add :=
+    edwards.EdwardsPoint.Insts.CoreOpsArithAddSharedBEdwardsPointEdwardsPoint.add
+}
+
+/-- [curve25519::edwards::{impl core::ops::arith::Add<curve25519::edwards::EdwardsPoint, curve25519::edwards::EdwardsPoint> for &'a curve25519::edwards::EdwardsPoint}::add]:
+    Source: 'curve25519/solana-ed25519/src/macros.rs', lines 26:12-28:13
+    Visibility: public -/
+def SharedAEdwardsPoint.Insts.CoreOpsArithAddEdwardsPointEdwardsPoint.add
+  (self : edwards.EdwardsPoint) (rhs : edwards.EdwardsPoint) :
+  Result edwards.EdwardsPoint
+  := do
+  Shared0EdwardsPoint.Insts.CoreOpsArithAddSharedAEdwardsPointEdwardsPoint.add
+    self rhs
+
+/-- Trait implementation: [curve25519::edwards::{impl core::ops::arith::Add<curve25519::edwards::EdwardsPoint, curve25519::edwards::EdwardsPoint> for &'a curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/macros.rs', lines 24:8-29:9 -/
+@[reducible]
+def SharedAEdwardsPoint.Insts.CoreOpsArithAddEdwardsPointEdwardsPoint :
+  core.ops.arith.Add edwards.EdwardsPoint edwards.EdwardsPoint
+  edwards.EdwardsPoint := {
+  add := SharedAEdwardsPoint.Insts.CoreOpsArithAddEdwardsPointEdwardsPoint.add
+}
+
+/-- Trait implementation: [curve25519::edwards::{impl core::ops::arith::Add<curve25519::edwards::EdwardsPoint, curve25519::edwards::EdwardsPoint> for curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/macros.rs', lines 31:8-36:9 -/
+@[reducible]
+def edwards.EdwardsPoint.Insts.CoreOpsArithAddEdwardsPointEdwardsPoint :
+  core.ops.arith.Add edwards.EdwardsPoint edwards.EdwardsPoint
+  edwards.EdwardsPoint := {
+  add := edwards.EdwardsPoint.Insts.CoreOpsArithAddEdwardsPointEdwardsPoint.add
+}
+
+/-- [curve25519::edwards::{impl core::ops::arith::AddAssign<curve25519::edwards::EdwardsPoint> for curve25519::edwards::EdwardsPoint}::add_assign]:
+    Source: 'curve25519/solana-ed25519/src/macros.rs', lines 44:12-46:13
+    Visibility: public -/
+def edwards.EdwardsPoint.Insts.CoreOpsArithAddAssignEdwardsPoint.add_assign
+  (self : edwards.EdwardsPoint) (rhs : edwards.EdwardsPoint) :
+  Result edwards.EdwardsPoint
+  := do
+  edwards.EdwardsPoint.Insts.CoreOpsArithAddAssignSharedAEdwardsPoint.add_assign
+    self rhs
+
+/-- Trait implementation: [curve25519::edwards::{impl core::ops::arith::AddAssign<curve25519::edwards::EdwardsPoint> for curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/macros.rs', lines 43:8-47:9 -/
+@[reducible]
+def edwards.EdwardsPoint.Insts.CoreOpsArithAddAssignEdwardsPoint :
+  core.ops.arith.AddAssign edwards.EdwardsPoint edwards.EdwardsPoint := {
+  add_assign :=
+    edwards.EdwardsPoint.Insts.CoreOpsArithAddAssignEdwardsPoint.add_assign
+}
+
+/-- [curve25519::edwards::{impl core::ops::arith::Sub<&'b curve25519::edwards::EdwardsPoint, curve25519::edwards::EdwardsPoint> for curve25519::edwards::EdwardsPoint}::sub]:
+    Source: 'curve25519/solana-ed25519/src/macros.rs', lines 56:12-58:13
+    Visibility: public -/
+def
+  edwards.EdwardsPoint.Insts.CoreOpsArithSubSharedBEdwardsPointEdwardsPoint.sub
+  (self : edwards.EdwardsPoint) (rhs : edwards.EdwardsPoint) :
+  Result edwards.EdwardsPoint
+  := do
+  Shared0EdwardsPoint.Insts.CoreOpsArithSubSharedAEdwardsPointEdwardsPoint.sub
+    self rhs
+
+/-- Trait implementation: [curve25519::edwards::{impl core::ops::arith::Sub<&'b curve25519::edwards::EdwardsPoint, curve25519::edwards::EdwardsPoint> for curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/macros.rs', lines 54:8-59:9 -/
+@[reducible]
+def edwards.EdwardsPoint.Insts.CoreOpsArithSubSharedBEdwardsPointEdwardsPoint :
+  core.ops.arith.Sub edwards.EdwardsPoint edwards.EdwardsPoint
+  edwards.EdwardsPoint := {
+  sub :=
+    edwards.EdwardsPoint.Insts.CoreOpsArithSubSharedBEdwardsPointEdwardsPoint.sub
+}
+
+/-- [curve25519::edwards::{impl core::ops::arith::Sub<curve25519::edwards::EdwardsPoint, curve25519::edwards::EdwardsPoint> for &'a curve25519::edwards::EdwardsPoint}::sub]:
+    Source: 'curve25519/solana-ed25519/src/macros.rs', lines 63:12-65:13
+    Visibility: public -/
+def SharedAEdwardsPoint.Insts.CoreOpsArithSubEdwardsPointEdwardsPoint.sub
+  (self : edwards.EdwardsPoint) (rhs : edwards.EdwardsPoint) :
+  Result edwards.EdwardsPoint
+  := do
+  Shared0EdwardsPoint.Insts.CoreOpsArithSubSharedAEdwardsPointEdwardsPoint.sub
+    self rhs
+
+/-- Trait implementation: [curve25519::edwards::{impl core::ops::arith::Sub<curve25519::edwards::EdwardsPoint, curve25519::edwards::EdwardsPoint> for &'a curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/macros.rs', lines 61:8-66:9 -/
+@[reducible]
+def SharedAEdwardsPoint.Insts.CoreOpsArithSubEdwardsPointEdwardsPoint :
+  core.ops.arith.Sub edwards.EdwardsPoint edwards.EdwardsPoint
+  edwards.EdwardsPoint := {
+  sub := SharedAEdwardsPoint.Insts.CoreOpsArithSubEdwardsPointEdwardsPoint.sub
+}
+
+/-- [curve25519::edwards::{impl core::ops::arith::Sub<curve25519::edwards::EdwardsPoint, curve25519::edwards::EdwardsPoint> for curve25519::edwards::EdwardsPoint}::sub]:
+    Source: 'curve25519/solana-ed25519/src/macros.rs', lines 70:12-72:13
+    Visibility: public -/
+def edwards.EdwardsPoint.Insts.CoreOpsArithSubEdwardsPointEdwardsPoint.sub
+  (self : edwards.EdwardsPoint) (rhs : edwards.EdwardsPoint) :
+  Result edwards.EdwardsPoint
+  := do
+  Shared0EdwardsPoint.Insts.CoreOpsArithSubSharedAEdwardsPointEdwardsPoint.sub
+    self rhs
+
+/-- Trait implementation: [curve25519::edwards::{impl core::ops::arith::Sub<curve25519::edwards::EdwardsPoint, curve25519::edwards::EdwardsPoint> for curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/macros.rs', lines 68:8-73:9 -/
+@[reducible]
+def edwards.EdwardsPoint.Insts.CoreOpsArithSubEdwardsPointEdwardsPoint :
+  core.ops.arith.Sub edwards.EdwardsPoint edwards.EdwardsPoint
+  edwards.EdwardsPoint := {
+  sub := edwards.EdwardsPoint.Insts.CoreOpsArithSubEdwardsPointEdwardsPoint.sub
+}
+
+/-- [curve25519::edwards::{impl core::ops::arith::SubAssign<curve25519::edwards::EdwardsPoint> for curve25519::edwards::EdwardsPoint}::sub_assign]:
+    Source: 'curve25519/solana-ed25519/src/macros.rs', lines 81:12-83:13
+    Visibility: public -/
+def edwards.EdwardsPoint.Insts.CoreOpsArithSubAssignEdwardsPoint.sub_assign
+  (self : edwards.EdwardsPoint) (rhs : edwards.EdwardsPoint) :
+  Result edwards.EdwardsPoint
+  := do
+  edwards.EdwardsPoint.Insts.CoreOpsArithSubAssignSharedAEdwardsPoint.sub_assign
+    self rhs
+
+/-- Trait implementation: [curve25519::edwards::{impl core::ops::arith::SubAssign<curve25519::edwards::EdwardsPoint> for curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/macros.rs', lines 80:8-84:9 -/
+@[reducible]
+def edwards.EdwardsPoint.Insts.CoreOpsArithSubAssignEdwardsPoint :
+  core.ops.arith.SubAssign edwards.EdwardsPoint edwards.EdwardsPoint := {
+  sub_assign :=
+    edwards.EdwardsPoint.Insts.CoreOpsArithSubAssignEdwardsPoint.sub_assign
+}
+
+/-- [curve25519::edwards::{impl core::ops::arith::Mul<&'b curve25519::scalar::Scalar, curve25519::edwards::EdwardsPoint> for curve25519::edwards::EdwardsPoint}::mul]:
+    Source: 'curve25519/solana-ed25519/src/macros.rs', lines 93:12-95:13
+    Visibility: public -/
+def edwards.EdwardsPoint.Insts.CoreOpsArithMulSharedBScalarEdwardsPoint.mul
+  (self : edwards.EdwardsPoint) (rhs : scalar.Scalar) :
+  Result edwards.EdwardsPoint
+  := do
+  Shared0EdwardsPoint.Insts.CoreOpsArithMulSharedAScalarEdwardsPoint.mul self
+    rhs
+
+/-- Trait implementation: [curve25519::edwards::{impl core::ops::arith::Mul<&'b curve25519::scalar::Scalar, curve25519::edwards::EdwardsPoint> for curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/macros.rs', lines 91:8-96:9 -/
+@[reducible]
+def edwards.EdwardsPoint.Insts.CoreOpsArithMulSharedBScalarEdwardsPoint :
+  core.ops.arith.Mul edwards.EdwardsPoint scalar.Scalar edwards.EdwardsPoint
+  := {
+  mul :=
+    edwards.EdwardsPoint.Insts.CoreOpsArithMulSharedBScalarEdwardsPoint.mul
+}
+
+/-- [curve25519::edwards::{impl core::ops::arith::Mul<&'b curve25519::edwards::EdwardsPoint, curve25519::edwards::EdwardsPoint> for curve25519::scalar::Scalar}::mul]:
+    Source: 'curve25519/solana-ed25519/src/macros.rs', lines 93:12-95:13
+    Visibility: public -/
+def scalar.Scalar.Insts.CoreOpsArithMulSharedBEdwardsPointEdwardsPoint.mul
+  (self : scalar.Scalar) (rhs : edwards.EdwardsPoint) :
+  Result edwards.EdwardsPoint
+  := do
+  Shared0Scalar.Insts.CoreOpsArithMulSharedAEdwardsPointEdwardsPoint.mul self
+    rhs
+
+/-- Trait implementation: [curve25519::edwards::{impl core::ops::arith::Mul<&'b curve25519::edwards::EdwardsPoint, curve25519::edwards::EdwardsPoint> for curve25519::scalar::Scalar}]
+    Source: 'curve25519/solana-ed25519/src/macros.rs', lines 91:8-96:9 -/
+@[reducible]
+def scalar.Scalar.Insts.CoreOpsArithMulSharedBEdwardsPointEdwardsPoint :
+  core.ops.arith.Mul scalar.Scalar edwards.EdwardsPoint edwards.EdwardsPoint
+  := {
+  mul := scalar.Scalar.Insts.CoreOpsArithMulSharedBEdwardsPointEdwardsPoint.mul
+}
+
+/-- Trait implementation: [curve25519::edwards::{impl core::ops::arith::Mul<curve25519::scalar::Scalar, curve25519::edwards::EdwardsPoint> for &'a curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/macros.rs', lines 98:8-103:9 -/
+@[reducible]
+def SharedAEdwardsPoint.Insts.CoreOpsArithMulScalarEdwardsPoint :
+  core.ops.arith.Mul edwards.EdwardsPoint scalar.Scalar edwards.EdwardsPoint
+  := {
+  mul := SharedAEdwardsPoint.Insts.CoreOpsArithMulScalarEdwardsPoint.mul
+}
+
+/-- Trait implementation: [curve25519::edwards::{impl core::ops::arith::Mul<curve25519::edwards::EdwardsPoint, curve25519::edwards::EdwardsPoint> for &'a curve25519::scalar::Scalar}]
+    Source: 'curve25519/solana-ed25519/src/macros.rs', lines 98:8-103:9 -/
+@[reducible]
+def SharedAScalar.Insts.CoreOpsArithMulEdwardsPointEdwardsPoint :
+  core.ops.arith.Mul scalar.Scalar edwards.EdwardsPoint edwards.EdwardsPoint
+  := {
+  mul := SharedAScalar.Insts.CoreOpsArithMulEdwardsPointEdwardsPoint.mul
+}
+
+/-- Trait implementation: [curve25519::edwards::{impl core::ops::arith::Mul<curve25519::scalar::Scalar, curve25519::edwards::EdwardsPoint> for curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/macros.rs', lines 105:8-110:9 -/
+@[reducible]
+def edwards.EdwardsPoint.Insts.CoreOpsArithMulScalarEdwardsPoint :
+  core.ops.arith.Mul edwards.EdwardsPoint scalar.Scalar edwards.EdwardsPoint
+  := {
+  mul := edwards.EdwardsPoint.Insts.CoreOpsArithMulScalarEdwardsPoint.mul
+}
+
+/-- Trait implementation: [curve25519::edwards::{impl core::ops::arith::Mul<curve25519::edwards::EdwardsPoint, curve25519::edwards::EdwardsPoint> for curve25519::scalar::Scalar}]
+    Source: 'curve25519/solana-ed25519/src/macros.rs', lines 105:8-110:9 -/
+@[reducible]
+def scalar.Scalar.Insts.CoreOpsArithMulEdwardsPointEdwardsPoint :
+  core.ops.arith.Mul scalar.Scalar edwards.EdwardsPoint edwards.EdwardsPoint
+  := {
+  mul := scalar.Scalar.Insts.CoreOpsArithMulEdwardsPointEdwardsPoint.mul
+}
+
+/-- [curve25519::edwards::{impl core::ops::arith::MulAssign<curve25519::scalar::Scalar> for curve25519::edwards::EdwardsPoint}::mul_assign]:
+    Source: 'curve25519/solana-ed25519/src/macros.rs', lines 118:12-120:13
+    Visibility: public -/
+def edwards.EdwardsPoint.Insts.CoreOpsArithMulAssignScalar.mul_assign
+  (self : edwards.EdwardsPoint) (rhs : scalar.Scalar) :
+  Result edwards.EdwardsPoint
+  := do
+  edwards.EdwardsPoint.Insts.CoreOpsArithMulAssignSharedAScalar.mul_assign self
+    rhs
+
+/-- Trait implementation: [curve25519::edwards::{impl core::ops::arith::MulAssign<curve25519::scalar::Scalar> for curve25519::edwards::EdwardsPoint}]
+    Source: 'curve25519/solana-ed25519/src/macros.rs', lines 117:8-121:9 -/
+@[reducible]
+def edwards.EdwardsPoint.Insts.CoreOpsArithMulAssignScalar :
+  core.ops.arith.MulAssign edwards.EdwardsPoint scalar.Scalar := {
+  mul_assign :=
+    edwards.EdwardsPoint.Insts.CoreOpsArithMulAssignScalar.mul_assign
+}
 
 end curve25519

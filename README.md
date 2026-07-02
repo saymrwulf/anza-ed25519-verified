@@ -26,7 +26,7 @@ in this repository.
 | Layer | Certificate | Status | Axioms of certificate |
 |-------|-------------|--------|-----------------------|
 | Field 𝔽_p          | `fieldImplementation`    | ✅ proven | `[propext, Classical.choice, Quot.sound]` |
-| Group law (Edwards) | `edwardsImplementation`  | ⏳ in progress | — |
+| Group law (Edwards) | `edwardsImplementation`  | ✅ proven | `[propext, Classical.choice, Quot.sound]` |
 | Scalar mod ℓ        | `scalarImplementation`   | ⏳ in progress | — |
 | Signature (EdDSA)   | `verifyEquation`          | ⏳ in progress | — |
 

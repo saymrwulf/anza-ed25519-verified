@@ -15,6 +15,14 @@ set_option maxRecDepth 2048
 
 namespace curve25519
 
+/-- Trait declaration: [core::borrow::Borrow]
+    Source: '/rustc/library/core/src/borrow.rs', lines 158:0-158:40
+    Name pattern: [core::borrow::Borrow]
+    Visibility: public -/
+@[rust_trait "core::borrow::Borrow"]
+structure core.borrow.Borrow (Self : Type) (Borrowed : Type) where
+  borrow : Self → Result Borrowed
+
 /-- Trait declaration: [core::ops::arith::Add]
     Source: '/rustc/library/core/src/ops/arith.rs', lines 76:0-76:31
     Name pattern: [core::ops::arith::Add]
@@ -106,5 +114,91 @@ structure subtle.ConditionallySelectable (Self : Type) where
     Visibility: public -/
 @[reducible]
 def backend.serial.u64.field.FieldElement51 := Array Std.U64 5#usize
+
+/-- [curve25519::backend::serial::curve_models::ProjectivePoint]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 154:0-158:1
+    Visibility: public -/
+structure backend.serial.curve_models.ProjectivePoint where
+  X : backend.serial.u64.field.FieldElement51
+  Y : backend.serial.u64.field.FieldElement51
+  Z : backend.serial.u64.field.FieldElement51
+
+/-- [curve25519::backend::serial::curve_models::CompletedPoint]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 169:0-174:1
+    Visibility: public -/
+structure backend.serial.curve_models.CompletedPoint where
+  X : backend.serial.u64.field.FieldElement51
+  Y : backend.serial.u64.field.FieldElement51
+  Z : backend.serial.u64.field.FieldElement51
+  T : backend.serial.u64.field.FieldElement51
+
+/-- [curve25519::backend::serial::curve_models::AffineNielsPoint]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 184:0-188:1
+    Visibility: public -/
+structure backend.serial.curve_models.AffineNielsPoint where
+  y_plus_x : backend.serial.u64.field.FieldElement51
+  y_minus_x : backend.serial.u64.field.FieldElement51
+  xy2d : backend.serial.u64.field.FieldElement51
+
+/-- [curve25519::backend::serial::curve_models::ProjectiveNielsPoint]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/curve_models.rs', lines 206:0-211:1
+    Visibility: public -/
+structure backend.serial.curve_models.ProjectiveNielsPoint where
+  Y_plus_X : backend.serial.u64.field.FieldElement51
+  Y_minus_X : backend.serial.u64.field.FieldElement51
+  Z : backend.serial.u64.field.FieldElement51
+  T2d : backend.serial.u64.field.FieldElement51
+
+/-- Trait declaration: [curve25519::traits::Identity]
+    Source: 'curve25519/solana-ed25519/src/traits.rs', lines 32:0-36:1
+    Visibility: public -/
+structure traits.Identity (Self : Type) where
+  identity : Result Self
+
+/-- Trait declaration: [curve25519::traits::ValidityCheck]
+    Source: 'curve25519/solana-ed25519/src/traits.rs', lines 451:0-454:1 -/
+structure traits.ValidityCheck (Self : Type) where
+  is_valid : Self → Result Bool
+
+/-- [curve25519::edwards::EdwardsPoint]
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 390:0-395:1
+    Visibility: public -/
+structure edwards.EdwardsPoint where
+  X : backend.serial.u64.field.FieldElement51
+  Y : backend.serial.u64.field.FieldElement51
+  Z : backend.serial.u64.field.FieldElement51
+  T : backend.serial.u64.field.FieldElement51
+
+/-- [curve25519::scalar::Scalar]
+    Source: 'curve25519/solana-ed25519/src/scalar.rs', lines 165:0-202:1
+    Visibility: public -/
+structure scalar.Scalar where
+  bytes : Array Std.U8 32#usize
+
+/-- [curve25519::backend::BackendKind]
+    Source: 'curve25519/solana-ed25519/src/backend.rs', lines 46:0-50:1 -/
+@[discriminant isize]
+inductive backend.BackendKind where
+| Avx2 : backend.BackendKind
+| Serial : backend.BackendKind
+
+/-- [curve25519::edwards::affine::AffinePoint]
+    Source: 'curve25519/solana-ed25519/src/edwards/affine.rs', lines 12:0-15:1
+    Visibility: public -/
+structure edwards.affine.AffinePoint where
+  x : backend.serial.u64.field.FieldElement51
+  y : backend.serial.u64.field.FieldElement51
+
+/-- [curve25519::edwards::CompressedEdwardsY]
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 175:0-175:44
+    Visibility: public -/
+@[reducible]
+def edwards.CompressedEdwardsY := Array Std.U8 32#usize
+
+/-- [curve25519::montgomery::MontgomeryPoint]
+    Source: 'curve25519/solana-ed25519/src/montgomery.rs', lines 87:0-87:41
+    Visibility: public -/
+@[reducible]
+def montgomery.MontgomeryPoint := Array Std.U8 32#usize
 
 end curve25519

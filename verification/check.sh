@@ -44,14 +44,23 @@ PROOFS=(
   InvertSpec
   FieldMain
   FeQ
+  EdCurve
+  EdDenote
+  EdDouble
+  EdAddProjNiels
+  EdAddAffNiels
+  EdConvert
+  EdMain
 )
 # Fully-qualified certificate names; each must be axiom-clean.
 CERTS=(
   CurveFieldProofs.fieldImplementation
+  CurveFieldProofs.edwardsImplementation
 )
 # Imports needed so every certificate in CERTS is in scope for the audit.
 AUDIT_IMPORTS=(
   Proofs.FieldMain
+  Proofs.EdMain
 )
 
 # ── Phase 0: resource + integrity guards ────────────────────────────────────
