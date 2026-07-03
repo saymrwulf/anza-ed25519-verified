@@ -94,6 +94,24 @@ if [ "$AVAIL_MB" -lt "$MIN_FREE_MB" ]; then
     exit 1
 fi
 
+# ── Guard 3b: global-headroom clamp (2026-07-03 swap-pressure incident) ─────
+# A cap is a PROMISE of memory to lean; never promise more than the machine
+# can afford right now. Requested caps that exceed (available − floor) are
+# clamped, so raising LEAN_MEM_MB can no longer starve the rest of the system
+# into swap even when lean itself stays within its cap. Clamp, don't fail:
+# most compiles peak far below their cap (measure before raising — the
+# incident's 9G scopes served a file whose true peak was 753MB).
+MAX_AFFORD_MB=$(( AVAIL_MB - MIN_FREE_MB ))
+if [ "$MEM_MB" -gt "$MAX_AFFORD_MB" ]; then
+    echo "lean-guard: clamping -M ${MEM_MB} -> ${MAX_AFFORD_MB}MB (avail=${AVAIL_MB}MB, floor=${MIN_FREE_MB}MB)"
+    MEM_MB=$MAX_AFFORD_MB
+    CGROUP_MB=$(( MEM_MB + 1024 ))
+fi
+if [ "$MEM_MB" -lt 1024 ]; then
+    echo "FATAL: headroom clamp would leave lean < 1024MB — machine too loaded to compile safely"
+    exit 1
+fi
+
 echo "[$(date -u +%F' '%T)] $LEAN_FILE (t=${TIMEOUT_SEC}s M=${MEM_MB}MB cg=${CGROUP_MB}MB cores=$CORES avail=${AVAIL_MB}MB)" >> "$LOG_FILE"
 
 # ── Compile under both caps ──────────────────────────────────────────────────
