@@ -21,5 +21,21 @@ lake env bash -c "
   cd '$HERE'
   for m in ${PROOFS[*]}; do echo \"  · proof \$m\"; LEAN_TIMEOUT=300 LEAN_MEM_MB=6144 '$HERE/lean-guard' \"Proofs/\$m.lean\" || exit 1; done
 " || { echo FAIL; exit 1; }
+echo "=== Phase 3: axiom audit (kernel-level) ==="
+cd "$AENEAS_LEAN"
+lake env bash -c "
+  set -uo pipefail
+  export LEAN_PATH=\"\$LEAN_PATH:$HERE/gen:$HERE\"
+  cd '$HERE'
+  AUD=\$(mktemp '$HERE/.audit-scalar-XXXX.lean')
+  { echo 'import Proofs.ScalarDenote'; echo '#print axioms ScalarProofs.L_val'; } > \"\$AUD\"
+  OUT=\$(LEAN_TIMEOUT=120 LEAN_MEM_MB=4096 '$HERE/lean-guard' \"\$AUD\" 2>&1)
+  echo \"\$OUT\"
+  rm -f \"\$AUD\" \"\${AUD%.lean}.olean\"
+  echo \"\$OUT\" | grep -qF \"depends on axioms: [propext, Classical.choice, Quot.sound]\" || {
+    echo 'AXIOM AUDIT FAILED: L_val not clean'; exit 1; }
+" || { echo FAIL; exit 1; }
+echo "  L_val axiom-clean"
+
 echo ""
 echo "SCALAR FOUNDATION: gen compiles; denotation + group-order constant (L = ℓ) proven."

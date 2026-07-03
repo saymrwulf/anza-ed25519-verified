@@ -27,8 +27,8 @@ in this repository.
 |-------|-------------|--------|-----------------------|
 | Field 𝔽_p          | `fieldImplementation`    | ✅ proven | `[propext, Classical.choice, Quot.sound]` |
 | Group law (Edwards) | `edwardsImplementation`  | ✅ proven | `[propext, Classical.choice, Quot.sound]` |
-| Scalar mod ℓ        | `scalarImplementation`   | 🔨 foundation | denotation + L=ℓ proven; add/sub/mul in progress |
-| Signature (EdDSA)   | `verifyEquation`          | ⏳ in progress | — |
+| Scalar mod ℓ        | `scalarImplementation` (planned; `L_val` proven)   | 🔨 foundation | denotation + L=ℓ proven; add/sub/mul in progress |
+| Signature (EdDSA)   | `verifyEquation` (planned)          | ⏳ planned | — |
 
 Status legend: ✅ proven & axiom-audited · ⏳ in progress · ❌ not started.
 This table is updated only when `verification/check.sh` passes for the layer.

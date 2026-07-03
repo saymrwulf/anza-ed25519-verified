@@ -20,7 +20,7 @@ source ~/aeneas-toolchain/env.sh
 HERE="$(cd "$(dirname "$0")" && pwd)"
 AENEAS_LEAN="$AENEAS_HOME/backends/lean"
 TIMEOUT="${LEAN_TIMEOUT:-300}"
-export LEAN_MEM_MB="${LEAN_MEM_MB:-6144}"
+export LEAN_MEM_MB="${LEAN_MEM_MB:-8192}"  # 8192: ReduceSpec exceeds 6144 (coherence pass 2)
 CORES="${LEAN_MAX_CORES:-0-3}"
 
 # Layer manifests (extended as the pyramid grows; ORDER = import order).
@@ -111,6 +111,7 @@ lake env bash -c "
   for f in Proofs/*.lean; do
     b=\$(basename \"\$f\" .lean)
     [ \"\$b\" = AxiomCheck ] && continue
+    case \"\$b\" in Scalar*) continue;; esac  # scalar layer: checked by check-scalar.sh (coherence pass 2)
     case \" ${PROOFS[*]} \" in (*\" \$b \"*) ;; (*) echo \"DEAD FILE: \$f not in check manifest\"; exit 1;; esac
   done
 "
@@ -126,12 +127,12 @@ lake env bash -c "
   set -euo pipefail
   cd '$HERE/gen' && export LEAN_PATH=\"\$LEAN_PATH:\$PWD:$HERE\"
   cd '$HERE'
-  AUD=\$(mktemp /tmp/audit-XXXX.lean)
+  AUD=\$(mktemp '$HERE/.audit-XXXX.lean')
   {
     for i in ${AUDIT_IMPORTS[*]}; do echo \"import \$i\"; done
     for c in ${CERTS[*]}; do echo \"#print axioms \$c\"; done
   } > \"\$AUD\"
-  OUT=\$(taskset -c $CORES timeout --kill-after=15 $TIMEOUT lean -M \${LEAN_MEM_MB:-4096} \"\$AUD\" 2>&1)
+  OUT=\$(LEAN_TIMEOUT=$TIMEOUT LEAN_MEM_MB=4096 '$HERE/lean-guard' \"\$AUD\" 2>&1)
   echo \"\$OUT\"
   rm -f \"\$AUD\"
   N_CLEAN=\$(echo \"\$OUT\" | grep -cF \"depends on axioms: $EXPECTED\" || true)
