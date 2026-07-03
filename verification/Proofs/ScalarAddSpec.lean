@@ -226,7 +226,9 @@ theorem add_val_spec (a b : Sc)
     (hbb : b0.val < 2^52 ∧ b1.val < 2^52 ∧ b2.val < 2^52 ∧ b3.val < 2^52 ∧ b4.val < 2^52)
     (hca : scVal a < Ell) (hcb : scVal b < Ell) :
     backend.serial.u64.scalar.Scalar52.add a b
-      ⦃ r => scDenote r = scDenote a + scDenote b ⦄ := by
+      ⦃ r => (∃ s0 s1 s2 s3 s4 : U64, (↑r : List U64) = [s0, s1, s2, s3, s4] ∧
+              s0.val < 2^52 ∧ s1.val < 2^52 ∧ s2.val < 2^52 ∧ s3.val < 2^52 ∧ s4.val < 2^52) ∧
+            scDenote r = scDenote a + scDenote b ⦄ := by
   obtain ⟨hA0, hA1, hA2, hA3, hA4⟩ := hab
   obtain ⟨hB0, hB1, hB2, hB3, hB4⟩ := hbb
   unfold backend.serial.u64.scalar.Scalar52.add
@@ -241,7 +243,9 @@ theorem add_val_spec (a b : Sc)
     hf0, hf1, hf2, hf3, hf4⟩
   try simp only at hrl
   show backend.serial.u64.scalar.Scalar52.sub sum backend.serial.u64.constants.L
-    ⦃ r => scDenote r = scDenote a + scDenote b ⦄
+    ⦃ r => (∃ s0 s1 s2 s3 s4 : U64, (↑r : List U64) = [s0, s1, s2, s3, s4] ∧
+            s0.val < 2^52 ∧ s1.val < 2^52 ∧ s2.val < 2^52 ∧ s3.val < 2^52 ∧ s4.val < 2^52) ∧
+          scDenote r = scDenote a + scDenote b ⦄
   -- telescope: scLimbs sum + 2^260·γ5 = scVal a + scVal b; canonicity kills γ5
   have hsva : scVal a = scLimbs a0 a1 a2 a3 a4 := scVal_eq a a0 a1 a2 a3 a4 ha
   have hsvb : scVal b = scLimbs b0 b1 b2 b3 b4 := scVal_eq b b0 b1 b2 b3 b4 hb
@@ -269,7 +273,8 @@ theorem add_val_spec (a b : Sc)
       (by refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;> norm_num)
       (by rw [L_val]))
   intro r hr
-  rw [hr]
+  refine ⟨hr.1, ?_⟩
+  rw [hr.2]
   have hL0 : scDenote backend.serial.u64.constants.L = 0 := by
     simp only [scDenote, L_val]; exact ZMod.natCast_self Ell
   have hsd : scDenote sum = scDenote a + scDenote b := by

@@ -713,7 +713,11 @@ theorem add_telescope
     denotes ⟦a⟧ − ⟦b⟧ in `ZMod ℓ`. Assembly of `sub_loop_spec` (borrow
     chain) and `cond_add_l_{zero,one}_spec` (conditional +ℓ) through the
     two telescopes; the bind is applied manually via `spec_bind` to keep
-    full control of the postcondition destructuring. -/
+    full control of the postcondition destructuring. The post also
+    exposes the result's limbs with their 52-bit bounds (both branches
+    end in mask-&-store loops), so downstream compositions —
+    `montgomery_reduce`'s final canonicalization feeding `mul_internal`
+    again — can consume the result without re-proving boundedness. -/
 theorem sub_val_spec (a b : Sc)
     (a0 a1 a2 a3 a4 b0 b1 b2 b3 b4 : U64)
     (ha : (↑a : List U64) = [a0, a1, a2, a3, a4])
@@ -722,7 +726,9 @@ theorem sub_val_spec (a b : Sc)
     (hbb : b0.val < 2^52 ∧ b1.val < 2^52 ∧ b2.val < 2^52 ∧ b3.val < 2^52 ∧ b4.val < 2^52)
     (hcb : scVal b ≤ Ell) :
     backend.serial.u64.scalar.Scalar52.sub a b
-      ⦃ r => scDenote r = scDenote a - scDenote b ⦄ := by
+      ⦃ r => (∃ s0 s1 s2 s3 s4 : U64, (↑r : List U64) = [s0, s1, s2, s3, s4] ∧
+              s0.val < 2^52 ∧ s1.val < 2^52 ∧ s2.val < 2^52 ∧ s3.val < 2^52 ∧ s4.val < 2^52) ∧
+            scDenote r = scDenote a - scDenote b ⦄ := by
   obtain ⟨hA0, hA1, hA2, hA3, hA4⟩ := hab
   obtain ⟨hB0, hB1, hB2, hB3, hB4⟩ := hbb
   unfold backend.serial.u64.scalar.Scalar52.sub
@@ -742,7 +748,10 @@ theorem sub_val_spec (a b : Sc)
     let i2 ← lift (UScalar.cast UScalarTy.U8 i1)
     let c ← subtle.Choice.Insts.CoreConvertFromU8.from i2
     let (_, difference1) ← dw.conditional_add_l c
-    ok difference1) ⦃ r => scDenote r = scDenote a - scDenote b ⦄
+    ok difference1) ⦃ r =>
+      (∃ s0 s1 s2 s3 s4 : U64, (↑r : List U64) = [s0, s1, s2, s3, s4] ∧
+        s0.val < 2^52 ∧ s1.val < 2^52 ∧ s2.val < 2^52 ∧ s3.val < 2^52 ∧ s4.val < 2^52) ∧
+      scDenote r = scDenote a - scDenote b ⦄
   -- borrow >>> 63, cast, Choice
   step as ⟨i1, hi1⟩
   have hi1v : i1.val = β5 := by rw [hi1]; exact hbor
@@ -769,7 +778,11 @@ theorem sub_val_spec (a b : Sc)
     apply spec_bind (cond_add_l_zero_spec dw cc d0 d1 d2 d3 d4 hdl hc0 hdb)
     rintro ⟨cw1, cw2⟩ ⟨r0, r1, r2, r3, r4, hrl, hr0, hr1, hr2, hr3, hr4⟩
     simp only at hrl
-    show scDenote cw2 = scDenote a - scDenote b
+    show (∃ s0 s1 s2 s3 s4 : U64, (↑cw2 : List U64) = [s0, s1, s2, s3, s4] ∧
+        s0.val < 2^52 ∧ s1.val < 2^52 ∧ s2.val < 2^52 ∧ s3.val < 2^52 ∧ s4.val < 2^52) ∧
+      scDenote cw2 = scDenote a - scDenote b
+    refine ⟨⟨r0, r1, r2, r3, r4, hrl,
+      by omega, by omega, by omega, by omega, by omega⟩, ?_⟩
     have hcwval : scVal cw2 = scLimbs d0 d1 d2 d3 d4 := by
       rw [scVal_eq cw2 r0 r1 r2 r3 r4 hrl]; unfold scLimbs; rw [hr0, hr1, hr2, hr3, hr4]
     have key : scVal cw2 + scVal b = scVal a := by
@@ -784,7 +797,10 @@ theorem sub_val_spec (a b : Sc)
       hgb1, hgb2, hgb3, hgb4, hgb5, hrb0, hrb1, hrb2, hrb3, hrb4,
       hf0, hf1, hf2, hf3, hf4⟩
     simp only at hrl
-    show scDenote cw2 = scDenote a - scDenote b
+    show (∃ s0 s1 s2 s3 s4 : U64, (↑cw2 : List U64) = [s0, s1, s2, s3, s4] ∧
+        s0.val < 2^52 ∧ s1.val < 2^52 ∧ s2.val < 2^52 ∧ s3.val < 2^52 ∧ s4.val < 2^52) ∧
+      scDenote cw2 = scDenote a - scDenote b
+    refine ⟨⟨r0, r1, r2, r3, r4, hrl, hrb0, hrb1, hrb2, hrb3, hrb4⟩, ?_⟩
     have hLsum : (671914833335277 + 2^52*3916664325105025 + 2^104*1367801
         + 2^156*0 + 2^208*17592186044416 : ℕ) = Ell := by unfold Ell; norm_num
     have hTadd : scLimbs r0 r1 r2 r3 r4 + 2^260 * γ5 = scLimbs d0 d1 d2 d3 d4 + Ell := by
