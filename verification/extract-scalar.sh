@@ -24,6 +24,7 @@ charon cargo --preset=aeneas \
   --start-from 'crate::backend::serial::u64::scalar::_::montgomery_invert' \
   --start-from 'crate::backend::serial::u64::scalar::_::as_montgomery' \
   --start-from 'crate::backend::serial::u64::scalar::_::from_montgomery' \
+  --start-from 'crate::backend::serial::u64::scalar::_::from_bytes_wide' \
   --dest-file "$HERE/CurveScalar.llbc" \
   -- --no-default-features
 

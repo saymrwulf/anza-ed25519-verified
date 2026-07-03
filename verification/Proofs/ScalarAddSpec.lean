@@ -5,7 +5,7 @@
    The value spec for the transpiled `Scalar52::add`: for limb-bounded,
    canonical inputs (scVal < ℓ), `add a b` denotes ⟦a⟧ + ⟦b⟧ in ZMod ℓ.
 
-   RUST ANALOG (solana curve25519 fork, scalar.rs:161-174)
+   RUST ANALOG (curve25519-dalek v5, scalar.rs:161-174)
      let mut sum = Scalar52::ZERO; let mask = (1u64 << 52) - 1;
      let mut carry: u64 = 0;
      for i in 0..5 { carry = a[i] + b[i] + (carry >> 52); sum[i] = carry & mask; }
@@ -228,6 +228,7 @@ theorem add_val_spec (a b : Sc)
     backend.serial.u64.scalar.Scalar52.add a b
       ⦃ r => (∃ s0 s1 s2 s3 s4 : U64, (↑r : List U64) = [s0, s1, s2, s3, s4] ∧
               s0.val < 2^52 ∧ s1.val < 2^52 ∧ s2.val < 2^52 ∧ s3.val < 2^52 ∧ s4.val < 2^52) ∧
+            scVal r < Ell ∧
             scDenote r = scDenote a + scDenote b ⦄ := by
   obtain ⟨hA0, hA1, hA2, hA3, hA4⟩ := hab
   obtain ⟨hB0, hB1, hB2, hB3, hB4⟩ := hbb
@@ -245,6 +246,7 @@ theorem add_val_spec (a b : Sc)
   show backend.serial.u64.scalar.Scalar52.sub sum backend.serial.u64.constants.L
     ⦃ r => (∃ s0 s1 s2 s3 s4 : U64, (↑r : List U64) = [s0, s1, s2, s3, s4] ∧
             s0.val < 2^52 ∧ s1.val < 2^52 ∧ s2.val < 2^52 ∧ s3.val < 2^52 ∧ s4.val < 2^52) ∧
+          scVal r < Ell ∧
           scDenote r = scDenote a + scDenote b ⦄
   -- telescope: scLimbs sum + 2^260·γ5 = scVal a + scVal b; canonicity kills γ5
   have hsva : scVal a = scLimbs a0 a1 a2 a3 a4 := scVal_eq a a0 a1 a2 a3 a4 ha
@@ -273,12 +275,21 @@ theorem add_val_spec (a b : Sc)
       (by refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;> norm_num)
       (by rw [L_val]))
   intro r hr
-  refine ⟨hr.1, ?_⟩
-  rw [hr.2]
-  have hL0 : scDenote backend.serial.u64.constants.L = 0 := by
-    simp only [scDenote, L_val]; exact ZMod.natCast_self Ell
-  have hsd : scDenote sum = scDenote a + scDenote b := by
-    simp only [scDenote, hsum]; push_cast; ring
-  rw [hL0, hsd]; ring
+  obtain ⟨hbnds, ⟨β, hβle, heq, hguard⟩, hden⟩ := hr
+  rw [L_val] at heq
+  refine ⟨hbnds, ?_, ?_⟩
+  · -- canonicity: the trailing sub L leaves a value below ℓ
+    rcases Nat.le_one_iff_eq_zero_or_eq_one.mp hβle with h0 | h1
+    · subst h0; omega
+    · subst h1
+      have hlt := hguard rfl
+      rw [L_val] at hlt
+      omega
+  · rw [hden]
+    have hL0 : scDenote backend.serial.u64.constants.L = 0 := by
+      simp only [scDenote, L_val]; exact ZMod.natCast_self Ell
+    have hsd : scDenote sum = scDenote a + scDenote b := by
+      simp only [scDenote, hsum]; push_cast; ring
+    rw [hL0, hsd]; ring
 
 end ScalarProofs

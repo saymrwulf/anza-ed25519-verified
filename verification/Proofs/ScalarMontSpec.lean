@@ -257,6 +257,7 @@ theorem mont_tail_spec (limbs : Std.Array Std.U128 9#usize)
       ⦃ r => (∃ s0 s1 s2 s3 s4 : U64, (↑r : List U64) = [s0, s1, s2, s3, s4] ∧
               s0.val < 2^52 ∧ s1.val < 2^52 ∧ s2.val < 2^52 ∧ s3.val < 2^52 ∧
               s4.val < 2^52) ∧
+            scVal r < Ell ∧
             scDenote r = (((carry4.val + z5.val + n1.val * 17592186044416 + n3.val * 1367801 + n4.val * 3916664325105025) + 2^52 * (z6.val + n2.val * 17592186044416 + n4.val * 1367801) + 2^104 * (z7.val + n3.val * 17592186044416) + 2^156 * (z8.val + n4.val * 17592186044416) : ℕ) : ZMod Ell) ⦄ := by
   obtain ⟨hn1b, hn2b, hn3b, hn4b⟩ := hnb
   obtain ⟨hz5, hz6, hz7, hz8⟩ := hzb
@@ -371,17 +372,28 @@ theorem mont_tail_spec (limbs : Std.Array Std.U128 9#usize)
       (by refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;> norm_num)
       (by rw [L_val]))
   intro r hr
-  refine ⟨hr.1, ?_⟩
-  rw [hr.2]
-  have hEz : (Ell : ZMod Ell) = 0 := ZMod.natCast_self Ell
-  have hL0 : scDenote backend.serial.u64.constants.L = 0 := by
-    simp only [scDenote, L_val]; exact hEz
-  rw [hL0, sub_zero]
+  obtain ⟨hbnds, ⟨β, hβle, heq, hguard⟩, hden⟩ := hr
   have hpre : scVal (Array.make 5#usize [r0, r1, r2, r3, r4])
       = scLimbs r0 r1 r2 r3 r4 := scVal_eq _ _ _ _ _ _ hmk
-  simp only [scDenote, hpre]
-  unfold scLimbs
-  rw [hr4v]
-  exact congrArg (Nat.cast (R := ZMod Ell)) hTt
+  have hpreX : scVal (Array.make 5#usize [r0, r1, r2, r3, r4])
+      = (carry4.val + z5.val + n1.val * 17592186044416 + n3.val * 1367801
+          + n4.val * 3916664325105025)
+        + 2^52 * (z6.val + n2.val * 17592186044416 + n4.val * 1367801)
+        + 2^104 * (z7.val + n3.val * 17592186044416)
+        + 2^156 * (z8.val + n4.val * 17592186044416) := by
+    rw [hpre]; unfold scLimbs; rw [hr4v]; exact hTt
+  rw [L_val, hpreX] at heq
+  rw [L_val, hpreX] at hguard
+  refine ⟨hbnds, ?_, ?_⟩
+  · -- canonicity: the sub-L canonicalization of a value below 2ℓ lands below ℓ
+    rcases Nat.le_one_iff_eq_zero_or_eq_one.mp hβle with h0 | h1
+    · subst h0; omega
+    · subst h1; have := hguard rfl; omega
+  · rw [hden]
+    have hEz : (Ell : ZMod Ell) = 0 := ZMod.natCast_self Ell
+    have hL0 : scDenote backend.serial.u64.constants.L = 0 := by
+      simp only [scDenote, L_val]; exact hEz
+    rw [hL0, sub_zero]
+    simp only [scDenote, hpreX]
 
 end ScalarProofs

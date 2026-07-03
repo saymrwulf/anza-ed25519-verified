@@ -100,6 +100,7 @@ theorem mul_spec (a b : Sc)
       ⦃ r => (∃ s0 s1 s2 s3 s4 : U64, (↑r : List U64) = [s0, s1, s2, s3, s4] ∧
               s0.val < 2^52 ∧ s1.val < 2^52 ∧ s2.val < 2^52 ∧ s3.val < 2^52 ∧
               s4.val < 2^52) ∧
+            scVal r < Ell ∧
             scDenote r = scDenote a * scDenote b ⦄ := by
   obtain ⟨hA0, hA1, hA2, hA3, hA4⟩ := hab
   obtain ⟨hB0, hB1, hB2, hB3, hB4⟩ := hbb
@@ -117,6 +118,7 @@ theorem mul_spec (a b : Sc)
     ⦃ r => (∃ s0 s1 s2 s3 s4 : U64, (↑r : List U64) = [s0, s1, s2, s3, s4] ∧
             s0.val < 2^52 ∧ s1.val < 2^52 ∧ s2.val < 2^52 ∧ s3.val < 2^52 ∧
             s4.val < 2^52) ∧
+          scVal r < Ell ∧
           scDenote r = scDenote a * scDenote b ⦄
   -- column bounds and the column value identity
   have hzb0 : z0.val < 2^107 := by
@@ -156,7 +158,7 @@ theorem mul_spec (a b : Sc)
   -- ── first reduction: ⟦ab'⟧·R = a·b ──
   apply spec_bind (montgomery_reduce_spec zz z0 z1 z2 z3 z4 z5 z6 z7 z8 hzl
       ⟨hzb0, hzb1, hzb2, hzb3, hzb4, hzb5, hzb6, hzb7, hzb8⟩ hZlt)
-  rintro ab ⟨⟨ab0, ab1, ab2, ab3, ab4, habl, hab0, hab1, hab2, hab3, hab4⟩, habd⟩
+  rintro ab ⟨⟨ab0, ab1, ab2, ab3, ab4, habl, hab0, hab1, hab2, hab3, hab4⟩, habc, habd⟩
   show (do
     let a2 ← backend.serial.u64.scalar.Scalar52.mul_internal ab
       backend.serial.u64.constants.RR
@@ -164,6 +166,7 @@ theorem mul_spec (a b : Sc)
     ⦃ r => (∃ s0 s1 s2 s3 s4 : U64, (↑r : List U64) = [s0, s1, s2, s3, s4] ∧
             s0.val < 2^52 ∧ s1.val < 2^52 ∧ s2.val < 2^52 ∧ s3.val < 2^52 ∧
             s4.val < 2^52) ∧
+          scVal r < Ell ∧
           scDenote r = scDenote a * scDenote b ⦄
   -- RR limb values
   have hR0 : (2764609938444603#u64).val = 2764609938444603 := by rfl
@@ -186,6 +189,7 @@ theorem mul_spec (a b : Sc)
     ⦃ r => (∃ s0 s1 s2 s3 s4 : U64, (↑r : List U64) = [s0, s1, s2, s3, s4] ∧
             s0.val < 2^52 ∧ s1.val < 2^52 ∧ s2.val < 2^52 ∧ s3.val < 2^52 ∧
             s4.val < 2^52) ∧
+          scVal r < Ell ∧
           scDenote r = scDenote a * scDenote b ⦄
   simp only [hR0, hR1, hR2, hR3, hR4] at hw0e hw1e hw2e hw3e hw4e hw5e hw6e hw7e hw8e
   -- column bounds (RR limbs are literals below 2^52: linear, omega-cheap)
@@ -222,12 +226,12 @@ theorem mul_spec (a b : Sc)
   apply spec_mono (montgomery_reduce_spec ww w0 w1 w2 w3 w4 w5 w6 w7 w8 hwl
       ⟨hwb0, hwb1, hwb2, hwb3, hwb4, hwb5, hwb6, hwb7, hwb8⟩ hWlt)
   intro r hr
-  refine ⟨hr.1, ?_⟩
+  refine ⟨hr.1, hr.2.1, ?_⟩
   have hcW := congrArg (Nat.cast (R := ZMod Ell)) hWval
   push_cast at hcW
   have hcZ := congrArg (Nat.cast (R := ZMod Ell)) hZval
   push_cast at hcZ
-  have hr2 := hr.2
+  have hr2 := hr.2.2
   push_cast at hr2
   have habd2 := habd
   push_cast at habd2

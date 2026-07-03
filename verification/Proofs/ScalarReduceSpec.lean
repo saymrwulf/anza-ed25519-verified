@@ -48,6 +48,7 @@ theorem montgomery_reduce_spec (limbs : Std.Array Std.U128 9#usize)
       ⦃ r => (∃ s0 s1 s2 s3 s4 : U64, (↑r : List U64) = [s0, s1, s2, s3, s4] ∧
               s0.val < 2^52 ∧ s1.val < 2^52 ∧ s2.val < 2^52 ∧ s3.val < 2^52 ∧
               s4.val < 2^52) ∧
+            scVal r < Ell ∧
             scDenote r * 2^260 = ((z0.val + 2^52 * z1.val + 2^104 * z2.val + 2^156 * z3.val + 2^208 * z4.val + 2^260 * z5.val + 2^312 * z6.val + 2^364 * z7.val + 2^416 * z8.val : ℕ) : ZMod Ell) ⦄ := by
   obtain ⟨hz0, hz1, hz2, hz3, hz4, hz5, hz6, hz7, hz8⟩ := hzb
   -- Hide the Montgomery bound behind an existential for the duration of
@@ -192,8 +193,8 @@ theorem montgomery_reduce_spec (limbs : Std.Array Std.U128 9#usize)
       n1 n2 n3 n4 i3 i8 i21 hl hvi3 hvi8 hvi21 hcb4
       ⟨hn1b, hn2b, hn3b, hn4b⟩ ⟨hz5, hz6, hz7, hz8⟩ hXb)
   intro r hr
-  refine ⟨hr.1, ?_⟩
-  rw [hr.2]
+  refine ⟨hr.1, hr.2.1, ?_⟩
+  rw [hr.2.2]
   have hEz : (Ell : ZMod Ell) = 0 := ZMod.natCast_self Ell
   have hc := congrArg (Nat.cast (R := ZMod Ell)) hHT
   push_cast at hc
