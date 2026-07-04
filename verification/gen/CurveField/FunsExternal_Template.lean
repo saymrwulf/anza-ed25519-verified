@@ -276,14 +276,6 @@ axiom
 axiom backend.serial.scalar_mul.variable_base.mul
   : edwards.EdwardsPoint → scalar.Scalar → Result edwards.EdwardsPoint
 
-/-- [curve25519::backend::serial::scalar_mul::vartime_double_base::mul]:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/scalar_mul/vartime_double_base.rs', lines 23:0-72:1
-    Visibility: public -/
-axiom backend.serial.scalar_mul.vartime_double_base.mul
-  :
-  scalar.Scalar → edwards.EdwardsPoint → scalar.Scalar → Result
-    edwards.EdwardsPoint
-
 /-- [curve25519::backend::serial::scalar_mul::vartime_triple_base::mul_128_128_256_prechecked]:
     Source: 'curve25519/solana-ed25519/src/backend/serial/scalar_mul/vartime_triple_base.rs', lines 68:0-168:1 -/
 axiom backend.serial.scalar_mul.vartime_triple_base.mul_128_128_256_prechecked

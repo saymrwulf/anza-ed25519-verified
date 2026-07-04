@@ -1971,6 +1971,148 @@ def backend.serial.curve_models.ProjectiveNielsPoint.Insts.CoreFmtDebug :
     backend.serial.curve_models.ProjectiveNielsPoint.Insts.CoreFmtDebug.fmt
 }
 
+/-- [curve25519::backend::serial::scalar_mul::vartime_double_base::dsm_top_index]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/scalar_mul/vartime_double_base.rs', lines 29:0-37:1 -/
+def backend.serial.scalar_mul.vartime_double_base.dsm_top_index
+  (a_naf : Array Std.I8 256#usize) (b_naf : Array Std.I8 256#usize) :
+  Result Std.Usize
+  := do
+  ok 255#usize
+
+/-- [curve25519::window::{curve25519::window::NafLookupTable5<T>}::select]:
+    Source: 'curve25519/solana-ed25519/src/window.rs', lines 217:4-222:5
+    Visibility: public -/
+def window.NafLookupTable5.select
+  {T : Type} (coremarkerCopyInst : core.marker.Copy T)
+  (self : window.NafLookupTable5 T) (x : Std.Usize) :
+  Result T
+  := do
+  let left_val ← lift (x &&& 1#usize)
+  massert (left_val = 1#usize)
+  massert (x < 16#usize)
+  let i ← x / 2#usize
+  Array.index_usize self i
+
+/-- [curve25519::backend::serial::scalar_mul::vartime_double_base::dsm_step_p]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/scalar_mul/vartime_double_base.rs', lines 86:0-98:1 -/
+def backend.serial.scalar_mul.vartime_double_base.dsm_step_p
+  (t : backend.serial.curve_models.CompletedPoint)
+  (table : window.NafLookupTable5
+  backend.serial.curve_models.ProjectiveNielsPoint) (d : Std.I8) :
+  Result backend.serial.curve_models.CompletedPoint
+  := do
+  if d > 0#i8
+  then
+    let ep ← backend.serial.curve_models.CompletedPoint.as_extended t
+    let i ← lift (IScalar.hcast .Usize d)
+    let pnp ←
+      window.NafLookupTable5.select
+        backend.serial.curve_models.ProjectiveNielsPoint.Insts.CoreMarkerCopy
+        table i
+    Shared0EdwardsPoint.Insts.CoreOpsArithAddSharedAProjectiveNielsPointCompletedPoint.add
+      ep pnp
+  else
+    if d < 0#i8
+    then
+      let ep ← backend.serial.curve_models.CompletedPoint.as_extended t
+      let i ← -. d
+      let i1 ← lift (IScalar.hcast .Usize i)
+      let pnp ←
+        window.NafLookupTable5.select
+          backend.serial.curve_models.ProjectiveNielsPoint.Insts.CoreMarkerCopy
+          table i1
+      Shared0EdwardsPoint.Insts.CoreOpsArithSubSharedAProjectiveNielsPointCompletedPoint.sub
+        ep pnp
+    else ok t
+
+/-- [curve25519::backend::serial::scalar_mul::vartime_double_base::dsm_step_b]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/scalar_mul/vartime_double_base.rs', lines 118:0-124:1 -/
+def backend.serial.scalar_mul.vartime_double_base.dsm_step_b
+  (t : backend.serial.curve_models.CompletedPoint)
+  (table : window.NafLookupTable5
+  backend.serial.curve_models.ProjectiveNielsPoint) (d : Std.I8) :
+  Result backend.serial.curve_models.CompletedPoint
+  := do
+  backend.serial.scalar_mul.vartime_double_base.dsm_step_p t table d
+
+/-- [curve25519::backend::serial::scalar_mul::vartime_double_base::dsm_loop]: loop body 0:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/scalar_mul/vartime_double_base.rs', lines 72:4-79:5 -/
+@[rust_loop_body]
+def backend.serial.scalar_mul.vartime_double_base.dsm_loop_loop.body
+  (a_naf : Array Std.I8 256#usize) (b_naf : Array Std.I8 256#usize)
+  (table_a : window.NafLookupTable5
+  backend.serial.curve_models.ProjectiveNielsPoint)
+  (table_b : window.NafLookupTable5
+  backend.serial.curve_models.ProjectiveNielsPoint)
+  (r : backend.serial.curve_models.ProjectivePoint) (j : Std.Usize) :
+  Result (ControlFlow (backend.serial.curve_models.ProjectivePoint ×
+    Std.Usize) backend.serial.curve_models.ProjectivePoint)
+  := do
+  if j > 0#usize
+  then
+    let idx ← j - 1#usize
+    let t0 ← backend.serial.curve_models.ProjectivePoint.double r
+    let i ← Array.index_usize a_naf idx
+    let t1 ←
+      backend.serial.scalar_mul.vartime_double_base.dsm_step_p t0 table_a i
+    let i1 ← Array.index_usize b_naf idx
+    let t2 ←
+      backend.serial.scalar_mul.vartime_double_base.dsm_step_b t1 table_b i1
+    let r1 ← backend.serial.curve_models.CompletedPoint.as_projective t2
+    ok (cont (r1, idx))
+  else ok (done r)
+
+/-- [curve25519::backend::serial::scalar_mul::vartime_double_base::dsm_loop]: loop 0:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/scalar_mul/vartime_double_base.rs', lines 72:4-79:5 -/
+@[rust_loop]
+def backend.serial.scalar_mul.vartime_double_base.dsm_loop_loop
+  (a_naf : Array Std.I8 256#usize) (b_naf : Array Std.I8 256#usize)
+  (table_a : window.NafLookupTable5
+  backend.serial.curve_models.ProjectiveNielsPoint)
+  (table_b : window.NafLookupTable5
+  backend.serial.curve_models.ProjectiveNielsPoint)
+  (r : backend.serial.curve_models.ProjectivePoint) (j : Std.Usize) :
+  Result backend.serial.curve_models.ProjectivePoint
+  := do
+  loop
+    (fun (r1, j1) =>
+      backend.serial.scalar_mul.vartime_double_base.dsm_loop_loop.body a_naf
+      b_naf table_a table_b r1 j1)
+    (r, j)
+
+/-- [curve25519::backend::serial::scalar_mul::vartime_double_base::dsm_loop]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/scalar_mul/vartime_double_base.rs', lines 63:0-81:1 -/
+def backend.serial.scalar_mul.vartime_double_base.dsm_loop
+  (i : Std.Usize) (a_naf : Array Std.I8 256#usize)
+  (b_naf : Array Std.I8 256#usize)
+  (table_a : window.NafLookupTable5
+  backend.serial.curve_models.ProjectiveNielsPoint)
+  (table_b : window.NafLookupTable5
+  backend.serial.curve_models.ProjectiveNielsPoint) :
+  Result backend.serial.curve_models.ProjectivePoint
+  := do
+  let r ←
+    backend.serial.curve_models.ProjectivePoint.Insts.Curve25519TraitsIdentity.identity
+  let j ← i + 1#usize
+  backend.serial.scalar_mul.vartime_double_base.dsm_loop_loop a_naf b_naf
+    table_a table_b r j
+
+/-- [curve25519::edwards::{curve25519::edwards::EdwardsPoint}::as_projective]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 541:4-547:5 -/
+def edwards.EdwardsPoint.as_projective
+  (self : edwards.EdwardsPoint) :
+  Result backend.serial.curve_models.ProjectivePoint
+  := do
+  ok { X := self.X, Y := self.Y, Z := self.Z }
+
+/-- [curve25519::edwards::{curve25519::edwards::EdwardsPoint}::double]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 774:4-776:5 -/
+def edwards.EdwardsPoint.double
+  (self : edwards.EdwardsPoint) : Result edwards.EdwardsPoint := do
+  let pp ← edwards.EdwardsPoint.as_projective self
+  let cp ← backend.serial.curve_models.ProjectivePoint.double pp
+  backend.serial.curve_models.CompletedPoint.as_extended cp
+
 /-- [curve25519::backend::serial::u64::constants::EDWARDS_D2]
     Source: 'curve25519/solana-ed25519/src/backend/serial/u64/constants.rs', lines 54:0-60:3 -/
 @[global_simps, irreducible]
@@ -1982,16 +2124,230 @@ def backend.serial.u64.constants.EDWARDS_D2
       1815898335770999#u64, 633789495995903#u64
       ])
 
-/-- [curve25519::backend::serial::u64::constants::SQRT_M1]
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/constants.rs', lines 99:0-105:3 -/
-@[global_simps, irreducible]
-def backend.serial.u64.constants.SQRT_M1
-  : Result backend.serial.u64.field.FieldElement51 :=
-  backend.serial.u64.field.FieldElement51.from_limbs
-    (Array.make 5#usize [
-      1718705420411056#u64, 234908883556509#u64, 2233514472574048#u64,
-      2117202627021982#u64, 765476049583133#u64
-      ])
+/-- [curve25519::edwards::{curve25519::edwards::EdwardsPoint}::as_projective_niels]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 528:4-535:5 -/
+def edwards.EdwardsPoint.as_projective_niels
+  (self : edwards.EdwardsPoint) :
+  Result backend.serial.curve_models.ProjectiveNielsPoint
+  := do
+  let fe ←
+    Shared0FieldElement51.Insts.CoreOpsArithAddSharedAFieldElement51FieldElement51.add
+      self.Y self.X
+  let fe1 ←
+    Shared0FieldElement51.Insts.CoreOpsArithSubSharedAFieldElement51FieldElement51.sub
+      self.Y self.X
+  let fe2 ← backend.serial.u64.constants.EDWARDS_D2
+  let fe3 ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      self.T fe2
+  ok { Y_plus_X := fe, Y_minus_X := fe1, Z := self.Z, T2d := fe3 }
+
+/-- [curve25519::window::{impl core::convert::From<&'a curve25519::edwards::EdwardsPoint> for curve25519::window::NafLookupTable5<curve25519::backend::serial::curve_models::ProjectiveNielsPoint>}::from]: loop body 0:
+    Source: 'curve25519/solana-ed25519/src/window.rs', lines 235:8-237:9
+    Visibility: public -/
+@[rust_loop_body]
+def
+  window.NafLookupTable5ProjectiveNielsPoint.Insts.CoreConvertFromSharedAEdwardsPoint.from_loop.body
+  (A2 : edwards.EdwardsPoint) (iter : core.ops.range.Range Std.Usize)
+  (Ai : Array backend.serial.curve_models.ProjectiveNielsPoint 8#usize) :
+  Result (ControlFlow ((core.ops.range.Range Std.Usize) × (Array
+    backend.serial.curve_models.ProjectiveNielsPoint 8#usize)) (Array
+    backend.serial.curve_models.ProjectiveNielsPoint 8#usize))
+  := do
+  let (o, iter1) ←
+    core.iter.range.IteratorRange.next core.iter.range.StepUsize iter
+  match o with
+  | none => ok (done Ai)
+  | some i =>
+    let pnp ← Array.index_usize Ai i
+    let cp ←
+      Shared0EdwardsPoint.Insts.CoreOpsArithAddSharedAProjectiveNielsPointCompletedPoint.add
+        A2 pnp
+    let ep ← backend.serial.curve_models.CompletedPoint.as_extended cp
+    let pnp1 ← edwards.EdwardsPoint.as_projective_niels ep
+    let i1 ← i + 1#usize
+    let a ← Array.update Ai i1 pnp1
+    ok (cont (iter1, a))
+
+/-- [curve25519::window::{impl core::convert::From<&'a curve25519::edwards::EdwardsPoint> for curve25519::window::NafLookupTable5<curve25519::backend::serial::curve_models::ProjectiveNielsPoint>}::from]: loop 0:
+    Source: 'curve25519/solana-ed25519/src/window.rs', lines 235:8-237:9
+    Visibility: public -/
+@[rust_loop]
+def
+  window.NafLookupTable5ProjectiveNielsPoint.Insts.CoreConvertFromSharedAEdwardsPoint.from_loop
+  (iter : core.ops.range.Range Std.Usize)
+  (Ai : Array backend.serial.curve_models.ProjectiveNielsPoint 8#usize)
+  (A2 : edwards.EdwardsPoint) :
+  Result (Array backend.serial.curve_models.ProjectiveNielsPoint 8#usize)
+  := do
+  loop
+    (fun (iter1, Ai1) =>
+      window.NafLookupTable5ProjectiveNielsPoint.Insts.CoreConvertFromSharedAEdwardsPoint.from_loop.body
+      A2 iter1 Ai1)
+    (iter, Ai)
+
+/-- [curve25519::window::{impl core::convert::From<&'a curve25519::edwards::EdwardsPoint> for curve25519::window::NafLookupTable5<curve25519::backend::serial::curve_models::ProjectiveNielsPoint>}::from]:
+    Source: 'curve25519/solana-ed25519/src/window.rs', lines 232:4-240:5
+    Visibility: public -/
+def
+  window.NafLookupTable5ProjectiveNielsPoint.Insts.CoreConvertFromSharedAEdwardsPoint.from
+  (A : edwards.EdwardsPoint) :
+  Result (window.NafLookupTable5
+    backend.serial.curve_models.ProjectiveNielsPoint)
+  := do
+  let pnp ← edwards.EdwardsPoint.as_projective_niels A
+  let Ai := Array.repeat 8#usize pnp
+  let A2 ← edwards.EdwardsPoint.double A
+  let Ai1 ←
+    window.NafLookupTable5ProjectiveNielsPoint.Insts.CoreConvertFromSharedAEdwardsPoint.from_loop
+      { start := 0#usize, «end» := 7#usize } Ai A2
+  ok Ai1
+
+/-- [curve25519::scalar::{curve25519::scalar::Scalar}::non_adjacent_form]: loop body 1:
+    Source: 'curve25519/solana-ed25519/src/scalar.rs', lines 1044:12-1047:13 -/
+@[rust_loop_body]
+def scalar.Scalar.non_adjacent_form_loop0_loop0.body
+  (self : scalar.Scalar) (k : Std.Usize) (t : Std.U64) (bi : Std.Usize) :
+  Result (ControlFlow (Std.U64 × Std.Usize) (scalar.Scalar × Std.U64))
+  := do
+  if bi < 8#usize
+  then
+    let i ← 8#usize * k
+    let i1 ← i + bi
+    let i2 ← Array.index_usize self.bytes i1
+    let i3 ← lift (UScalar.cast .U64 i2)
+    let i4 ← 8#usize * bi
+    let i5 ← i3 <<< i4
+    let t1 ← lift (t ||| i5)
+    let bi1 ← bi + 1#usize
+    ok (cont (t1, bi1))
+  else ok (done (self, t))
+
+/-- [curve25519::scalar::{curve25519::scalar::Scalar}::non_adjacent_form]: loop 1:
+    Source: 'curve25519/solana-ed25519/src/scalar.rs', lines 1044:12-1047:13 -/
+@[rust_loop]
+def scalar.Scalar.non_adjacent_form_loop0_loop0
+  (self : scalar.Scalar) (k : Std.Usize) (t : Std.U64) (bi : Std.Usize) :
+  Result (scalar.Scalar × Std.U64)
+  := do
+  loop
+    (fun (t1, bi1) => scalar.Scalar.non_adjacent_form_loop0_loop0.body self k
+      t1 bi1)
+    (t, bi)
+
+/-- [curve25519::scalar::{curve25519::scalar::Scalar}::non_adjacent_form]: loop body 0:
+    Source: 'curve25519/solana-ed25519/src/scalar.rs', lines 1041:8-1050:9 -/
+@[rust_loop_body]
+def scalar.Scalar.non_adjacent_form_loop0.body
+  (self : scalar.Scalar) (x_u64 : Array Std.U64 5#usize) (k : Std.Usize) :
+  Result (ControlFlow (scalar.Scalar × (Array Std.U64 5#usize) × Std.Usize)
+    (Array Std.U64 5#usize))
+  := do
+  if k < 4#usize
+  then
+    let (self1, t) ←
+      scalar.Scalar.non_adjacent_form_loop0_loop0 self k 0#u64 0#usize
+    let a ← Array.update x_u64 k t
+    let k1 ← k + 1#usize
+    ok (cont (self1, a, k1))
+  else ok (done x_u64)
+
+/-- [curve25519::scalar::{curve25519::scalar::Scalar}::non_adjacent_form]: loop 0:
+    Source: 'curve25519/solana-ed25519/src/scalar.rs', lines 1041:8-1050:9 -/
+@[rust_loop]
+def scalar.Scalar.non_adjacent_form_loop0
+  (self : scalar.Scalar) (x_u64 : Array Std.U64 5#usize) (k : Std.Usize) :
+  Result (Array Std.U64 5#usize)
+  := do
+  loop
+    (fun (self1, x_u641, k1) => scalar.Scalar.non_adjacent_form_loop0.body
+      self1 x_u641 k1)
+    (self, x_u64, k)
+
+/-- [curve25519::scalar::{curve25519::scalar::Scalar}::non_adjacent_form]: loop body 2:
+    Source: 'curve25519/solana-ed25519/src/scalar.rs', lines 1057:8-1090:9 -/
+@[rust_loop_body]
+def scalar.Scalar.non_adjacent_form_loop1.body
+  (w : Std.Usize) (x_u64 : Array Std.U64 5#usize) (width : Std.U64)
+  (window_mask : Std.U64) (naf : Array Std.I8 256#usize) (pos : Std.Usize)
+  (carry : Std.U64) :
+  Result (ControlFlow ((Array Std.I8 256#usize) × Std.Usize × Std.U64) (Array
+    Std.I8 256#usize))
+  := do
+  if pos < 256#usize
+  then
+    let u64_idx ← pos / 64#usize
+    let bit_idx ← pos % 64#usize
+    let i ← 64#usize - w
+    let bit_buf ←
+      if bit_idx < i
+      then do
+           let i1 ← Array.index_usize x_u64 u64_idx
+           i1 >>> bit_idx
+      else
+        do
+        let i1 ← Array.index_usize x_u64 u64_idx
+        let i2 ← i1 >>> bit_idx
+        let i3 ← 1#usize + u64_idx
+        let i4 ← Array.index_usize x_u64 i3
+        let i5 ← 64#usize - bit_idx
+        let i6 ← i4 <<< i5
+        ok (i2 ||| i6)
+    let i1 ← lift (bit_buf &&& window_mask)
+    let window ← carry + i1
+    let i2 ← lift (window &&& 1#u64)
+    if i2 = 0#u64
+    then let pos1 ← pos + 1#usize
+         ok (cont (naf, pos1, carry))
+    else
+      let i3 ← width / 2#u64
+      let (naf1, carry1) ←
+        if window < i3
+        then
+          do
+          let i4 ← lift (UScalar.hcast .I8 window)
+          let a ← Array.update naf pos i4
+          ok (a, 0#u64)
+        else
+          do
+          let i4 ← lift (UScalar.hcast .I8 window)
+          let i5 ← lift (UScalar.hcast .I8 width)
+          let i6 ← lift (core.num.I8.wrapping_sub i4 i5)
+          let a ← Array.update naf pos i6
+          ok (a, 1#u64)
+      let pos1 ← pos + w
+      ok (cont (naf1, pos1, carry1))
+  else ok (done naf)
+
+/-- [curve25519::scalar::{curve25519::scalar::Scalar}::non_adjacent_form]: loop 2:
+    Source: 'curve25519/solana-ed25519/src/scalar.rs', lines 1057:8-1090:9 -/
+@[rust_loop]
+def scalar.Scalar.non_adjacent_form_loop1
+  (w : Std.Usize) (naf : Array Std.I8 256#usize)
+  (x_u64 : Array Std.U64 5#usize) (width : Std.U64) (window_mask : Std.U64)
+  (pos : Std.Usize) (carry : Std.U64) :
+  Result (Array Std.I8 256#usize)
+  := do
+  loop
+    (fun (naf1, pos1, carry1) => scalar.Scalar.non_adjacent_form_loop1.body w
+      x_u64 width window_mask naf1 pos1 carry1)
+    (naf, pos, carry)
+
+/-- [curve25519::scalar::{curve25519::scalar::Scalar}::non_adjacent_form]:
+    Source: 'curve25519/solana-ed25519/src/scalar.rs', lines 1028:4-1093:5 -/
+def scalar.Scalar.non_adjacent_form
+  (self : scalar.Scalar) (w : Std.Usize) :
+  Result (Array Std.I8 256#usize)
+  := do
+  massert (w >= 2#usize)
+  massert (w <= 8#usize)
+  let naf := Array.repeat 256#usize 0#i8
+  let x_u64 := Array.repeat 5#usize 0#u64
+  let x_u641 ← scalar.Scalar.non_adjacent_form_loop0 self x_u64 0#usize
+  let width ← 1#u64 <<< w
+  let window_mask ← width - 1#u64
+  scalar.Scalar.non_adjacent_form_loop1 w naf x_u641 width window_mask 0#usize
+    0#u64
 
 /-- [curve25519::backend::serial::u64::constants::ED25519_BASEPOINT_POINT]
     Source: 'curve25519/solana-ed25519/src/backend/serial/u64/constants.rs', lines 163:0-186:2
@@ -2021,6 +2377,40 @@ def backend.serial.u64.constants.ED25519_BASEPOINT_POINT
         900171276175154#u64, 1821297809914039#u64
         ])
   ok { X := fe, Y := fe1, Z := fe2, T := fe3 }
+
+/-- [curve25519::backend::serial::scalar_mul::vartime_double_base::mul]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/scalar_mul/vartime_double_base.rs', lines 126:0-147:1
+    Visibility: public -/
+def backend.serial.scalar_mul.vartime_double_base.mul
+  (a : scalar.Scalar) (A : edwards.EdwardsPoint) (b : scalar.Scalar) :
+  Result edwards.EdwardsPoint
+  := do
+  let a_naf ← scalar.Scalar.non_adjacent_form a 5#usize
+  let b_naf ← scalar.Scalar.non_adjacent_form b 5#usize
+  let i ←
+    backend.serial.scalar_mul.vartime_double_base.dsm_top_index a_naf b_naf
+  let table_A ←
+    window.NafLookupTable5ProjectiveNielsPoint.Insts.CoreConvertFromSharedAEdwardsPoint.from
+      A
+  let ep ← backend.serial.u64.constants.ED25519_BASEPOINT_POINT
+  let table_B ←
+    window.NafLookupTable5ProjectiveNielsPoint.Insts.CoreConvertFromSharedAEdwardsPoint.from
+      ep
+  let r ←
+    backend.serial.scalar_mul.vartime_double_base.dsm_loop i a_naf b_naf
+      table_A table_B
+  backend.serial.curve_models.ProjectivePoint.as_extended r
+
+/-- [curve25519::backend::serial::u64::constants::SQRT_M1]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/constants.rs', lines 99:0-105:3 -/
+@[global_simps, irreducible]
+def backend.serial.u64.constants.SQRT_M1
+  : Result backend.serial.u64.field.FieldElement51 :=
+  backend.serial.u64.field.FieldElement51.from_limbs
+    (Array.make 5#usize [
+      1718705420411056#u64, 234908883556509#u64, 2233514472574048#u64,
+      2117202627021982#u64, 765476049583133#u64
+      ])
 
 /-- [curve25519::backend::serial::u64::field::{impl core::clone::Clone for curve25519::backend::serial::u64::field::FieldElement51}::clone]:
     Source: 'curve25519/solana-ed25519/src/backend/serial/u64/field.rs', lines 42:15-42:20
@@ -2326,24 +2716,6 @@ def backend.vartime_double_base_mul
     backend.vector.scalar_mul.vartime_double_base.spec_avx2.mul a A b
   | backend.BackendKind.Serial =>
     backend.serial.scalar_mul.vartime_double_base.mul a A b
-
-/-- [curve25519::edwards::{curve25519::edwards::EdwardsPoint}::as_projective_niels]:
-    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 528:4-535:5 -/
-def edwards.EdwardsPoint.as_projective_niels
-  (self : edwards.EdwardsPoint) :
-  Result backend.serial.curve_models.ProjectiveNielsPoint
-  := do
-  let fe ←
-    Shared0FieldElement51.Insts.CoreOpsArithAddSharedAFieldElement51FieldElement51.add
-      self.Y self.X
-  let fe1 ←
-    Shared0FieldElement51.Insts.CoreOpsArithSubSharedAFieldElement51FieldElement51.sub
-      self.Y self.X
-  let fe2 ← backend.serial.u64.constants.EDWARDS_D2
-  let fe3 ←
-    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
-      self.T fe2
-  ok { Y_plus_X := fe, Y_minus_X := fe1, Z := self.Z, T2d := fe3 }
 
 /-- [curve25519::edwards::{impl core::ops::arith::Add<&'a curve25519::edwards::EdwardsPoint, curve25519::edwards::EdwardsPoint> for &'_1 curve25519::edwards::EdwardsPoint}::add]:
     Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 785:4-787:5
@@ -2986,14 +3358,6 @@ def edwards.EdwardsPoint.Insts.CoreDefaultDefault : core.default.Default
   default := edwards.EdwardsPoint.Insts.CoreDefaultDefault.default
 }
 
-/-- [curve25519::edwards::{curve25519::edwards::EdwardsPoint}::as_projective]:
-    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 541:4-547:5 -/
-def edwards.EdwardsPoint.as_projective
-  (self : edwards.EdwardsPoint) :
-  Result backend.serial.curve_models.ProjectivePoint
-  := do
-  ok { X := self.X, Y := self.Y, Z := self.Z }
-
 /-- [curve25519::edwards::{impl curve25519::traits::ValidityCheck for curve25519::edwards::EdwardsPoint}::is_valid]:
     Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 474:4-479:5 -/
 def edwards.EdwardsPoint.Insts.Curve25519TraitsValidityCheck.is_valid
@@ -3250,14 +3614,6 @@ def edwards.EdwardsPoint.compress
   let ap ← edwards.EdwardsPoint.to_affine self
   edwards.affine.AffinePoint.compress ap
 
-/-- [curve25519::edwards::{curve25519::edwards::EdwardsPoint}::double]:
-    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 774:4-776:5 -/
-def edwards.EdwardsPoint.double
-  (self : edwards.EdwardsPoint) : Result edwards.EdwardsPoint := do
-  let pp ← edwards.EdwardsPoint.as_projective self
-  let cp ← backend.serial.curve_models.ProjectivePoint.double pp
-  backend.serial.curve_models.CompletedPoint.as_extended cp
-
 /-- Trait implementation: [curve25519::edwards::{impl core::ops::arith::Add<&'a curve25519::edwards::EdwardsPoint, curve25519::edwards::EdwardsPoint> for &'_1 curve25519::edwards::EdwardsPoint}]
     Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 783:0-788:1 -/
 @[reducible]
@@ -3417,7 +3773,7 @@ def Shared0Scalar.Insts.CoreOpsArithMulSharedAEdwardsPointEdwardsPoint :
 }
 
 /-- [curve25519::scalar::clamp_integer]:
-    Source: 'curve25519/solana-ed25519/src/scalar.rs', lines 1597:0-1602:1
+    Source: 'curve25519/solana-ed25519/src/scalar.rs', lines 1610:0-1615:1
     Visibility: public -/
 def scalar.clamp_integer
   (bytes : Array Std.U8 32#usize) : Result (Array Std.U8 32#usize) := do
