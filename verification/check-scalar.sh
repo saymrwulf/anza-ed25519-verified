@@ -7,7 +7,7 @@ source ~/aeneas-toolchain/env.sh
 HERE="$(cd "$(dirname "$0")" && pwd)"
 AENEAS_LEAN="$AENEAS_HOME/backends/lean"
 GEN=(CurveScalar/TypesExternal CurveScalar/Types CurveScalar/FunsExternal CurveScalar/Funs)
-PROOFS=(ScalarDenote ScalarLoop ScalarSubSpec ScalarAddSpec ScalarMulSpec ScalarMontSpec ScalarReduceSpec ScalarFullMulSpec ScalarMain ScalarWideSpec)
+PROOFS=(ScalarDenote ScalarLoop ScalarSubSpec ScalarAddSpec ScalarMulSpec ScalarMontSpec ScalarReduceSpec ScalarFullMulSpec ScalarMain ScalarWideSpec ScalarBytesSpec ScalarUnpackSpec)
 
 echo "=== stub/axiom audit ==="
 grep -rnE '^(private |protected |noncomputable )*axiom ' "$HERE"/Proofs/Scalar*.lean 2>/dev/null && { echo "axiom under Proofs/"; exit 1; }
@@ -28,15 +28,15 @@ lake env bash -c "
   export LEAN_PATH=\"\$LEAN_PATH:$HERE/gen:$HERE\"
   cd '$HERE'
   AUD=\$(mktemp '$HERE/.audit-scalar-XXXX.lean')
-  { echo 'import Proofs.ScalarMain'; echo 'import Proofs.ScalarWideSpec'; echo '#print axioms ScalarProofs.L_val'
+  { echo 'import Proofs.ScalarMain'; echo 'import Proofs.ScalarWideSpec'; echo 'import Proofs.ScalarUnpackSpec'; echo '#print axioms ScalarProofs.L_val'
     echo '#print axioms ScalarProofs.sub_loop_spec'
     echo '#print axioms ScalarProofs.cond_add_l_one_spec'; echo '#print axioms ScalarProofs.sub_val_spec'; echo '#print axioms ScalarProofs.add_val_spec'; echo '#print axioms ScalarProofs.mul_internal_spec'
-    echo '#print axioms ScalarProofs.part1_spec'; echo '#print axioms ScalarProofs.montgomery_reduce_spec'; echo '#print axioms ScalarProofs.mul_spec'; echo '#print axioms ScalarProofs.scalarImplementation'; echo '#print axioms ScalarProofs.montgomery_mul_spec'; } > \"\$AUD\"
+    echo '#print axioms ScalarProofs.part1_spec'; echo '#print axioms ScalarProofs.montgomery_reduce_spec'; echo '#print axioms ScalarProofs.mul_spec'; echo '#print axioms ScalarProofs.scalarImplementation'; echo '#print axioms ScalarProofs.montgomery_mul_spec'; echo '#print axioms ScalarProofs.bytes_unpack_spec'; } > \"\$AUD\"
   OUT=\$(LEAN_TIMEOUT=120 LEAN_MEM_MB=4096 '$HERE/lean-guard' \"\$AUD\" 2>&1)
   echo \"\$OUT\"
   rm -f \"\$AUD\" \"\${AUD%.lean}.olean\"
   N=\$(echo \"\$OUT\" | grep -cF \"depends on axioms: [propext, Classical.choice, Quot.sound]\" || true)
-  [ \"\$N\" -eq 11 ] || { echo \"AXIOM AUDIT FAILED: \$N/11 clean\"; exit 1; }
+  [ \"\$N\" -eq 12 ] || { echo \"AXIOM AUDIT FAILED: \$N/12 clean\"; exit 1; }
 " || { echo FAIL; exit 1; }
 echo "  L_val axiom-clean"
 
