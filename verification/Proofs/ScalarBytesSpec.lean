@@ -29,7 +29,7 @@ theorem bytes_word_loop_tail_0
     (hw : (↑words : List U64) = [w0, w1, w2, w3, w4, w5, w6, w7])
     (hst : iter.start.val = 4) (hend : iter.«end» = 8#usize)
     (hacc : w0.val = b0.val + b1.val * 2^8 + b2.val * 2^16 + b3.val * 2^24) :
-    backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0 iter bytes words 0#usize
+    backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0 iter bytes words 0#usize
       ⦃ ws => ∃ v : U64, (↑ws : List U64) = [v, w1, w2, w3, w4, w5, w6, w7] ∧
           v.val = b0.val + b1.val * 2^8 + b2.val * 2^16 + b3.val * 2^24 + b4.val * 2^32 + b5.val * 2^40 + b6.val * 2^48 + b7.val * 2^56 ⦄ := by
   have hsz64 : (U64.size : ℕ) = 2^64 := by scalar_tac
@@ -41,10 +41,10 @@ theorem bytes_word_loop_tail_0
   have hbb5 : b5.val < 2^8 := by scalar_tac
   have hbb6 : b6.val < 2^8 := by scalar_tac
   have hbb7 : b7.val < 2^8 := by scalar_tac
-  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0
+  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0
   -- j = 4: byte 4
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_lt_spec iter (by simp [hend, hst]; all_goals scalar_tac)) as ⟨o4, iter4, ho4, hs4, he4⟩
   simp only [ho4]
   step as ⟨p4, hp4⟩
@@ -88,7 +88,7 @@ theorem bytes_word_loop_tail_0
   try simp only [spec_ok]
   -- j = 5: byte 5
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_lt_spec iter4 (by simp [hs4, he4, hend, hst]; all_goals scalar_tac)) as ⟨o5, iter5, ho5, hs5, he5⟩
   simp only [ho5]
   step as ⟨p5, hp5⟩
@@ -132,7 +132,7 @@ theorem bytes_word_loop_tail_0
   try simp only [spec_ok]
   -- j = 6: byte 6
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_lt_spec iter5 (by simp [hs4, he4, hs5, he5, hend, hst]; all_goals scalar_tac)) as ⟨o6, iter6, ho6, hs6, he6⟩
   simp only [ho6]
   step as ⟨p6, hp6⟩
@@ -176,7 +176,7 @@ theorem bytes_word_loop_tail_0
   try simp only [spec_ok]
   -- j = 7: byte 7
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_lt_spec iter6 (by simp [hs4, he4, hs5, he5, hs6, he6, hend, hst]; all_goals scalar_tac)) as ⟨o7, iter7, ho7, hs7, he7⟩
   simp only [ho7]
   step as ⟨p7, hp7⟩
@@ -220,7 +220,7 @@ theorem bytes_word_loop_tail_0
   try simp only [spec_ok]
   -- exit (8 ≥ 8)
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_ge_spec iter7 (by simp [he7, he6, he5, he4, hend, hs7, hs6, hs5, hs4]; all_goals scalar_tac)) as ⟨oX, iterX, hoX, hrX⟩
   simp only [hoX]
   try simp only [spec_ok]
@@ -239,7 +239,7 @@ theorem bytes_word_loop_spec_0
     (hb : (↑bytes : List Std.U8) = [b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17, b18, b19, b20, b21, b22, b23, b24, b25, b26, b27, b28, b29, b30, b31, b32, b33, b34, b35, b36, b37, b38, b39, b40, b41, b42, b43, b44, b45, b46, b47, b48, b49, b50, b51, b52, b53, b54, b55, b56, b57, b58, b59, b60, b61, b62, b63])
     (hw : (↑words : List U64) = [w0, w1, w2, w3, w4, w5, w6, w7])
     (hz : w0.val = 0) :
-    backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0 { start := 0#usize, «end» := 8#usize } bytes words 0#usize
+    backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0 { start := 0#usize, «end» := 8#usize } bytes words 0#usize
       ⦃ ws => ∃ v : U64, (↑ws : List U64) = [v, w1, w2, w3, w4, w5, w6, w7] ∧
           v.val = b0.val + b1.val * 2^8 + b2.val * 2^16 + b3.val * 2^24 + b4.val * 2^32 + b5.val * 2^40 + b6.val * 2^48 + b7.val * 2^56 ⦄ := by
   have hsz64 : (U64.size : ℕ) = 2^64 := by scalar_tac
@@ -247,10 +247,10 @@ theorem bytes_word_loop_spec_0
   have hbb1 : b1.val < 2^8 := by scalar_tac
   have hbb2 : b2.val < 2^8 := by scalar_tac
   have hbb3 : b3.val < 2^8 := by scalar_tac
-  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0
+  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0
   -- j = 0: byte 0
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with range_next_lt_spec as ⟨o0, iter0, ho0, hs0, he0⟩
   simp only [ho0]
   step as ⟨p0, hp0⟩
@@ -284,7 +284,7 @@ theorem bytes_word_loop_spec_0
   try simp only [spec_ok]
   -- j = 1: byte 1
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with range_next_lt_spec as ⟨o1, iter1, ho1, hs1, he1⟩
   simp only [ho1]
   step as ⟨p1, hp1⟩
@@ -328,7 +328,7 @@ theorem bytes_word_loop_spec_0
   try simp only [spec_ok]
   -- j = 2: byte 2
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with range_next_lt_spec as ⟨o2, iter2, ho2, hs2, he2⟩
   simp only [ho2]
   step as ⟨p2, hp2⟩
@@ -372,7 +372,7 @@ theorem bytes_word_loop_spec_0
   try simp only [spec_ok]
   -- j = 3: byte 3
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with range_next_lt_spec as ⟨o3, iter3, ho3, hs3, he3⟩
   simp only [ho3]
   step as ⟨p3, hp3⟩
@@ -415,7 +415,7 @@ theorem bytes_word_loop_spec_0
   step as ⟨wn3, hwn3⟩
   try simp only [spec_ok]
   -- refold and hand over to the tail lemma at the j = 4 boundary
-  show backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0 iter3 bytes wn3 0#usize
+  show backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0 iter3 bytes wn3 0#usize
     ⦃ ws => ∃ v : U64, (↑ws : List U64) = [v, w1, w2, w3, w4, w5, w6, w7] ∧
         v.val = b0.val + b1.val * 2^8 + b2.val * 2^16 + b3.val * 2^24 + b4.val * 2^32 + b5.val * 2^40 + b6.val * 2^48 + b7.val * 2^56 ⦄
   have hwn3l : (↑wn3 : List U64) = [y3, w1, w2, w3, w4, w5, w6, w7] := by
@@ -440,7 +440,7 @@ theorem bytes_word_loop_tail_1
     (hw : (↑words : List U64) = [w0, w1, w2, w3, w4, w5, w6, w7])
     (hst : iter.start.val = 4) (hend : iter.«end» = 8#usize)
     (hacc : w1.val = b8.val + b9.val * 2^8 + b10.val * 2^16 + b11.val * 2^24) :
-    backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0 iter bytes words 1#usize
+    backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0 iter bytes words 1#usize
       ⦃ ws => ∃ v : U64, (↑ws : List U64) = [w0, v, w2, w3, w4, w5, w6, w7] ∧
           v.val = b8.val + b9.val * 2^8 + b10.val * 2^16 + b11.val * 2^24 + b12.val * 2^32 + b13.val * 2^40 + b14.val * 2^48 + b15.val * 2^56 ⦄ := by
   have hsz64 : (U64.size : ℕ) = 2^64 := by scalar_tac
@@ -452,10 +452,10 @@ theorem bytes_word_loop_tail_1
   have hbb13 : b13.val < 2^8 := by scalar_tac
   have hbb14 : b14.val < 2^8 := by scalar_tac
   have hbb15 : b15.val < 2^8 := by scalar_tac
-  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0
+  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0
   -- j = 4: byte 12
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_lt_spec iter (by simp [hend, hst]; all_goals scalar_tac)) as ⟨o4, iter4, ho4, hs4, he4⟩
   simp only [ho4]
   step as ⟨p4, hp4⟩
@@ -499,7 +499,7 @@ theorem bytes_word_loop_tail_1
   try simp only [spec_ok]
   -- j = 5: byte 13
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_lt_spec iter4 (by simp [hs4, he4, hend, hst]; all_goals scalar_tac)) as ⟨o5, iter5, ho5, hs5, he5⟩
   simp only [ho5]
   step as ⟨p5, hp5⟩
@@ -543,7 +543,7 @@ theorem bytes_word_loop_tail_1
   try simp only [spec_ok]
   -- j = 6: byte 14
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_lt_spec iter5 (by simp [hs4, he4, hs5, he5, hend, hst]; all_goals scalar_tac)) as ⟨o6, iter6, ho6, hs6, he6⟩
   simp only [ho6]
   step as ⟨p6, hp6⟩
@@ -587,7 +587,7 @@ theorem bytes_word_loop_tail_1
   try simp only [spec_ok]
   -- j = 7: byte 15
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_lt_spec iter6 (by simp [hs4, he4, hs5, he5, hs6, he6, hend, hst]; all_goals scalar_tac)) as ⟨o7, iter7, ho7, hs7, he7⟩
   simp only [ho7]
   step as ⟨p7, hp7⟩
@@ -631,7 +631,7 @@ theorem bytes_word_loop_tail_1
   try simp only [spec_ok]
   -- exit (8 ≥ 8)
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_ge_spec iter7 (by simp [he7, he6, he5, he4, hend, hs7, hs6, hs5, hs4]; all_goals scalar_tac)) as ⟨oX, iterX, hoX, hrX⟩
   simp only [hoX]
   try simp only [spec_ok]
@@ -650,7 +650,7 @@ theorem bytes_word_loop_spec_1
     (hb : (↑bytes : List Std.U8) = [b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17, b18, b19, b20, b21, b22, b23, b24, b25, b26, b27, b28, b29, b30, b31, b32, b33, b34, b35, b36, b37, b38, b39, b40, b41, b42, b43, b44, b45, b46, b47, b48, b49, b50, b51, b52, b53, b54, b55, b56, b57, b58, b59, b60, b61, b62, b63])
     (hw : (↑words : List U64) = [w0, w1, w2, w3, w4, w5, w6, w7])
     (hz : w1.val = 0) :
-    backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0 { start := 0#usize, «end» := 8#usize } bytes words 1#usize
+    backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0 { start := 0#usize, «end» := 8#usize } bytes words 1#usize
       ⦃ ws => ∃ v : U64, (↑ws : List U64) = [w0, v, w2, w3, w4, w5, w6, w7] ∧
           v.val = b8.val + b9.val * 2^8 + b10.val * 2^16 + b11.val * 2^24 + b12.val * 2^32 + b13.val * 2^40 + b14.val * 2^48 + b15.val * 2^56 ⦄ := by
   have hsz64 : (U64.size : ℕ) = 2^64 := by scalar_tac
@@ -658,10 +658,10 @@ theorem bytes_word_loop_spec_1
   have hbb9 : b9.val < 2^8 := by scalar_tac
   have hbb10 : b10.val < 2^8 := by scalar_tac
   have hbb11 : b11.val < 2^8 := by scalar_tac
-  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0
+  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0
   -- j = 0: byte 8
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with range_next_lt_spec as ⟨o0, iter0, ho0, hs0, he0⟩
   simp only [ho0]
   step as ⟨p0, hp0⟩
@@ -695,7 +695,7 @@ theorem bytes_word_loop_spec_1
   try simp only [spec_ok]
   -- j = 1: byte 9
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with range_next_lt_spec as ⟨o1, iter1, ho1, hs1, he1⟩
   simp only [ho1]
   step as ⟨p1, hp1⟩
@@ -739,7 +739,7 @@ theorem bytes_word_loop_spec_1
   try simp only [spec_ok]
   -- j = 2: byte 10
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with range_next_lt_spec as ⟨o2, iter2, ho2, hs2, he2⟩
   simp only [ho2]
   step as ⟨p2, hp2⟩
@@ -783,7 +783,7 @@ theorem bytes_word_loop_spec_1
   try simp only [spec_ok]
   -- j = 3: byte 11
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with range_next_lt_spec as ⟨o3, iter3, ho3, hs3, he3⟩
   simp only [ho3]
   step as ⟨p3, hp3⟩
@@ -826,7 +826,7 @@ theorem bytes_word_loop_spec_1
   step as ⟨wn3, hwn3⟩
   try simp only [spec_ok]
   -- refold and hand over to the tail lemma at the j = 4 boundary
-  show backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0 iter3 bytes wn3 1#usize
+  show backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0 iter3 bytes wn3 1#usize
     ⦃ ws => ∃ v : U64, (↑ws : List U64) = [w0, v, w2, w3, w4, w5, w6, w7] ∧
         v.val = b8.val + b9.val * 2^8 + b10.val * 2^16 + b11.val * 2^24 + b12.val * 2^32 + b13.val * 2^40 + b14.val * 2^48 + b15.val * 2^56 ⦄
   have hwn3l : (↑wn3 : List U64) = [w0, y3, w2, w3, w4, w5, w6, w7] := by
@@ -851,7 +851,7 @@ theorem bytes_word_loop_tail_2
     (hw : (↑words : List U64) = [w0, w1, w2, w3, w4, w5, w6, w7])
     (hst : iter.start.val = 4) (hend : iter.«end» = 8#usize)
     (hacc : w2.val = b16.val + b17.val * 2^8 + b18.val * 2^16 + b19.val * 2^24) :
-    backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0 iter bytes words 2#usize
+    backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0 iter bytes words 2#usize
       ⦃ ws => ∃ v : U64, (↑ws : List U64) = [w0, w1, v, w3, w4, w5, w6, w7] ∧
           v.val = b16.val + b17.val * 2^8 + b18.val * 2^16 + b19.val * 2^24 + b20.val * 2^32 + b21.val * 2^40 + b22.val * 2^48 + b23.val * 2^56 ⦄ := by
   have hsz64 : (U64.size : ℕ) = 2^64 := by scalar_tac
@@ -863,10 +863,10 @@ theorem bytes_word_loop_tail_2
   have hbb21 : b21.val < 2^8 := by scalar_tac
   have hbb22 : b22.val < 2^8 := by scalar_tac
   have hbb23 : b23.val < 2^8 := by scalar_tac
-  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0
+  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0
   -- j = 4: byte 20
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_lt_spec iter (by simp [hend, hst]; all_goals scalar_tac)) as ⟨o4, iter4, ho4, hs4, he4⟩
   simp only [ho4]
   step as ⟨p4, hp4⟩
@@ -910,7 +910,7 @@ theorem bytes_word_loop_tail_2
   try simp only [spec_ok]
   -- j = 5: byte 21
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_lt_spec iter4 (by simp [hs4, he4, hend, hst]; all_goals scalar_tac)) as ⟨o5, iter5, ho5, hs5, he5⟩
   simp only [ho5]
   step as ⟨p5, hp5⟩
@@ -954,7 +954,7 @@ theorem bytes_word_loop_tail_2
   try simp only [spec_ok]
   -- j = 6: byte 22
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_lt_spec iter5 (by simp [hs4, he4, hs5, he5, hend, hst]; all_goals scalar_tac)) as ⟨o6, iter6, ho6, hs6, he6⟩
   simp only [ho6]
   step as ⟨p6, hp6⟩
@@ -998,7 +998,7 @@ theorem bytes_word_loop_tail_2
   try simp only [spec_ok]
   -- j = 7: byte 23
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_lt_spec iter6 (by simp [hs4, he4, hs5, he5, hs6, he6, hend, hst]; all_goals scalar_tac)) as ⟨o7, iter7, ho7, hs7, he7⟩
   simp only [ho7]
   step as ⟨p7, hp7⟩
@@ -1042,7 +1042,7 @@ theorem bytes_word_loop_tail_2
   try simp only [spec_ok]
   -- exit (8 ≥ 8)
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_ge_spec iter7 (by simp [he7, he6, he5, he4, hend, hs7, hs6, hs5, hs4]; all_goals scalar_tac)) as ⟨oX, iterX, hoX, hrX⟩
   simp only [hoX]
   try simp only [spec_ok]
@@ -1061,7 +1061,7 @@ theorem bytes_word_loop_spec_2
     (hb : (↑bytes : List Std.U8) = [b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17, b18, b19, b20, b21, b22, b23, b24, b25, b26, b27, b28, b29, b30, b31, b32, b33, b34, b35, b36, b37, b38, b39, b40, b41, b42, b43, b44, b45, b46, b47, b48, b49, b50, b51, b52, b53, b54, b55, b56, b57, b58, b59, b60, b61, b62, b63])
     (hw : (↑words : List U64) = [w0, w1, w2, w3, w4, w5, w6, w7])
     (hz : w2.val = 0) :
-    backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0 { start := 0#usize, «end» := 8#usize } bytes words 2#usize
+    backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0 { start := 0#usize, «end» := 8#usize } bytes words 2#usize
       ⦃ ws => ∃ v : U64, (↑ws : List U64) = [w0, w1, v, w3, w4, w5, w6, w7] ∧
           v.val = b16.val + b17.val * 2^8 + b18.val * 2^16 + b19.val * 2^24 + b20.val * 2^32 + b21.val * 2^40 + b22.val * 2^48 + b23.val * 2^56 ⦄ := by
   have hsz64 : (U64.size : ℕ) = 2^64 := by scalar_tac
@@ -1069,10 +1069,10 @@ theorem bytes_word_loop_spec_2
   have hbb17 : b17.val < 2^8 := by scalar_tac
   have hbb18 : b18.val < 2^8 := by scalar_tac
   have hbb19 : b19.val < 2^8 := by scalar_tac
-  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0
+  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0
   -- j = 0: byte 16
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with range_next_lt_spec as ⟨o0, iter0, ho0, hs0, he0⟩
   simp only [ho0]
   step as ⟨p0, hp0⟩
@@ -1106,7 +1106,7 @@ theorem bytes_word_loop_spec_2
   try simp only [spec_ok]
   -- j = 1: byte 17
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with range_next_lt_spec as ⟨o1, iter1, ho1, hs1, he1⟩
   simp only [ho1]
   step as ⟨p1, hp1⟩
@@ -1150,7 +1150,7 @@ theorem bytes_word_loop_spec_2
   try simp only [spec_ok]
   -- j = 2: byte 18
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with range_next_lt_spec as ⟨o2, iter2, ho2, hs2, he2⟩
   simp only [ho2]
   step as ⟨p2, hp2⟩
@@ -1194,7 +1194,7 @@ theorem bytes_word_loop_spec_2
   try simp only [spec_ok]
   -- j = 3: byte 19
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with range_next_lt_spec as ⟨o3, iter3, ho3, hs3, he3⟩
   simp only [ho3]
   step as ⟨p3, hp3⟩
@@ -1237,7 +1237,7 @@ theorem bytes_word_loop_spec_2
   step as ⟨wn3, hwn3⟩
   try simp only [spec_ok]
   -- refold and hand over to the tail lemma at the j = 4 boundary
-  show backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0 iter3 bytes wn3 2#usize
+  show backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0 iter3 bytes wn3 2#usize
     ⦃ ws => ∃ v : U64, (↑ws : List U64) = [w0, w1, v, w3, w4, w5, w6, w7] ∧
         v.val = b16.val + b17.val * 2^8 + b18.val * 2^16 + b19.val * 2^24 + b20.val * 2^32 + b21.val * 2^40 + b22.val * 2^48 + b23.val * 2^56 ⦄
   have hwn3l : (↑wn3 : List U64) = [w0, w1, y3, w3, w4, w5, w6, w7] := by
@@ -1262,7 +1262,7 @@ theorem bytes_word_loop_tail_3
     (hw : (↑words : List U64) = [w0, w1, w2, w3, w4, w5, w6, w7])
     (hst : iter.start.val = 4) (hend : iter.«end» = 8#usize)
     (hacc : w3.val = b24.val + b25.val * 2^8 + b26.val * 2^16 + b27.val * 2^24) :
-    backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0 iter bytes words 3#usize
+    backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0 iter bytes words 3#usize
       ⦃ ws => ∃ v : U64, (↑ws : List U64) = [w0, w1, w2, v, w4, w5, w6, w7] ∧
           v.val = b24.val + b25.val * 2^8 + b26.val * 2^16 + b27.val * 2^24 + b28.val * 2^32 + b29.val * 2^40 + b30.val * 2^48 + b31.val * 2^56 ⦄ := by
   have hsz64 : (U64.size : ℕ) = 2^64 := by scalar_tac
@@ -1274,10 +1274,10 @@ theorem bytes_word_loop_tail_3
   have hbb29 : b29.val < 2^8 := by scalar_tac
   have hbb30 : b30.val < 2^8 := by scalar_tac
   have hbb31 : b31.val < 2^8 := by scalar_tac
-  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0
+  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0
   -- j = 4: byte 28
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_lt_spec iter (by simp [hend, hst]; all_goals scalar_tac)) as ⟨o4, iter4, ho4, hs4, he4⟩
   simp only [ho4]
   step as ⟨p4, hp4⟩
@@ -1321,7 +1321,7 @@ theorem bytes_word_loop_tail_3
   try simp only [spec_ok]
   -- j = 5: byte 29
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_lt_spec iter4 (by simp [hs4, he4, hend, hst]; all_goals scalar_tac)) as ⟨o5, iter5, ho5, hs5, he5⟩
   simp only [ho5]
   step as ⟨p5, hp5⟩
@@ -1365,7 +1365,7 @@ theorem bytes_word_loop_tail_3
   try simp only [spec_ok]
   -- j = 6: byte 30
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_lt_spec iter5 (by simp [hs4, he4, hs5, he5, hend, hst]; all_goals scalar_tac)) as ⟨o6, iter6, ho6, hs6, he6⟩
   simp only [ho6]
   step as ⟨p6, hp6⟩
@@ -1409,7 +1409,7 @@ theorem bytes_word_loop_tail_3
   try simp only [spec_ok]
   -- j = 7: byte 31
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_lt_spec iter6 (by simp [hs4, he4, hs5, he5, hs6, he6, hend, hst]; all_goals scalar_tac)) as ⟨o7, iter7, ho7, hs7, he7⟩
   simp only [ho7]
   step as ⟨p7, hp7⟩
@@ -1453,7 +1453,7 @@ theorem bytes_word_loop_tail_3
   try simp only [spec_ok]
   -- exit (8 ≥ 8)
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_ge_spec iter7 (by simp [he7, he6, he5, he4, hend, hs7, hs6, hs5, hs4]; all_goals scalar_tac)) as ⟨oX, iterX, hoX, hrX⟩
   simp only [hoX]
   try simp only [spec_ok]
@@ -1472,7 +1472,7 @@ theorem bytes_word_loop_spec_3
     (hb : (↑bytes : List Std.U8) = [b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17, b18, b19, b20, b21, b22, b23, b24, b25, b26, b27, b28, b29, b30, b31, b32, b33, b34, b35, b36, b37, b38, b39, b40, b41, b42, b43, b44, b45, b46, b47, b48, b49, b50, b51, b52, b53, b54, b55, b56, b57, b58, b59, b60, b61, b62, b63])
     (hw : (↑words : List U64) = [w0, w1, w2, w3, w4, w5, w6, w7])
     (hz : w3.val = 0) :
-    backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0 { start := 0#usize, «end» := 8#usize } bytes words 3#usize
+    backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0 { start := 0#usize, «end» := 8#usize } bytes words 3#usize
       ⦃ ws => ∃ v : U64, (↑ws : List U64) = [w0, w1, w2, v, w4, w5, w6, w7] ∧
           v.val = b24.val + b25.val * 2^8 + b26.val * 2^16 + b27.val * 2^24 + b28.val * 2^32 + b29.val * 2^40 + b30.val * 2^48 + b31.val * 2^56 ⦄ := by
   have hsz64 : (U64.size : ℕ) = 2^64 := by scalar_tac
@@ -1480,10 +1480,10 @@ theorem bytes_word_loop_spec_3
   have hbb25 : b25.val < 2^8 := by scalar_tac
   have hbb26 : b26.val < 2^8 := by scalar_tac
   have hbb27 : b27.val < 2^8 := by scalar_tac
-  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0
+  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0
   -- j = 0: byte 24
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with range_next_lt_spec as ⟨o0, iter0, ho0, hs0, he0⟩
   simp only [ho0]
   step as ⟨p0, hp0⟩
@@ -1517,7 +1517,7 @@ theorem bytes_word_loop_spec_3
   try simp only [spec_ok]
   -- j = 1: byte 25
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with range_next_lt_spec as ⟨o1, iter1, ho1, hs1, he1⟩
   simp only [ho1]
   step as ⟨p1, hp1⟩
@@ -1561,7 +1561,7 @@ theorem bytes_word_loop_spec_3
   try simp only [spec_ok]
   -- j = 2: byte 26
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with range_next_lt_spec as ⟨o2, iter2, ho2, hs2, he2⟩
   simp only [ho2]
   step as ⟨p2, hp2⟩
@@ -1605,7 +1605,7 @@ theorem bytes_word_loop_spec_3
   try simp only [spec_ok]
   -- j = 3: byte 27
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with range_next_lt_spec as ⟨o3, iter3, ho3, hs3, he3⟩
   simp only [ho3]
   step as ⟨p3, hp3⟩
@@ -1648,7 +1648,7 @@ theorem bytes_word_loop_spec_3
   step as ⟨wn3, hwn3⟩
   try simp only [spec_ok]
   -- refold and hand over to the tail lemma at the j = 4 boundary
-  show backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0 iter3 bytes wn3 3#usize
+  show backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0 iter3 bytes wn3 3#usize
     ⦃ ws => ∃ v : U64, (↑ws : List U64) = [w0, w1, w2, v, w4, w5, w6, w7] ∧
         v.val = b24.val + b25.val * 2^8 + b26.val * 2^16 + b27.val * 2^24 + b28.val * 2^32 + b29.val * 2^40 + b30.val * 2^48 + b31.val * 2^56 ⦄
   have hwn3l : (↑wn3 : List U64) = [w0, w1, w2, y3, w4, w5, w6, w7] := by
@@ -1673,7 +1673,7 @@ theorem bytes_word_loop_tail_4
     (hw : (↑words : List U64) = [w0, w1, w2, w3, w4, w5, w6, w7])
     (hst : iter.start.val = 4) (hend : iter.«end» = 8#usize)
     (hacc : w4.val = b32.val + b33.val * 2^8 + b34.val * 2^16 + b35.val * 2^24) :
-    backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0 iter bytes words 4#usize
+    backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0 iter bytes words 4#usize
       ⦃ ws => ∃ v : U64, (↑ws : List U64) = [w0, w1, w2, w3, v, w5, w6, w7] ∧
           v.val = b32.val + b33.val * 2^8 + b34.val * 2^16 + b35.val * 2^24 + b36.val * 2^32 + b37.val * 2^40 + b38.val * 2^48 + b39.val * 2^56 ⦄ := by
   have hsz64 : (U64.size : ℕ) = 2^64 := by scalar_tac
@@ -1685,10 +1685,10 @@ theorem bytes_word_loop_tail_4
   have hbb37 : b37.val < 2^8 := by scalar_tac
   have hbb38 : b38.val < 2^8 := by scalar_tac
   have hbb39 : b39.val < 2^8 := by scalar_tac
-  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0
+  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0
   -- j = 4: byte 36
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_lt_spec iter (by simp [hend, hst]; all_goals scalar_tac)) as ⟨o4, iter4, ho4, hs4, he4⟩
   simp only [ho4]
   step as ⟨p4, hp4⟩
@@ -1732,7 +1732,7 @@ theorem bytes_word_loop_tail_4
   try simp only [spec_ok]
   -- j = 5: byte 37
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_lt_spec iter4 (by simp [hs4, he4, hend, hst]; all_goals scalar_tac)) as ⟨o5, iter5, ho5, hs5, he5⟩
   simp only [ho5]
   step as ⟨p5, hp5⟩
@@ -1776,7 +1776,7 @@ theorem bytes_word_loop_tail_4
   try simp only [spec_ok]
   -- j = 6: byte 38
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_lt_spec iter5 (by simp [hs4, he4, hs5, he5, hend, hst]; all_goals scalar_tac)) as ⟨o6, iter6, ho6, hs6, he6⟩
   simp only [ho6]
   step as ⟨p6, hp6⟩
@@ -1820,7 +1820,7 @@ theorem bytes_word_loop_tail_4
   try simp only [spec_ok]
   -- j = 7: byte 39
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_lt_spec iter6 (by simp [hs4, he4, hs5, he5, hs6, he6, hend, hst]; all_goals scalar_tac)) as ⟨o7, iter7, ho7, hs7, he7⟩
   simp only [ho7]
   step as ⟨p7, hp7⟩
@@ -1864,7 +1864,7 @@ theorem bytes_word_loop_tail_4
   try simp only [spec_ok]
   -- exit (8 ≥ 8)
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_ge_spec iter7 (by simp [he7, he6, he5, he4, hend, hs7, hs6, hs5, hs4]; all_goals scalar_tac)) as ⟨oX, iterX, hoX, hrX⟩
   simp only [hoX]
   try simp only [spec_ok]
@@ -1883,7 +1883,7 @@ theorem bytes_word_loop_spec_4
     (hb : (↑bytes : List Std.U8) = [b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17, b18, b19, b20, b21, b22, b23, b24, b25, b26, b27, b28, b29, b30, b31, b32, b33, b34, b35, b36, b37, b38, b39, b40, b41, b42, b43, b44, b45, b46, b47, b48, b49, b50, b51, b52, b53, b54, b55, b56, b57, b58, b59, b60, b61, b62, b63])
     (hw : (↑words : List U64) = [w0, w1, w2, w3, w4, w5, w6, w7])
     (hz : w4.val = 0) :
-    backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0 { start := 0#usize, «end» := 8#usize } bytes words 4#usize
+    backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0 { start := 0#usize, «end» := 8#usize } bytes words 4#usize
       ⦃ ws => ∃ v : U64, (↑ws : List U64) = [w0, w1, w2, w3, v, w5, w6, w7] ∧
           v.val = b32.val + b33.val * 2^8 + b34.val * 2^16 + b35.val * 2^24 + b36.val * 2^32 + b37.val * 2^40 + b38.val * 2^48 + b39.val * 2^56 ⦄ := by
   have hsz64 : (U64.size : ℕ) = 2^64 := by scalar_tac
@@ -1891,10 +1891,10 @@ theorem bytes_word_loop_spec_4
   have hbb33 : b33.val < 2^8 := by scalar_tac
   have hbb34 : b34.val < 2^8 := by scalar_tac
   have hbb35 : b35.val < 2^8 := by scalar_tac
-  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0
+  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0
   -- j = 0: byte 32
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with range_next_lt_spec as ⟨o0, iter0, ho0, hs0, he0⟩
   simp only [ho0]
   step as ⟨p0, hp0⟩
@@ -1928,7 +1928,7 @@ theorem bytes_word_loop_spec_4
   try simp only [spec_ok]
   -- j = 1: byte 33
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with range_next_lt_spec as ⟨o1, iter1, ho1, hs1, he1⟩
   simp only [ho1]
   step as ⟨p1, hp1⟩
@@ -1972,7 +1972,7 @@ theorem bytes_word_loop_spec_4
   try simp only [spec_ok]
   -- j = 2: byte 34
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with range_next_lt_spec as ⟨o2, iter2, ho2, hs2, he2⟩
   simp only [ho2]
   step as ⟨p2, hp2⟩
@@ -2016,7 +2016,7 @@ theorem bytes_word_loop_spec_4
   try simp only [spec_ok]
   -- j = 3: byte 35
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with range_next_lt_spec as ⟨o3, iter3, ho3, hs3, he3⟩
   simp only [ho3]
   step as ⟨p3, hp3⟩
@@ -2059,7 +2059,7 @@ theorem bytes_word_loop_spec_4
   step as ⟨wn3, hwn3⟩
   try simp only [spec_ok]
   -- refold and hand over to the tail lemma at the j = 4 boundary
-  show backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0 iter3 bytes wn3 4#usize
+  show backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0 iter3 bytes wn3 4#usize
     ⦃ ws => ∃ v : U64, (↑ws : List U64) = [w0, w1, w2, w3, v, w5, w6, w7] ∧
         v.val = b32.val + b33.val * 2^8 + b34.val * 2^16 + b35.val * 2^24 + b36.val * 2^32 + b37.val * 2^40 + b38.val * 2^48 + b39.val * 2^56 ⦄
   have hwn3l : (↑wn3 : List U64) = [w0, w1, w2, w3, y3, w5, w6, w7] := by
@@ -2084,7 +2084,7 @@ theorem bytes_word_loop_tail_5
     (hw : (↑words : List U64) = [w0, w1, w2, w3, w4, w5, w6, w7])
     (hst : iter.start.val = 4) (hend : iter.«end» = 8#usize)
     (hacc : w5.val = b40.val + b41.val * 2^8 + b42.val * 2^16 + b43.val * 2^24) :
-    backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0 iter bytes words 5#usize
+    backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0 iter bytes words 5#usize
       ⦃ ws => ∃ v : U64, (↑ws : List U64) = [w0, w1, w2, w3, w4, v, w6, w7] ∧
           v.val = b40.val + b41.val * 2^8 + b42.val * 2^16 + b43.val * 2^24 + b44.val * 2^32 + b45.val * 2^40 + b46.val * 2^48 + b47.val * 2^56 ⦄ := by
   have hsz64 : (U64.size : ℕ) = 2^64 := by scalar_tac
@@ -2096,10 +2096,10 @@ theorem bytes_word_loop_tail_5
   have hbb45 : b45.val < 2^8 := by scalar_tac
   have hbb46 : b46.val < 2^8 := by scalar_tac
   have hbb47 : b47.val < 2^8 := by scalar_tac
-  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0
+  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0
   -- j = 4: byte 44
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_lt_spec iter (by simp [hend, hst]; all_goals scalar_tac)) as ⟨o4, iter4, ho4, hs4, he4⟩
   simp only [ho4]
   step as ⟨p4, hp4⟩
@@ -2143,7 +2143,7 @@ theorem bytes_word_loop_tail_5
   try simp only [spec_ok]
   -- j = 5: byte 45
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_lt_spec iter4 (by simp [hs4, he4, hend, hst]; all_goals scalar_tac)) as ⟨o5, iter5, ho5, hs5, he5⟩
   simp only [ho5]
   step as ⟨p5, hp5⟩
@@ -2187,7 +2187,7 @@ theorem bytes_word_loop_tail_5
   try simp only [spec_ok]
   -- j = 6: byte 46
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_lt_spec iter5 (by simp [hs4, he4, hs5, he5, hend, hst]; all_goals scalar_tac)) as ⟨o6, iter6, ho6, hs6, he6⟩
   simp only [ho6]
   step as ⟨p6, hp6⟩
@@ -2231,7 +2231,7 @@ theorem bytes_word_loop_tail_5
   try simp only [spec_ok]
   -- j = 7: byte 47
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_lt_spec iter6 (by simp [hs4, he4, hs5, he5, hs6, he6, hend, hst]; all_goals scalar_tac)) as ⟨o7, iter7, ho7, hs7, he7⟩
   simp only [ho7]
   step as ⟨p7, hp7⟩
@@ -2275,7 +2275,7 @@ theorem bytes_word_loop_tail_5
   try simp only [spec_ok]
   -- exit (8 ≥ 8)
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_ge_spec iter7 (by simp [he7, he6, he5, he4, hend, hs7, hs6, hs5, hs4]; all_goals scalar_tac)) as ⟨oX, iterX, hoX, hrX⟩
   simp only [hoX]
   try simp only [spec_ok]
@@ -2294,7 +2294,7 @@ theorem bytes_word_loop_spec_5
     (hb : (↑bytes : List Std.U8) = [b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17, b18, b19, b20, b21, b22, b23, b24, b25, b26, b27, b28, b29, b30, b31, b32, b33, b34, b35, b36, b37, b38, b39, b40, b41, b42, b43, b44, b45, b46, b47, b48, b49, b50, b51, b52, b53, b54, b55, b56, b57, b58, b59, b60, b61, b62, b63])
     (hw : (↑words : List U64) = [w0, w1, w2, w3, w4, w5, w6, w7])
     (hz : w5.val = 0) :
-    backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0 { start := 0#usize, «end» := 8#usize } bytes words 5#usize
+    backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0 { start := 0#usize, «end» := 8#usize } bytes words 5#usize
       ⦃ ws => ∃ v : U64, (↑ws : List U64) = [w0, w1, w2, w3, w4, v, w6, w7] ∧
           v.val = b40.val + b41.val * 2^8 + b42.val * 2^16 + b43.val * 2^24 + b44.val * 2^32 + b45.val * 2^40 + b46.val * 2^48 + b47.val * 2^56 ⦄ := by
   have hsz64 : (U64.size : ℕ) = 2^64 := by scalar_tac
@@ -2302,10 +2302,10 @@ theorem bytes_word_loop_spec_5
   have hbb41 : b41.val < 2^8 := by scalar_tac
   have hbb42 : b42.val < 2^8 := by scalar_tac
   have hbb43 : b43.val < 2^8 := by scalar_tac
-  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0
+  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0
   -- j = 0: byte 40
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with range_next_lt_spec as ⟨o0, iter0, ho0, hs0, he0⟩
   simp only [ho0]
   step as ⟨p0, hp0⟩
@@ -2339,7 +2339,7 @@ theorem bytes_word_loop_spec_5
   try simp only [spec_ok]
   -- j = 1: byte 41
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with range_next_lt_spec as ⟨o1, iter1, ho1, hs1, he1⟩
   simp only [ho1]
   step as ⟨p1, hp1⟩
@@ -2383,7 +2383,7 @@ theorem bytes_word_loop_spec_5
   try simp only [spec_ok]
   -- j = 2: byte 42
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with range_next_lt_spec as ⟨o2, iter2, ho2, hs2, he2⟩
   simp only [ho2]
   step as ⟨p2, hp2⟩
@@ -2427,7 +2427,7 @@ theorem bytes_word_loop_spec_5
   try simp only [spec_ok]
   -- j = 3: byte 43
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with range_next_lt_spec as ⟨o3, iter3, ho3, hs3, he3⟩
   simp only [ho3]
   step as ⟨p3, hp3⟩
@@ -2470,7 +2470,7 @@ theorem bytes_word_loop_spec_5
   step as ⟨wn3, hwn3⟩
   try simp only [spec_ok]
   -- refold and hand over to the tail lemma at the j = 4 boundary
-  show backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0 iter3 bytes wn3 5#usize
+  show backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0 iter3 bytes wn3 5#usize
     ⦃ ws => ∃ v : U64, (↑ws : List U64) = [w0, w1, w2, w3, w4, v, w6, w7] ∧
         v.val = b40.val + b41.val * 2^8 + b42.val * 2^16 + b43.val * 2^24 + b44.val * 2^32 + b45.val * 2^40 + b46.val * 2^48 + b47.val * 2^56 ⦄
   have hwn3l : (↑wn3 : List U64) = [w0, w1, w2, w3, w4, y3, w6, w7] := by
@@ -2495,7 +2495,7 @@ theorem bytes_word_loop_tail_6
     (hw : (↑words : List U64) = [w0, w1, w2, w3, w4, w5, w6, w7])
     (hst : iter.start.val = 4) (hend : iter.«end» = 8#usize)
     (hacc : w6.val = b48.val + b49.val * 2^8 + b50.val * 2^16 + b51.val * 2^24) :
-    backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0 iter bytes words 6#usize
+    backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0 iter bytes words 6#usize
       ⦃ ws => ∃ v : U64, (↑ws : List U64) = [w0, w1, w2, w3, w4, w5, v, w7] ∧
           v.val = b48.val + b49.val * 2^8 + b50.val * 2^16 + b51.val * 2^24 + b52.val * 2^32 + b53.val * 2^40 + b54.val * 2^48 + b55.val * 2^56 ⦄ := by
   have hsz64 : (U64.size : ℕ) = 2^64 := by scalar_tac
@@ -2507,10 +2507,10 @@ theorem bytes_word_loop_tail_6
   have hbb53 : b53.val < 2^8 := by scalar_tac
   have hbb54 : b54.val < 2^8 := by scalar_tac
   have hbb55 : b55.val < 2^8 := by scalar_tac
-  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0
+  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0
   -- j = 4: byte 52
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_lt_spec iter (by simp [hend, hst]; all_goals scalar_tac)) as ⟨o4, iter4, ho4, hs4, he4⟩
   simp only [ho4]
   step as ⟨p4, hp4⟩
@@ -2554,7 +2554,7 @@ theorem bytes_word_loop_tail_6
   try simp only [spec_ok]
   -- j = 5: byte 53
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_lt_spec iter4 (by simp [hs4, he4, hend, hst]; all_goals scalar_tac)) as ⟨o5, iter5, ho5, hs5, he5⟩
   simp only [ho5]
   step as ⟨p5, hp5⟩
@@ -2598,7 +2598,7 @@ theorem bytes_word_loop_tail_6
   try simp only [spec_ok]
   -- j = 6: byte 54
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_lt_spec iter5 (by simp [hs4, he4, hs5, he5, hend, hst]; all_goals scalar_tac)) as ⟨o6, iter6, ho6, hs6, he6⟩
   simp only [ho6]
   step as ⟨p6, hp6⟩
@@ -2642,7 +2642,7 @@ theorem bytes_word_loop_tail_6
   try simp only [spec_ok]
   -- j = 7: byte 55
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_lt_spec iter6 (by simp [hs4, he4, hs5, he5, hs6, he6, hend, hst]; all_goals scalar_tac)) as ⟨o7, iter7, ho7, hs7, he7⟩
   simp only [ho7]
   step as ⟨p7, hp7⟩
@@ -2686,7 +2686,7 @@ theorem bytes_word_loop_tail_6
   try simp only [spec_ok]
   -- exit (8 ≥ 8)
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_ge_spec iter7 (by simp [he7, he6, he5, he4, hend, hs7, hs6, hs5, hs4]; all_goals scalar_tac)) as ⟨oX, iterX, hoX, hrX⟩
   simp only [hoX]
   try simp only [spec_ok]
@@ -2705,7 +2705,7 @@ theorem bytes_word_loop_spec_6
     (hb : (↑bytes : List Std.U8) = [b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17, b18, b19, b20, b21, b22, b23, b24, b25, b26, b27, b28, b29, b30, b31, b32, b33, b34, b35, b36, b37, b38, b39, b40, b41, b42, b43, b44, b45, b46, b47, b48, b49, b50, b51, b52, b53, b54, b55, b56, b57, b58, b59, b60, b61, b62, b63])
     (hw : (↑words : List U64) = [w0, w1, w2, w3, w4, w5, w6, w7])
     (hz : w6.val = 0) :
-    backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0 { start := 0#usize, «end» := 8#usize } bytes words 6#usize
+    backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0 { start := 0#usize, «end» := 8#usize } bytes words 6#usize
       ⦃ ws => ∃ v : U64, (↑ws : List U64) = [w0, w1, w2, w3, w4, w5, v, w7] ∧
           v.val = b48.val + b49.val * 2^8 + b50.val * 2^16 + b51.val * 2^24 + b52.val * 2^32 + b53.val * 2^40 + b54.val * 2^48 + b55.val * 2^56 ⦄ := by
   have hsz64 : (U64.size : ℕ) = 2^64 := by scalar_tac
@@ -2713,10 +2713,10 @@ theorem bytes_word_loop_spec_6
   have hbb49 : b49.val < 2^8 := by scalar_tac
   have hbb50 : b50.val < 2^8 := by scalar_tac
   have hbb51 : b51.val < 2^8 := by scalar_tac
-  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0
+  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0
   -- j = 0: byte 48
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with range_next_lt_spec as ⟨o0, iter0, ho0, hs0, he0⟩
   simp only [ho0]
   step as ⟨p0, hp0⟩
@@ -2750,7 +2750,7 @@ theorem bytes_word_loop_spec_6
   try simp only [spec_ok]
   -- j = 1: byte 49
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with range_next_lt_spec as ⟨o1, iter1, ho1, hs1, he1⟩
   simp only [ho1]
   step as ⟨p1, hp1⟩
@@ -2794,7 +2794,7 @@ theorem bytes_word_loop_spec_6
   try simp only [spec_ok]
   -- j = 2: byte 50
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with range_next_lt_spec as ⟨o2, iter2, ho2, hs2, he2⟩
   simp only [ho2]
   step as ⟨p2, hp2⟩
@@ -2838,7 +2838,7 @@ theorem bytes_word_loop_spec_6
   try simp only [spec_ok]
   -- j = 3: byte 51
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with range_next_lt_spec as ⟨o3, iter3, ho3, hs3, he3⟩
   simp only [ho3]
   step as ⟨p3, hp3⟩
@@ -2881,7 +2881,7 @@ theorem bytes_word_loop_spec_6
   step as ⟨wn3, hwn3⟩
   try simp only [spec_ok]
   -- refold and hand over to the tail lemma at the j = 4 boundary
-  show backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0 iter3 bytes wn3 6#usize
+  show backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0 iter3 bytes wn3 6#usize
     ⦃ ws => ∃ v : U64, (↑ws : List U64) = [w0, w1, w2, w3, w4, w5, v, w7] ∧
         v.val = b48.val + b49.val * 2^8 + b50.val * 2^16 + b51.val * 2^24 + b52.val * 2^32 + b53.val * 2^40 + b54.val * 2^48 + b55.val * 2^56 ⦄
   have hwn3l : (↑wn3 : List U64) = [w0, w1, w2, w3, w4, w5, y3, w7] := by
@@ -2906,7 +2906,7 @@ theorem bytes_word_loop_tail_7
     (hw : (↑words : List U64) = [w0, w1, w2, w3, w4, w5, w6, w7])
     (hst : iter.start.val = 4) (hend : iter.«end» = 8#usize)
     (hacc : w7.val = b56.val + b57.val * 2^8 + b58.val * 2^16 + b59.val * 2^24) :
-    backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0 iter bytes words 7#usize
+    backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0 iter bytes words 7#usize
       ⦃ ws => ∃ v : U64, (↑ws : List U64) = [w0, w1, w2, w3, w4, w5, w6, v] ∧
           v.val = b56.val + b57.val * 2^8 + b58.val * 2^16 + b59.val * 2^24 + b60.val * 2^32 + b61.val * 2^40 + b62.val * 2^48 + b63.val * 2^56 ⦄ := by
   have hsz64 : (U64.size : ℕ) = 2^64 := by scalar_tac
@@ -2918,10 +2918,10 @@ theorem bytes_word_loop_tail_7
   have hbb61 : b61.val < 2^8 := by scalar_tac
   have hbb62 : b62.val < 2^8 := by scalar_tac
   have hbb63 : b63.val < 2^8 := by scalar_tac
-  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0
+  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0
   -- j = 4: byte 60
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_lt_spec iter (by simp [hend, hst]; all_goals scalar_tac)) as ⟨o4, iter4, ho4, hs4, he4⟩
   simp only [ho4]
   step as ⟨p4, hp4⟩
@@ -2965,7 +2965,7 @@ theorem bytes_word_loop_tail_7
   try simp only [spec_ok]
   -- j = 5: byte 61
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_lt_spec iter4 (by simp [hs4, he4, hend, hst]; all_goals scalar_tac)) as ⟨o5, iter5, ho5, hs5, he5⟩
   simp only [ho5]
   step as ⟨p5, hp5⟩
@@ -3009,7 +3009,7 @@ theorem bytes_word_loop_tail_7
   try simp only [spec_ok]
   -- j = 6: byte 62
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_lt_spec iter5 (by simp [hs4, he4, hs5, he5, hend, hst]; all_goals scalar_tac)) as ⟨o6, iter6, ho6, hs6, he6⟩
   simp only [ho6]
   step as ⟨p6, hp6⟩
@@ -3053,7 +3053,7 @@ theorem bytes_word_loop_tail_7
   try simp only [spec_ok]
   -- j = 7: byte 63
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_lt_spec iter6 (by simp [hs4, he4, hs5, he5, hs6, he6, hend, hst]; all_goals scalar_tac)) as ⟨o7, iter7, ho7, hs7, he7⟩
   simp only [ho7]
   step as ⟨p7, hp7⟩
@@ -3097,7 +3097,7 @@ theorem bytes_word_loop_tail_7
   try simp only [spec_ok]
   -- exit (8 ≥ 8)
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with (range_next_ge_spec iter7 (by simp [he7, he6, he5, he4, hend, hs7, hs6, hs5, hs4]; all_goals scalar_tac)) as ⟨oX, iterX, hoX, hrX⟩
   simp only [hoX]
   try simp only [spec_ok]
@@ -3116,7 +3116,7 @@ theorem bytes_word_loop_spec_7
     (hb : (↑bytes : List Std.U8) = [b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17, b18, b19, b20, b21, b22, b23, b24, b25, b26, b27, b28, b29, b30, b31, b32, b33, b34, b35, b36, b37, b38, b39, b40, b41, b42, b43, b44, b45, b46, b47, b48, b49, b50, b51, b52, b53, b54, b55, b56, b57, b58, b59, b60, b61, b62, b63])
     (hw : (↑words : List U64) = [w0, w1, w2, w3, w4, w5, w6, w7])
     (hz : w7.val = 0) :
-    backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0 { start := 0#usize, «end» := 8#usize } bytes words 7#usize
+    backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0 { start := 0#usize, «end» := 8#usize } bytes words 7#usize
       ⦃ ws => ∃ v : U64, (↑ws : List U64) = [w0, w1, w2, w3, w4, w5, w6, v] ∧
           v.val = b56.val + b57.val * 2^8 + b58.val * 2^16 + b59.val * 2^24 + b60.val * 2^32 + b61.val * 2^40 + b62.val * 2^48 + b63.val * 2^56 ⦄ := by
   have hsz64 : (U64.size : ℕ) = 2^64 := by scalar_tac
@@ -3124,10 +3124,10 @@ theorem bytes_word_loop_spec_7
   have hbb57 : b57.val < 2^8 := by scalar_tac
   have hbb58 : b58.val < 2^8 := by scalar_tac
   have hbb59 : b59.val < 2^8 := by scalar_tac
-  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0
+  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0
   -- j = 0: byte 56
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with range_next_lt_spec as ⟨o0, iter0, ho0, hs0, he0⟩
   simp only [ho0]
   step as ⟨p0, hp0⟩
@@ -3161,7 +3161,7 @@ theorem bytes_word_loop_spec_7
   try simp only [spec_ok]
   -- j = 1: byte 57
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with range_next_lt_spec as ⟨o1, iter1, ho1, hs1, he1⟩
   simp only [ho1]
   step as ⟨p1, hp1⟩
@@ -3205,7 +3205,7 @@ theorem bytes_word_loop_spec_7
   try simp only [spec_ok]
   -- j = 2: byte 58
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with range_next_lt_spec as ⟨o2, iter2, ho2, hs2, he2⟩
   simp only [ho2]
   step as ⟨p2, hp2⟩
@@ -3249,7 +3249,7 @@ theorem bytes_word_loop_spec_7
   try simp only [spec_ok]
   -- j = 3: byte 59
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body]
   step with range_next_lt_spec as ⟨o3, iter3, ho3, hs3, he3⟩
   simp only [ho3]
   step as ⟨p3, hp3⟩
@@ -3292,7 +3292,7 @@ theorem bytes_word_loop_spec_7
   step as ⟨wn3, hwn3⟩
   try simp only [spec_ok]
   -- refold and hand over to the tail lemma at the j = 4 boundary
-  show backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0 iter3 bytes wn3 7#usize
+  show backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0 iter3 bytes wn3 7#usize
     ⦃ ws => ∃ v : U64, (↑ws : List U64) = [w0, w1, w2, w3, w4, w5, w6, v] ∧
         v.val = b56.val + b57.val * 2^8 + b58.val * 2^16 + b59.val * 2^24 + b60.val * 2^32 + b61.val * 2^40 + b62.val * 2^48 + b63.val * 2^56 ⦄
   have hwn3l : (↑wn3 : List U64) = [w0, w1, w2, w3, w4, w5, w6, y3] := by

@@ -21,7 +21,7 @@ theorem bytes_unpack_spec (bytes : Std.Array Std.U8 64#usize)
     (hb : (↑bytes : List Std.U8) = [b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17, b18, b19, b20, b21, b22, b23, b24, b25, b26, b27, b28, b29, b30, b31, b32, b33, b34, b35, b36, b37, b38, b39, b40, b41, b42, b43, b44, b45, b46, b47, b48, b49, b50, b51, b52, b53, b54, b55, b56, b57, b58, b59, b60, b61, b62, b63])
     (hw : (↑words : List U64) = [w0, w1, w2, w3, w4, w5, w6, w7])
     (hz : w0.val = 0 ∧ w1.val = 0 ∧ w2.val = 0 ∧ w3.val = 0 ∧ w4.val = 0 ∧ w5.val = 0 ∧ w6.val = 0 ∧ w7.val = 0) :
-    backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0 { start := 0#usize, «end» := 8#usize } bytes words
+    backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0 { start := 0#usize, «end» := 8#usize } bytes words
       ⦃ ws => ∃ v0 v1 v2 v3 v4 v5 v6 v7 : U64,
           (↑ws : List U64) = [v0, v1, v2, v3, v4, v5, v6, v7] ∧
           v0.val = b0.val + b1.val * 2^8 + b2.val * 2^16 + b3.val * 2^24 + b4.val * 2^32 + b5.val * 2^40 + b6.val * 2^48 + b7.val * 2^56 ∧
@@ -33,10 +33,10 @@ theorem bytes_unpack_spec (bytes : Std.Array Std.U8 64#usize)
           v6.val = b48.val + b49.val * 2^8 + b50.val * 2^16 + b51.val * 2^24 + b52.val * 2^32 + b53.val * 2^40 + b54.val * 2^48 + b55.val * 2^56 ∧
           v7.val = b56.val + b57.val * 2^8 + b58.val * 2^16 + b59.val * 2^24 + b60.val * 2^32 + b61.val * 2^40 + b62.val * 2^48 + b63.val * 2^56 ⦄ := by
   obtain ⟨hz0, hz1, hz2, hz3, hz4, hz5, hz6, hz7⟩ := hz
-  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0
+  unfold backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0
   -- outer iteration 0
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0.body]
   step with range_next_lt_spec as ⟨o0, iter0, ho0, hs0, he0⟩
   simp only [ho0]
   step with (bytes_word_loop_spec_0 bytes words b0 b1 b2 b3 b4 b5 b6 b7 b8 b9 b10 b11 b12 b13 b14 b15 b16 b17 b18 b19 b20 b21 b22 b23 b24 b25 b26 b27 b28 b29 b30 b31 b32 b33 b34 b35 b36 b37 b38 b39 b40 b41 b42 b43 b44 b45 b46 b47 b48 b49 b50 b51 b52 b53 b54 b55 b56 b57 b58 b59 b60 b61 b62 b63
@@ -44,7 +44,7 @@ theorem bytes_unpack_spec (bytes : Std.Array Std.U8 64#usize)
   try simp only [spec_ok]
   -- outer iteration 1
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0.body]
   step with (range_next_lt_spec iter0 (by simp [hs0, he0]; all_goals scalar_tac)) as ⟨o1, iter1, ho1, hs1, he1⟩
   simp only [ho1]
   have hidx1 : iter0.start = 1#usize := by
@@ -56,7 +56,7 @@ theorem bytes_unpack_spec (bytes : Std.Array Std.U8 64#usize)
   try simp only [spec_ok]
   -- outer iteration 2
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0.body]
   step with (range_next_lt_spec iter1 (by simp [hs0, he0, hs1, he1]; all_goals scalar_tac)) as ⟨o2, iter2, ho2, hs2, he2⟩
   simp only [ho2]
   have hidx2 : iter1.start = 2#usize := by
@@ -68,7 +68,7 @@ theorem bytes_unpack_spec (bytes : Std.Array Std.U8 64#usize)
   try simp only [spec_ok]
   -- outer iteration 3
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0.body]
   step with (range_next_lt_spec iter2 (by simp [hs0, he0, hs1, he1, hs2, he2]; all_goals scalar_tac)) as ⟨o3, iter3, ho3, hs3, he3⟩
   simp only [ho3]
   have hidx3 : iter2.start = 3#usize := by
@@ -80,7 +80,7 @@ theorem bytes_unpack_spec (bytes : Std.Array Std.U8 64#usize)
   try simp only [spec_ok]
   -- outer iteration 4
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0.body]
   step with (range_next_lt_spec iter3 (by simp [hs0, he0, hs1, he1, hs2, he2, hs3, he3]; all_goals scalar_tac)) as ⟨o4, iter4, ho4, hs4, he4⟩
   simp only [ho4]
   have hidx4 : iter3.start = 4#usize := by
@@ -92,7 +92,7 @@ theorem bytes_unpack_spec (bytes : Std.Array Std.U8 64#usize)
   try simp only [spec_ok]
   -- outer iteration 5
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0.body]
   step with (range_next_lt_spec iter4 (by simp [hs0, he0, hs1, he1, hs2, he2, hs3, he3, hs4, he4]; all_goals scalar_tac)) as ⟨o5, iter5, ho5, hs5, he5⟩
   simp only [ho5]
   have hidx5 : iter4.start = 5#usize := by
@@ -104,7 +104,7 @@ theorem bytes_unpack_spec (bytes : Std.Array Std.U8 64#usize)
   try simp only [spec_ok]
   -- outer iteration 6
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0.body]
   step with (range_next_lt_spec iter5 (by simp [hs0, he0, hs1, he1, hs2, he2, hs3, he3, hs4, he4, hs5, he5]; all_goals scalar_tac)) as ⟨o6, iter6, ho6, hs6, he6⟩
   simp only [ho6]
   have hidx6 : iter5.start = 6#usize := by
@@ -116,7 +116,7 @@ theorem bytes_unpack_spec (bytes : Std.Array Std.U8 64#usize)
   try simp only [spec_ok]
   -- outer iteration 7
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0.body]
   step with (range_next_lt_spec iter6 (by simp [hs0, he0, hs1, he1, hs2, he2, hs3, he3, hs4, he4, hs5, he5, hs6, he6]; all_goals scalar_tac)) as ⟨o7, iter7, ho7, hs7, he7⟩
   simp only [ho7]
   have hidx7 : iter6.start = 7#usize := by
@@ -128,7 +128,7 @@ theorem bytes_unpack_spec (bytes : Std.Array Std.U8 64#usize)
   try simp only [spec_ok]
   -- exit (8 ≥ 8)
   apply loop_step
-  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0.body]
+  simp only [backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0.body]
   step with (range_next_ge_spec iter7 (by simp [hs0, he0, hs1, he1, hs2, he2, hs3, he3, hs4, he4, hs5, he5, hs6, he6, hs7, he7]; all_goals scalar_tac)) as ⟨oX, iterX, hoX, hrX⟩
   simp only [hoX]
   try simp only [spec_ok]

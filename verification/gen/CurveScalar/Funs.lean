@@ -90,8 +90,157 @@ def backend.serial.u64.scalar.Scalar52.ZERO
   let a := Array.repeat 5#usize 0#u64
   a
 
+/-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::split_words_lo]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 95:4-104:5 -/
+def backend.serial.u64.scalar.Scalar52.split_words_lo
+  (words : Array Std.U64 8#usize) :
+  Result backend.serial.u64.scalar.Scalar52
+  := do
+  let i ← 1#u64 <<< 52#i32
+  let mask ← i - 1#u64
+  let i1 ← Array.index_usize words 0#usize
+  let i2 ← lift (i1 &&& mask)
+  let i3 ← i1 >>> 52#i32
+  let i4 ← Array.index_usize words 1#usize
+  let i5 ← i4 <<< 12#i32
+  let i6 ← lift (i3 ||| i5)
+  let i7 ← lift (i6 &&& mask)
+  let i8 ← i4 >>> 40#i32
+  let i9 ← Array.index_usize words 2#usize
+  let i10 ← i9 <<< 24#i32
+  let i11 ← lift (i8 ||| i10)
+  let i12 ← lift (i11 &&& mask)
+  let i13 ← i9 >>> 28#i32
+  let i14 ← Array.index_usize words 3#usize
+  let i15 ← i14 <<< 36#i32
+  let i16 ← lift (i13 ||| i15)
+  let i17 ← lift (i16 &&& mask)
+  let i18 ← i14 >>> 16#i32
+  let i19 ← Array.index_usize words 4#usize
+  let i20 ← i19 <<< 48#i32
+  let i21 ← lift (i18 ||| i20)
+  let i22 ← lift (i21 &&& mask)
+  ok (Array.make 5#usize [ i2, i7, i12, i17, i22 ])
+
+/-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::split_words_hi]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 107:4-116:5 -/
+def backend.serial.u64.scalar.Scalar52.split_words_hi
+  (words : Array Std.U64 8#usize) :
+  Result backend.serial.u64.scalar.Scalar52
+  := do
+  let i ← 1#u64 <<< 52#i32
+  let mask ← i - 1#u64
+  let i1 ← Array.index_usize words 4#usize
+  let i2 ← i1 >>> 4#i32
+  let i3 ← lift (i2 &&& mask)
+  let i4 ← i1 >>> 56#i32
+  let i5 ← Array.index_usize words 5#usize
+  let i6 ← i5 <<< 8#i32
+  let i7 ← lift (i4 ||| i6)
+  let i8 ← lift (i7 &&& mask)
+  let i9 ← i5 >>> 44#i32
+  let i10 ← Array.index_usize words 6#usize
+  let i11 ← i10 <<< 20#i32
+  let i12 ← lift (i9 ||| i11)
+  let i13 ← lift (i12 &&& mask)
+  let i14 ← i10 >>> 32#i32
+  let i15 ← Array.index_usize words 7#usize
+  let i16 ← i15 <<< 32#i32
+  let i17 ← lift (i14 ||| i16)
+  let i18 ← lift (i17 &&& mask)
+  let i19 ← i15 >>> 20#i32
+  let i20 ← lift (i19 &&& mask)
+  ok (Array.make 5#usize [ i3, i8, i13, i18, i20 ])
+
+/-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::from_bytes_wide_parts]: loop body 1:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 129:12-131:13 -/
+@[rust_loop_body]
+def backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body
+  (bytes : Array Std.U8 64#usize) (i : Std.Usize)
+  (iter : core.ops.range.Range Std.Usize) (words : Array Std.U64 8#usize) :
+  Result (ControlFlow ((core.ops.range.Range Std.Usize) × (Array Std.U64
+    8#usize)) (Array Std.U64 8#usize))
+  := do
+  let (o, iter1) ←
+    core.iter.range.IteratorRange.next core.iter.range.StepUsize iter
+  match o with
+  | none => ok (done words)
+  | some j =>
+    let i1 ← i * 8#usize
+    let i2 ← i1 + j
+    let i3 ← Array.index_usize bytes i2
+    let i4 ← lift (UScalar.cast .U64 i3)
+    let i5 ← j * 8#usize
+    let i6 ← i4 <<< i5
+    let i7 ← Array.index_usize words i
+    let i8 ← lift (i7 ||| i6)
+    let a ← Array.update words i i8
+    ok (cont (iter1, a))
+
+/-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::from_bytes_wide_parts]: loop 1:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 129:12-131:13 -/
+@[rust_loop]
+def backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0
+  (iter : core.ops.range.Range Std.Usize) (bytes : Array Std.U8 64#usize)
+  (words : Array Std.U64 8#usize) (i : Std.Usize) :
+  Result (Array Std.U64 8#usize)
+  := do
+  loop
+    (fun (iter1, words1) =>
+      backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0.body
+      bytes i iter1 words1)
+    (iter, words)
+
+/-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::from_bytes_wide_parts]: loop body 0:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 128:8-132:9 -/
+@[rust_loop_body]
+def backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0.body
+  (bytes : Array Std.U8 64#usize) (iter : core.ops.range.Range Std.Usize)
+  (words : Array Std.U64 8#usize) :
+  Result (ControlFlow ((core.ops.range.Range Std.Usize) × (Array Std.U64
+    8#usize)) (Array Std.U64 8#usize))
+  := do
+  let (o, iter1) ←
+    core.iter.range.IteratorRange.next core.iter.range.StepUsize iter
+  match o with
+  | none => ok (done words)
+  | some i =>
+    let words1 ←
+      backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0_loop0
+        { start := 0#usize, «end» := 8#usize } bytes words i
+    ok (cont (iter1, words1))
+
+/-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::from_bytes_wide_parts]: loop 0:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 128:8-132:9 -/
+@[rust_loop]
+def backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0
+  (iter : core.ops.range.Range Std.Usize) (bytes : Array Std.U8 64#usize)
+  (words : Array Std.U64 8#usize) :
+  Result (Array Std.U64 8#usize)
+  := do
+  loop
+    (fun (iter1, words1) =>
+      backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0.body bytes
+      iter1 words1)
+    (iter, words)
+
+/-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::from_bytes_wide_parts]:
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 126:4-134:5 -/
+def backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts
+  (bytes : Array Std.U8 64#usize) :
+  Result (backend.serial.u64.scalar.Scalar52 ×
+    backend.serial.u64.scalar.Scalar52)
+  := do
+  let words := Array.repeat 8#usize 0#u64
+  let words1 ←
+    backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts_loop0
+      { start := 0#usize, «end» := 8#usize } bytes words
+  let s ← backend.serial.u64.scalar.Scalar52.split_words_lo words1
+  let s1 ← backend.serial.u64.scalar.Scalar52.split_words_hi words1
+  ok (s, s1)
+
 /-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::montgomery_reduce::part2]:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 285:8-288:9 -/
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 299:8-302:9 -/
 def backend.serial.u64.scalar.Scalar52.montgomery_reduce.part2
   (sum : Std.U128) : Result (Std.U128 × Std.U64) := do
   let i ← lift (UScalar.cast .U64 sum)
@@ -102,7 +251,7 @@ def backend.serial.u64.scalar.Scalar52.montgomery_reduce.part2
   ok (i3, w)
 
 /-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::montgomery_reduce::part1]:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 279:8-282:9 -/
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 293:8-296:9 -/
 def backend.serial.u64.scalar.Scalar52.montgomery_reduce.part1
   (sum : Std.U128) : Result (Std.U128 × Std.U64) := do
   let i ← lift (UScalar.cast .U64 sum)
@@ -120,7 +269,7 @@ def backend.serial.u64.scalar.Scalar52.montgomery_reduce.part1
   ok (i7, p)
 
 /-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::conditional_add_l]: loop body 0:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 0:0-212:9 -/
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 0:0-226:9 -/
 @[rust_loop_body]
 def backend.serial.u64.scalar.Scalar52.conditional_add_l_loop.body
   (condition : subtle.Choice) (mask : Std.U64)
@@ -155,7 +304,7 @@ def backend.serial.u64.scalar.Scalar52.conditional_add_l_loop.body
     ok (cont (iter1, self1, carry1))
 
 /-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::conditional_add_l]: loop 0:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 0:0-212:9 -/
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 0:0-226:9 -/
 @[rust_loop]
 def backend.serial.u64.scalar.Scalar52.conditional_add_l_loop
   (iter : core.ops.range.Range Std.Usize)
@@ -170,7 +319,7 @@ def backend.serial.u64.scalar.Scalar52.conditional_add_l_loop
     (iter, self, carry)
 
 /-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::conditional_add_l]:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 204:4-215:5 -/
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 218:4-229:5 -/
 def backend.serial.u64.scalar.Scalar52.conditional_add_l
   (self : backend.serial.u64.scalar.Scalar52) (condition : subtle.Choice) :
   Result (Std.U64 × backend.serial.u64.scalar.Scalar52)
@@ -181,7 +330,7 @@ def backend.serial.u64.scalar.Scalar52.conditional_add_l
     { start := 0#usize, «end» := 5#usize } self condition 0#u64 mask
 
 /-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::sub]: loop body 0:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 194:8-197:9
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 208:8-211:9
     Visibility: public -/
 @[rust_loop_body]
 def backend.serial.u64.scalar.Scalar52.sub_loop.body
@@ -215,7 +364,7 @@ def backend.serial.u64.scalar.Scalar52.sub_loop.body
     ok (cont (iter1, difference1, borrow1))
 
 /-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::sub]: loop 0:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 194:8-197:9
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 208:8-211:9
     Visibility: public -/
 @[rust_loop]
 def backend.serial.u64.scalar.Scalar52.sub_loop
@@ -233,7 +382,7 @@ def backend.serial.u64.scalar.Scalar52.sub_loop
     (iter, difference, borrow)
 
 /-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::sub]:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 188:4-202:5
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 202:4-216:5
     Visibility: public -/
 def backend.serial.u64.scalar.Scalar52.sub
   (a : backend.serial.u64.scalar.Scalar52)
@@ -254,7 +403,7 @@ def backend.serial.u64.scalar.Scalar52.sub
   ok difference1
 
 /-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::montgomery_reduce]:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 276:4-309:5 -/
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 290:4-323:5 -/
 def backend.serial.u64.scalar.Scalar52.montgomery_reduce
   (limbs : Array Std.U128 9#usize) :
   Result backend.serial.u64.scalar.Scalar52
@@ -338,7 +487,7 @@ def backend.serial.u64.scalar.Scalar52.montgomery_reduce
     (Array.make 5#usize [ r0, r1, r2, r3, r4 ]) backend.serial.u64.constants.L
 
 /-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::mul_internal]:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 233:4-247:5 -/
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 247:4-261:5 -/
 def backend.serial.u64.scalar.Scalar52.mul_internal
   (a : backend.serial.u64.scalar.Scalar52)
   (b : backend.serial.u64.scalar.Scalar52) :
@@ -427,7 +576,7 @@ def backend.serial.u64.scalar.Scalar52.mul_internal
   Array.update z8 8#usize i50
 
 /-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::montgomery_mul]:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 353:4-361:5
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 367:4-375:5
     Visibility: public -/
 def backend.serial.u64.scalar.Scalar52.montgomery_mul
   (a : backend.serial.u64.scalar.Scalar52)
@@ -438,7 +587,7 @@ def backend.serial.u64.scalar.Scalar52.montgomery_mul
   backend.serial.u64.scalar.Scalar52.montgomery_reduce limbs
 
 /-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::add]: loop body 0:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 178:8-181:9
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 192:8-195:9
     Visibility: public -/
 @[rust_loop_body]
 def backend.serial.u64.scalar.Scalar52.add_loop.body
@@ -472,7 +621,7 @@ def backend.serial.u64.scalar.Scalar52.add_loop.body
     ok (cont (iter1, sum1, carry1))
 
 /-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::add]: loop 0:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 178:8-181:9
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 192:8-195:9
     Visibility: public -/
 @[rust_loop]
 def backend.serial.u64.scalar.Scalar52.add_loop
@@ -490,7 +639,7 @@ def backend.serial.u64.scalar.Scalar52.add_loop
     (iter, sum, carry)
 
 /-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::add]:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 172:4-185:5
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 186:4-199:5
     Visibility: public -/
 def backend.serial.u64.scalar.Scalar52.add
   (a : backend.serial.u64.scalar.Scalar52)
@@ -505,183 +654,25 @@ def backend.serial.u64.scalar.Scalar52.add
       backend.serial.u64.scalar.Scalar52.ZERO mask 0#u64
   backend.serial.u64.scalar.Scalar52.sub sum backend.serial.u64.constants.L
 
-/-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::from_bytes_wide]: loop body 1:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 91:12-93:13
-    Visibility: public -/
-@[rust_loop_body]
-def backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body
-  (bytes : Array Std.U8 64#usize) (i : Std.Usize)
-  (iter : core.ops.range.Range Std.Usize) (words : Array Std.U64 8#usize) :
-  Result (ControlFlow ((core.ops.range.Range Std.Usize) × (Array Std.U64
-    8#usize)) (Array Std.U64 8#usize))
-  := do
-  let (o, iter1) ←
-    core.iter.range.IteratorRange.next core.iter.range.StepUsize iter
-  match o with
-  | none => ok (done words)
-  | some j =>
-    let i1 ← i * 8#usize
-    let i2 ← i1 + j
-    let i3 ← Array.index_usize bytes i2
-    let i4 ← lift (UScalar.cast .U64 i3)
-    let i5 ← j * 8#usize
-    let i6 ← i4 <<< i5
-    let i7 ← Array.index_usize words i
-    let i8 ← lift (i7 ||| i6)
-    let a ← Array.update words i i8
-    ok (cont (iter1, a))
-
-/-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::from_bytes_wide]: loop 1:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 91:12-93:13
-    Visibility: public -/
-@[rust_loop]
-def backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0
-  (iter : core.ops.range.Range Std.Usize) (bytes : Array Std.U8 64#usize)
-  (words : Array Std.U64 8#usize) (i : Std.Usize) :
-  Result (Array Std.U64 8#usize)
-  := do
-  loop
-    (fun (iter1, words1) =>
-      backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0.body bytes
-      i iter1 words1)
-    (iter, words)
-
-/-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::from_bytes_wide]: loop body 0:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 90:8-94:9
-    Visibility: public -/
-@[rust_loop_body]
-def backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0.body
-  (bytes : Array Std.U8 64#usize) (iter : core.ops.range.Range Std.Usize)
-  (words : Array Std.U64 8#usize) :
-  Result (ControlFlow ((core.ops.range.Range Std.Usize) × (Array Std.U64
-    8#usize)) (Array Std.U64 8#usize))
-  := do
-  let (o, iter1) ←
-    core.iter.range.IteratorRange.next core.iter.range.StepUsize iter
-  match o with
-  | none => ok (done words)
-  | some i =>
-    let words1 ←
-      backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0_loop0
-        { start := 0#usize, «end» := 8#usize } bytes words i
-    ok (cont (iter1, words1))
-
-/-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::from_bytes_wide]: loop 0:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 90:8-94:9
-    Visibility: public -/
-@[rust_loop]
-def backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0
-  (iter : core.ops.range.Range Std.Usize) (bytes : Array Std.U8 64#usize)
-  (words : Array Std.U64 8#usize) :
-  Result (Array Std.U64 8#usize)
-  := do
-  loop
-    (fun (iter1, words1) =>
-      backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0.body bytes iter1
-      words1)
-    (iter, words)
-
 /-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::from_bytes_wide]:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 88:4-127:5
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 136:4-141:5
     Visibility: public -/
 def backend.serial.u64.scalar.Scalar52.from_bytes_wide
   (bytes : Array Std.U8 64#usize) :
   Result backend.serial.u64.scalar.Scalar52
   := do
-  let words := Array.repeat 8#usize 0#u64
-  let words1 ←
-    backend.serial.u64.scalar.Scalar52.from_bytes_wide_loop0
-      { start := 0#usize, «end» := 8#usize } bytes words
-  let i ← 1#u64 <<< 52#i32
-  let mask ← i - 1#u64
-  let i1 ← Array.index_usize words1 0#usize
-  let (_, index_mut_back) ←
-    backend.serial.u64.scalar.Scalar52.Insts.CoreOpsIndexIndexMutUsizeU64.index_mut
-      backend.serial.u64.scalar.Scalar52.ZERO 0#usize
-  let i2 ← lift (i1 &&& mask)
-  let i3 ← i1 >>> 52#i32
-  let i4 ← Array.index_usize words1 1#usize
-  let i5 ← i4 <<< 12#i32
-  let i6 ← lift (i3 ||| i5)
-  let lo := index_mut_back i2
-  let (_, index_mut_back1) ←
-    backend.serial.u64.scalar.Scalar52.Insts.CoreOpsIndexIndexMutUsizeU64.index_mut
-      lo 1#usize
-  let i7 ← lift (i6 &&& mask)
-  let i8 ← i4 >>> 40#i32
-  let i9 ← Array.index_usize words1 2#usize
-  let i10 ← i9 <<< 24#i32
-  let i11 ← lift (i8 ||| i10)
-  let lo1 := index_mut_back1 i7
-  let (_, index_mut_back2) ←
-    backend.serial.u64.scalar.Scalar52.Insts.CoreOpsIndexIndexMutUsizeU64.index_mut
-      lo1 2#usize
-  let i12 ← lift (i11 &&& mask)
-  let i13 ← i9 >>> 28#i32
-  let i14 ← Array.index_usize words1 3#usize
-  let i15 ← i14 <<< 36#i32
-  let i16 ← lift (i13 ||| i15)
-  let lo2 := index_mut_back2 i12
-  let (_, index_mut_back3) ←
-    backend.serial.u64.scalar.Scalar52.Insts.CoreOpsIndexIndexMutUsizeU64.index_mut
-      lo2 3#usize
-  let i17 ← lift (i16 &&& mask)
-  let i18 ← i14 >>> 16#i32
-  let i19 ← Array.index_usize words1 4#usize
-  let i20 ← i19 <<< 48#i32
-  let i21 ← lift (i18 ||| i20)
-  let lo3 := index_mut_back3 i17
-  let (_, index_mut_back4) ←
-    backend.serial.u64.scalar.Scalar52.Insts.CoreOpsIndexIndexMutUsizeU64.index_mut
-      lo3 4#usize
-  let i22 ← lift (i21 &&& mask)
-  let i23 ← i19 >>> 4#i32
-  let i24 ← lift (i23 &&& mask)
-  let i25 ← i19 >>> 56#i32
-  let i26 ← Array.index_usize words1 5#usize
-  let i27 ← i26 <<< 8#i32
-  let i28 ← lift (i25 ||| i27)
-  let hi := index_mut_back i24
-  let (_, index_mut_back5) ←
-    backend.serial.u64.scalar.Scalar52.Insts.CoreOpsIndexIndexMutUsizeU64.index_mut
-      hi 1#usize
-  let i29 ← lift (i28 &&& mask)
-  let i30 ← i26 >>> 44#i32
-  let i31 ← Array.index_usize words1 6#usize
-  let i32 ← i31 <<< 20#i32
-  let i33 ← lift (i30 ||| i32)
-  let hi1 := index_mut_back5 i29
-  let (_, index_mut_back6) ←
-    backend.serial.u64.scalar.Scalar52.Insts.CoreOpsIndexIndexMutUsizeU64.index_mut
-      hi1 2#usize
-  let i34 ← lift (i33 &&& mask)
-  let i35 ← i31 >>> 32#i32
-  let i36 ← Array.index_usize words1 7#usize
-  let i37 ← i36 <<< 32#i32
-  let i38 ← lift (i35 ||| i37)
-  let hi2 := index_mut_back6 i34
-  let (_, index_mut_back7) ←
-    backend.serial.u64.scalar.Scalar52.Insts.CoreOpsIndexIndexMutUsizeU64.index_mut
-      hi2 3#usize
-  let i39 ← lift (i38 &&& mask)
-  let i40 ← i36 >>> 20#i32
-  let hi3 := index_mut_back7 i39
-  let (_, index_mut_back8) ←
-    backend.serial.u64.scalar.Scalar52.Insts.CoreOpsIndexIndexMutUsizeU64.index_mut
-      hi3 4#usize
-  let i41 ← lift (i40 &&& mask)
-  let lo4 := index_mut_back4 i22
-  let lo5 ←
-    backend.serial.u64.scalar.Scalar52.montgomery_mul lo4
+  let (lo, hi) ←
+    backend.serial.u64.scalar.Scalar52.from_bytes_wide_parts bytes
+  let lo1 ←
+    backend.serial.u64.scalar.Scalar52.montgomery_mul lo
       backend.serial.u64.constants.R
-  let hi4 := index_mut_back8 i41
-  let hi5 ←
-    backend.serial.u64.scalar.Scalar52.montgomery_mul hi4
+  let hi1 ←
+    backend.serial.u64.scalar.Scalar52.montgomery_mul hi
       backend.serial.u64.constants.RR
-  backend.serial.u64.scalar.Scalar52.add hi5 lo5
+  backend.serial.u64.scalar.Scalar52.add hi1 lo1
 
 /-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::square_internal]:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 252:4-271:5 -/
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 266:4-285:5 -/
 def backend.serial.u64.scalar.Scalar52.square_internal
   (a : backend.serial.u64.scalar.Scalar52) :
   Result (Array Std.U128 9#usize)
@@ -733,7 +724,7 @@ def backend.serial.u64.scalar.Scalar52.square_internal
   ok (Array.make 9#usize [ i8, i10, i13, i17, i23, i27, i30, i32, i33 ])
 
 /-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::mul]:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 314:4-328:5
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 328:4-342:5
     Visibility: public -/
 def backend.serial.u64.scalar.Scalar52.mul
   (a : backend.serial.u64.scalar.Scalar52)
@@ -748,7 +739,7 @@ def backend.serial.u64.scalar.Scalar52.mul
   backend.serial.u64.scalar.Scalar52.montgomery_reduce rr_limbs
 
 /-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::square]:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 334:4-348:5
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 348:4-362:5
     Visibility: public -/
 def backend.serial.u64.scalar.Scalar52.square
   (self : backend.serial.u64.scalar.Scalar52) :
@@ -762,7 +753,7 @@ def backend.serial.u64.scalar.Scalar52.square
   backend.serial.u64.scalar.Scalar52.montgomery_reduce rr_limbs
 
 /-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::montgomery_square]:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 366:4-374:5
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 380:4-388:5
     Visibility: public -/
 def backend.serial.u64.scalar.Scalar52.montgomery_square
   (self : backend.serial.u64.scalar.Scalar52) :
@@ -772,7 +763,7 @@ def backend.serial.u64.scalar.Scalar52.montgomery_square
   backend.serial.u64.scalar.Scalar52.montgomery_reduce limbs
 
 /-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::as_montgomery]:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 378:4-380:5
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 392:4-394:5
     Visibility: public -/
 def backend.serial.u64.scalar.Scalar52.as_montgomery
   (self : backend.serial.u64.scalar.Scalar52) :
@@ -782,7 +773,7 @@ def backend.serial.u64.scalar.Scalar52.as_montgomery
     backend.serial.u64.constants.RR
 
 /-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::from_montgomery]: loop body 0:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 387:8-389:9
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 401:8-403:9
     Visibility: public -/
 @[rust_loop_body]
 def backend.serial.u64.scalar.Scalar52.from_montgomery_loop.body
@@ -804,7 +795,7 @@ def backend.serial.u64.scalar.Scalar52.from_montgomery_loop.body
     ok (cont (iter1, a))
 
 /-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::from_montgomery]: loop 0:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 387:8-389:9
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 401:8-403:9
     Visibility: public -/
 @[rust_loop]
 def backend.serial.u64.scalar.Scalar52.from_montgomery_loop
@@ -820,7 +811,7 @@ def backend.serial.u64.scalar.Scalar52.from_montgomery_loop
     (iter, limbs)
 
 /-- [curve25519::backend::serial::u64::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::from_montgomery]:
-    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 385:4-396:5
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 399:4-410:5
     Visibility: public -/
 def backend.serial.u64.scalar.Scalar52.from_montgomery
   (self : backend.serial.u64.scalar.Scalar52) :
