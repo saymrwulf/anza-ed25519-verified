@@ -52,16 +52,29 @@ PROOFS=(
   EdAddAffNiels
   EdConvert
   EdMain
+  DsmTableSpec
+  DsmStepSpec
+  DsmLoopSpec
 )
 # Fully-qualified certificate names; each must be axiom-clean.
 CERTS=(
   CurveFieldProofs.fieldImplementation
   CurveFieldProofs.edwardsImplementation
+  CurveFieldProofs.naf_table_spec
+  CurveFieldProofs.naf_select_spec
+  CurveFieldProofs.proj_double_law
+  CurveFieldProofs.compl_as_projective_law
+  CurveFieldProofs.dsm_step_p_law
+  CurveFieldProofs.dsm_step_b_law
+  CurveFieldProofs.dsm_loop_spec
 )
 # Imports needed so every certificate in CERTS is in scope for the audit.
 AUDIT_IMPORTS=(
   Proofs.FieldMain
   Proofs.EdMain
+  Proofs.DsmTableSpec
+  Proofs.DsmStepSpec
+  Proofs.DsmLoopSpec
 )
 
 # ── Phase 0: resource + integrity guards ────────────────────────────────────
