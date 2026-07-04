@@ -6,7 +6,7 @@ set -uo pipefail
 source ~/aeneas-toolchain/env.sh
 HERE="$(cd "$(dirname "$0")" && pwd)"
 AENEAS_LEAN="$AENEAS_HOME/backends/lean"
-GEN=(CurveScalar/TypesExternal CurveScalar/Types CurveScalar/FunsExternal CurveScalar/Funs)
+GEN=(CurveField/TypesExternal CurveField/Types CurveField/FunsExternal CurveField/Funs)
 PROOFS=(ScalarDenote ScalarLoop ScalarSubSpec ScalarAddSpec ScalarMulSpec ScalarMontSpec ScalarReduceSpec ScalarFullMulSpec ScalarMain ScalarWideSpec ScalarBytesSpec ScalarUnpackSpec ScalarFromBytesSpec)
 
 echo "=== stub/axiom audit ==="

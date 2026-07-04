@@ -23,7 +23,7 @@
 
    Imports: gen/CurveScalar (the transpiled Scalar52 arithmetic).
    ────────────────────────────────────────────────────────────────────────────── -/
-import CurveScalar.Funs
+import CurveField.Funs
 open Aeneas Aeneas.Std Result
 open curve25519
 

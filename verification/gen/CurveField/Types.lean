@@ -180,6 +180,12 @@ structure scalar.Scalar where
 @[reducible]
 def window.NafLookupTable5 (T : Type) := Array T 8#usize
 
+/-- [curve25519::backend::serial::u64::scalar::Scalar52]
+    Source: 'curve25519/solana-ed25519/src/backend/serial/u64/scalar.rs', lines 26:0-26:34
+    Visibility: public -/
+@[reducible]
+def backend.serial.u64.scalar.Scalar52 := Array Std.U64 5#usize
+
 /-- [curve25519::backend::BackendKind]
     Source: 'curve25519/solana-ed25519/src/backend.rs', lines 46:0-50:1 -/
 @[discriminant isize]
