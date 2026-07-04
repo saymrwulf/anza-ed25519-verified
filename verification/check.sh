@@ -55,6 +55,11 @@ PROOFS=(
   DsmTableSpec
   DsmStepSpec
   DsmLoopSpec
+  DsmNafLoadSpec
+  DsmNafMath
+  DsmNafLoopSpec
+  DsmNafSpec
+  DsmMulSpec
 )
 # Fully-qualified certificate names; each must be axiom-clean.
 CERTS=(
@@ -67,6 +72,12 @@ CERTS=(
   CurveFieldProofs.dsm_step_p_law
   CurveFieldProofs.dsm_step_b_law
   CurveFieldProofs.dsm_loop_spec
+  CurveFieldProofs.naf_load_spec
+  CurveFieldProofs.naf_exit
+  CurveFieldProofs.naf_digit_loop_spec
+  CurveFieldProofs.non_adjacent_form_spec
+  CurveFieldProofs.run_basepoint
+  CurveFieldProofs.vartime_double_base_mul_spec
 )
 # Imports needed so every certificate in CERTS is in scope for the audit.
 AUDIT_IMPORTS=(
@@ -75,6 +86,8 @@ AUDIT_IMPORTS=(
   Proofs.DsmTableSpec
   Proofs.DsmStepSpec
   Proofs.DsmLoopSpec
+  Proofs.DsmNafSpec
+  Proofs.DsmMulSpec
 )
 
 # ── Phase 0: resource + integrity guards ────────────────────────────────────
