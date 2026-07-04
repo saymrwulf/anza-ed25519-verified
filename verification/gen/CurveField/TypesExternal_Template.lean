@@ -13,6 +13,13 @@ set_option maxHeartbeats 1000000
 /- You can set the `maxRecDepth` value with the `-max-recdepth` CLI option -/
 set_option maxRecDepth 2048
 
+/-- [ed25519::Signature]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/ed25519-2.2.3/src/lib.rs', lines 303:0-303:20
+    Name pattern: [ed25519::Signature]
+    Visibility: public -/
+@[rust_type "ed25519::Signature"]
+axiom ed25519.Signature : Type
+
 /-- [subtle::Choice]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 120:0-120:17
     Name pattern: [subtle::Choice]

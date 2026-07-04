@@ -121,27 +121,29 @@ def core.ops.range.RangeFull.Insts.CoreSliceIndexSliceIndexSliceSlice.index
     Source: '/rustc/library/core/src/slice/index.rs', lines 650:4-650:66
     Name pattern: [core::slice::index::{core::slice::index::SliceIndex<core::ops::range::RangeFull, [@T], [@T]>}::get_unchecked_mut]
 
-    AXIOM: raw-pointer API, never called by the extracted field code. -/
+    MODEL (faithful): Rust body for `RangeFull` is `slice` — the pointer
+    unchanged (identity). -/
 @[rust_fun
   "core::slice::index::{core::slice::index::SliceIndex<core::ops::range::RangeFull, [@T], [@T]>}::get_unchecked_mut"]
-axiom
+def
   core.ops.range.RangeFull.Insts.CoreSliceIndexSliceIndexSliceSlice.get_unchecked_mut
-  {T : Type} :
-  core.ops.range.RangeFull → MutRawPtr (Slice T) → Result (MutRawPtr (Slice
-    T))
+  {T : Type} (_ : core.ops.range.RangeFull) (p : MutRawPtr (Slice T)) :
+  Result (MutRawPtr (Slice T)) :=
+  ok p
 
 /-- [core::slice::index::{impl core::slice::index::SliceIndex<[T], [T]> for core::ops::range::RangeFull}::get_unchecked]:
     Source: '/rustc/library/core/src/slice/index.rs', lines 645:4-645:66
     Name pattern: [core::slice::index::{core::slice::index::SliceIndex<core::ops::range::RangeFull, [@T], [@T]>}::get_unchecked]
 
-    AXIOM: raw-pointer API, never called by the extracted field code. -/
+    MODEL (faithful): Rust body for `RangeFull` is `slice` — the pointer
+    unchanged (identity). -/
 @[rust_fun
   "core::slice::index::{core::slice::index::SliceIndex<core::ops::range::RangeFull, [@T], [@T]>}::get_unchecked"]
-axiom
+def
   core.ops.range.RangeFull.Insts.CoreSliceIndexSliceIndexSliceSlice.get_unchecked
-  {T : Type} :
-  core.ops.range.RangeFull → ConstRawPtr (Slice T) → Result (ConstRawPtr
-    (Slice T))
+  {T : Type} (_ : core.ops.range.RangeFull) (p : ConstRawPtr (Slice T)) :
+  Result (ConstRawPtr (Slice T)) :=
+  ok p
 
 /-- [core::slice::index::{impl core::slice::index::SliceIndex<[T], [T]> for core::ops::range::RangeFull}::get_mut]:
     Source: '/rustc/library/core/src/slice/index.rs', lines 640:4-640:57
@@ -171,9 +173,12 @@ def core.ops.range.RangeFull.Insts.CoreSliceIndexSliceIndexSliceSlice.get
 /-- [subtle::{subtle::Choice}::unwrap_u8]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 133:4-133:33
     Name pattern: [subtle::{subtle::Choice}::unwrap_u8]
-    Visibility: public -/
+    Visibility: public
+
+    MODEL (faithful): Rust body is `self.0`; `Choice` is the transparent
+    `u8` newtype model (TypesExternal), so this is the identity. -/
 @[rust_fun "subtle::{subtle::Choice}::unwrap_u8"]
-axiom subtle.Choice.unwrap_u8 : subtle.Choice → Result Std.U8
+def subtle.Choice.unwrap_u8 (c : subtle.Choice) : Result Std.U8 := ok c
 
 /-- [subtle::{impl core::convert::From<subtle::Choice> for bool}::from]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 153:4-153:35
@@ -359,10 +364,6 @@ axiom
   scalar.Scalar → edwards.EdwardsPoint → scalar.Scalar →
     edwards.EdwardsPoint → scalar.Scalar → Result edwards.EdwardsPoint
 
-/-- [curve25519::backend::get_selected_backend]:
-    Source: 'curve25519/solana-ed25519/src/backend.rs', lines 53:0-64:1 -/
-axiom backend.get_selected_backend : Result backend.BackendKind
-
 /-- [curve25519::backend::scalar_fits_in_128_bits]:
     Source: 'curve25519/solana-ed25519/src/backend.rs', lines 283:0-285:1 -/
 axiom backend.scalar_fits_in_128_bits : scalar.Scalar → Result Bool
@@ -474,3 +475,52 @@ axiom field.FieldElement51.internal_invert_batch
     backend.serial.u64.field.FieldElement51 → Result ((Slice
     backend.serial.u64.field.FieldElement51) × (Slice
     backend.serial.u64.field.FieldElement51))
+
+/-! ### Signature-layer externals.
+
+    Real definitions for the `?`-operator plumbing, and the documented
+    signature-apex boundary: the SHA-512 oracle plus the foreign
+    `ed25519::Signature` wire-format accessors. Everything else on the
+    verify path — including the `Error` enum and backend selection — is
+    real extracted code. -/
+
+/-- `Try::branch` for `core::result::Result` — the `?` operator's dispatch. -/
+def core.result.Result.Insts.CoreOpsTry_traitTry.branch
+    {T : Type} {E : Type} (r : core.result.Result T E) :
+    Result (core.ops.control_flow.ControlFlow
+      (core.result.Result core.convert.Infallible E) T) :=
+  match r with
+  | .Ok v => ok (.Continue v)
+  | .Err e => ok (.Break (.Err e))
+
+/-- `FromResidual` for `core::result::Result` — the `?` operator's error
+    conversion. The `Ok Infallible` branch is uninhabited. -/
+def core.result.Result.Insts.CoreOpsTry_traitFromResidualResultInfallibleE.from_residual
+    (T : Type) {E : Type} {F : Type} (convertFromInst : core.convert.From F E)
+    (r : core.result.Result core.convert.Infallible E) :
+    Result (core.result.Result T F) :=
+  match r with
+  | .Ok v => nomatch v
+  | .Err e => do
+      let f ← convertFromInst.from_ e
+      ok (.Err f)
+
+/-- [ed25519::{ed25519::Signature}::r_bytes]: opaque wire-format accessor
+    on the foreign `ed25519::Signature` type (apex boundary). -/
+@[rust_fun "ed25519::{ed25519::Signature}::r_bytes"]
+axiom ed25519.Signature.r_bytes
+  : ed25519.Signature → Result (Array Std.U8 32#usize)
+
+/-- [ed25519::{ed25519::Signature}::s_bytes]: opaque wire-format accessor
+    on the foreign `ed25519::Signature` type (apex boundary). -/
+@[rust_fun "ed25519::{ed25519::Signature}::s_bytes"]
+axiom ed25519.Signature.s_bytes
+  : ed25519.Signature → Result (Array Std.U8 32#usize)
+
+/-- [curve25519::ed_sigs::sha512_hash3]: THE SHA-512 ORACLE — the single
+    opaque hash call of the verified verification path; semantically
+    `Sha512(r || a || m)` (apex boundary). -/
+axiom ed_sigs.sha512_hash3
+  :
+  Slice Std.U8 → Slice Std.U8 → Slice Std.U8 → Result (Array Std.U8
+    64#usize)

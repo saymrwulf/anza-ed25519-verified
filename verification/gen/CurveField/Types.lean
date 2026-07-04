@@ -190,8 +190,30 @@ def backend.serial.u64.scalar.Scalar52 := Array Std.U64 5#usize
     Source: 'curve25519/solana-ed25519/src/backend.rs', lines 46:0-50:1 -/
 @[discriminant isize]
 inductive backend.BackendKind where
-| Avx2 : backend.BackendKind
 | Serial : backend.BackendKind
+
+/-- [curve25519::ed_sigs::error::Error]
+    Source: 'curve25519/solana-ed25519/src/ed_sigs/error.rs', lines 5:0-14:1
+    Visibility: public -/
+@[discriminant isize]
+inductive ed_sigs.error.Error where
+| MalformedSecretKey : ed_sigs.error.Error
+| MalformedPublicKey : ed_sigs.error.Error
+| InvalidSignature : ed_sigs.error.Error
+| InvalidSliceLength : ed_sigs.error.Error
+
+/-- [curve25519::ed_sigs::verification_key::VerificationKeyBytes]
+    Source: 'curve25519/solana-ed25519/src/ed_sigs/verification_key.rs', lines 129:0-129:74
+    Visibility: public -/
+@[reducible]
+def ed_sigs.verification_key.VerificationKeyBytes := Array Std.U8 32#usize
+
+/-- [curve25519::ed_sigs::verification_key::VerificationKey]
+    Source: 'curve25519/solana-ed25519/src/ed_sigs/verification_key.rs', lines 223:0-226:1
+    Visibility: public -/
+structure ed_sigs.verification_key.VerificationKey where
+  A_bytes : ed_sigs.verification_key.VerificationKeyBytes
+  minus_A : edwards.EdwardsPoint
 
 /-- [curve25519::edwards::affine::AffinePoint]
     Source: 'curve25519/solana-ed25519/src/edwards/affine.rs', lines 12:0-15:1

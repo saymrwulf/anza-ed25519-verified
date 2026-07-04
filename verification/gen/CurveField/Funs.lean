@@ -3738,6 +3738,11 @@ def backend.serial.u64.scalar.Scalar52.from_montgomery
       { start := 0#usize, «end» := 5#usize } self limbs
   backend.serial.u64.scalar.Scalar52.montgomery_reduce limbs1
 
+/-- [curve25519::backend::get_selected_backend]:
+    Source: 'curve25519/solana-ed25519/src/backend.rs', lines 53:0-64:1 -/
+def backend.get_selected_backend : Result backend.BackendKind := do
+  ok backend.BackendKind.Serial
+
 /-- [curve25519::backend::variable_base_mul]:
     Source: 'curve25519/solana-ed25519/src/backend.rs', lines 221:0-227:1
     Visibility: public -/
@@ -3745,12 +3750,8 @@ def backend.variable_base_mul
   (point : edwards.EdwardsPoint) (scalar : scalar.Scalar) :
   Result edwards.EdwardsPoint
   := do
-  let bk ← backend.get_selected_backend
-  match bk with
-  | backend.BackendKind.Avx2 =>
-    backend.vector.scalar_mul.variable_base.spec_avx2.mul point scalar
-  | backend.BackendKind.Serial =>
-    backend.serial.scalar_mul.variable_base.mul point scalar
+  let _ ← backend.get_selected_backend
+  backend.serial.scalar_mul.variable_base.mul point scalar
 
 /-- [curve25519::backend::vartime_double_base_mul]:
     Source: 'curve25519/solana-ed25519/src/backend.rs', lines 231:0-237:1
@@ -3759,12 +3760,8 @@ def backend.vartime_double_base_mul
   (a : scalar.Scalar) (A : edwards.EdwardsPoint) (b : scalar.Scalar) :
   Result edwards.EdwardsPoint
   := do
-  let bk ← backend.get_selected_backend
-  match bk with
-  | backend.BackendKind.Avx2 =>
-    backend.vector.scalar_mul.vartime_double_base.spec_avx2.mul a A b
-  | backend.BackendKind.Serial =>
-    backend.serial.scalar_mul.vartime_double_base.mul a A b
+  let _ ← backend.get_selected_backend
+  backend.serial.scalar_mul.vartime_double_base.mul a A b
 
 /-- [curve25519::edwards::{impl core::ops::arith::Add<&'a curve25519::edwards::EdwardsPoint, curve25519::edwards::EdwardsPoint> for &'_1 curve25519::edwards::EdwardsPoint}::add]:
     Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 785:4-787:5
@@ -3834,14 +3831,9 @@ def backend.vartime_triple_base_mul_128_128_256_prechecked
   (A2 : edwards.EdwardsPoint) (b : scalar.Scalar) :
   Result edwards.EdwardsPoint
   := do
-  let bk ← backend.get_selected_backend
-  match bk with
-  | backend.BackendKind.Avx2 =>
-    backend.vector.scalar_mul.vartime_triple_base.spec_avx2.mul_128_128_256_prechecked
-      a1 A1 a2 A2 b
-  | backend.BackendKind.Serial =>
-    backend.serial.scalar_mul.vartime_triple_base.mul_128_128_256_prechecked a1
-      A1 a2 A2 b
+  let _ ← backend.get_selected_backend
+  backend.serial.scalar_mul.vartime_triple_base.mul_128_128_256_prechecked a1
+    A1 a2 A2 b
 
 /-- [curve25519::backend::vartime_triple_base_mul_128_128_256]:
     Source: 'curve25519/solana-ed25519/src/backend.rs', lines 244:0-256:1
@@ -3897,6 +3889,519 @@ def constants.BASEPOINT_ORDER : scalar.Scalar :=
         0#u8, 16#u8
         ])
   }
+
+/-- [curve25519::ed_sigs::verification_key::LEGACY_EXCLUDED_R_ENCODINGS]
+    Source: 'curve25519/solana-ed25519/src/ed_sigs/verification_key.rs', lines 50:0-106:2 -/
+@[global_simps, irreducible]
+def ed_sigs.verification_key.LEGACY_EXCLUDED_R_ENCODINGS
+  : Array (Array Std.U8 32#usize) 11#usize :=
+  let a := Array.repeat 32#usize 0#u8
+  Array.make 11#usize [
+    a,
+    Array.make 32#usize [
+      1#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8,
+      0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8,
+      0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8
+      ],
+    Array.make 32#usize [
+      38#u8, 232#u8, 149#u8, 143#u8, 194#u8, 178#u8, 39#u8, 176#u8, 69#u8,
+      195#u8, 244#u8, 137#u8, 242#u8, 239#u8, 152#u8, 240#u8, 213#u8, 223#u8,
+      172#u8, 5#u8, 211#u8, 198#u8, 51#u8, 57#u8, 177#u8, 56#u8, 2#u8, 136#u8,
+      109#u8, 83#u8, 252#u8, 5#u8
+      ],
+    Array.make 32#usize [
+      199#u8, 23#u8, 106#u8, 112#u8, 61#u8, 77#u8, 216#u8, 79#u8, 186#u8,
+      60#u8, 11#u8, 118#u8, 13#u8, 16#u8, 103#u8, 15#u8, 42#u8, 32#u8, 83#u8,
+      250#u8, 44#u8, 57#u8, 204#u8, 198#u8, 78#u8, 199#u8, 253#u8, 119#u8,
+      146#u8, 172#u8, 3#u8, 122#u8
+      ],
+    Array.make 32#usize [
+      19#u8, 232#u8, 149#u8, 143#u8, 194#u8, 178#u8, 39#u8, 176#u8, 69#u8,
+      195#u8, 244#u8, 137#u8, 242#u8, 239#u8, 152#u8, 240#u8, 213#u8, 223#u8,
+      172#u8, 5#u8, 211#u8, 198#u8, 51#u8, 57#u8, 177#u8, 56#u8, 2#u8, 136#u8,
+      109#u8, 83#u8, 252#u8, 133#u8
+      ],
+    Array.make 32#usize [
+      180#u8, 23#u8, 106#u8, 112#u8, 61#u8, 77#u8, 216#u8, 79#u8, 186#u8,
+      60#u8, 11#u8, 118#u8, 13#u8, 16#u8, 103#u8, 15#u8, 42#u8, 32#u8, 83#u8,
+      250#u8, 44#u8, 57#u8, 204#u8, 198#u8, 78#u8, 199#u8, 253#u8, 119#u8,
+      146#u8, 172#u8, 3#u8, 250#u8
+      ],
+    Array.make 32#usize [
+      236#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8,
+      255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8,
+      255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8,
+      255#u8, 255#u8, 255#u8, 255#u8, 127#u8
+      ],
+    Array.make 32#usize [
+      237#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8,
+      255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8,
+      255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8,
+      255#u8, 255#u8, 255#u8, 255#u8, 127#u8
+      ],
+    Array.make 32#usize [
+      238#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8,
+      255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8,
+      255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8,
+      255#u8, 255#u8, 255#u8, 255#u8, 127#u8
+      ],
+    Array.make 32#usize [
+      217#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8,
+      255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8,
+      255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8,
+      255#u8, 255#u8, 255#u8, 255#u8, 255#u8
+      ],
+    Array.make 32#usize [
+      218#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8,
+      255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8,
+      255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8, 255#u8,
+      255#u8, 255#u8, 255#u8, 255#u8, 255#u8
+      ]
+    ]
+
+/-- [curve25519::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::pack]:
+    Source: 'curve25519/solana-ed25519/src/scalar.rs', lines 1331:4-1335:5 -/
+def scalar.Scalar52.pack
+  (self : backend.serial.u64.scalar.Scalar52) : Result scalar.Scalar := do
+  let a ← backend.serial.u64.scalar.Scalar52.to_bytes self
+  ok { bytes := a }
+
+/-- [curve25519::scalar::{curve25519::scalar::Scalar}::unpack]:
+    Source: 'curve25519/solana-ed25519/src/scalar.rs', lines 1288:4-1290:5 -/
+def scalar.Scalar.unpack
+  (self : scalar.Scalar) : Result backend.serial.u64.scalar.Scalar52 := do
+  backend.serial.u64.scalar.Scalar52.from_bytes self.bytes
+
+/-- [curve25519::scalar::{curve25519::scalar::Scalar}::reduce]:
+    Source: 'curve25519/solana-ed25519/src/scalar.rs', lines 1303:4-1320:5 -/
+def scalar.Scalar.reduce (self : scalar.Scalar) : Result scalar.Scalar := do
+  let x ← scalar.Scalar.unpack self
+  let xR ←
+    backend.serial.u64.scalar.Scalar52.mul_internal x
+      backend.serial.u64.constants.R
+  let x_mod_l ← backend.serial.u64.scalar.Scalar52.montgomery_reduce xR
+  scalar.Scalar52.pack x_mod_l
+
+/-- [curve25519::scalar::{impl core::ops::index::Index<usize, u8> for curve25519::scalar::Scalar}::index]:
+    Source: 'curve25519/solana-ed25519/src/scalar.rs', lines 290:4-292:5
+    Visibility: public -/
+def scalar.Scalar.Insts.CoreOpsIndexIndexUsizeU8.index
+  (self : scalar.Scalar) (_index : Std.Usize) : Result Std.U8 := do
+  Array.index_usize self.bytes _index
+
+/-- [curve25519::scalar::{curve25519::scalar::Scalar}::from_bytes_mod_order]:
+    Source: 'curve25519/solana-ed25519/src/scalar.rs', lines 207:4-216:5
+    Visibility: public -/
+def scalar.Scalar.from_bytes_mod_order
+  (bytes : Array Std.U8 32#usize) : Result scalar.Scalar := do
+  let s ← scalar.Scalar.reduce { bytes }
+  let i ← scalar.Scalar.Insts.CoreOpsIndexIndexUsizeU8.index s 31#usize
+  let right_val ← i >>> 7#i32
+  massert (0#u8 = right_val)
+  ok s
+
+/-- [curve25519::ed_sigs::verification_key::check_scalar_canonical::L_BYTES]
+    Source: 'curve25519/solana-ed25519/src/ed_sigs/verification_key.rs', lines 482:4-485:6 -/
+@[global_simps, irreducible]
+def ed_sigs.verification_key.check_scalar_canonical.L_BYTES
+  : Array Std.U8 32#usize :=
+  Array.make 32#usize [
+    237#u8, 211#u8, 245#u8, 92#u8, 26#u8, 99#u8, 18#u8, 88#u8, 214#u8, 156#u8,
+    247#u8, 162#u8, 222#u8, 249#u8, 222#u8, 20#u8, 0#u8, 0#u8, 0#u8, 0#u8,
+    0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 0#u8, 16#u8
+    ]
+
+/-- [curve25519::ed_sigs::verification_key::check_scalar_canonical]: loop body 0:
+    Source: 'curve25519/solana-ed25519/src/ed_sigs/verification_key.rs', lines 490:4-501:5 -/
+@[rust_loop_body]
+def ed_sigs.verification_key.check_scalar_canonical_loop.body
+  (bytes : Array Std.U8 32#usize) (lt : Bool) (decided : Bool) (i : Std.Usize)
+  :
+  Result (ControlFlow (Bool × Bool × Std.Usize) Bool)
+  := do
+  if i > 0#usize
+  then
+    let j ← i - 1#usize
+    let (lt1, decided1) ←
+      if decided
+      then ok (lt, true)
+      else
+        do
+        let i1 ← Array.index_usize bytes j
+        let i2 ←
+          Array.index_usize
+            ed_sigs.verification_key.check_scalar_canonical.L_BYTES j
+        if i1 < i2
+        then ok (true, true)
+        else let b ← if i1 > i2
+                       then ok true
+                       else ok false
+             ok (lt, b)
+    ok (cont (lt1, decided1, j))
+  else ok (done lt)
+
+/-- [curve25519::ed_sigs::verification_key::check_scalar_canonical]: loop 0:
+    Source: 'curve25519/solana-ed25519/src/ed_sigs/verification_key.rs', lines 490:4-501:5 -/
+@[rust_loop]
+def ed_sigs.verification_key.check_scalar_canonical_loop
+  (bytes : Array Std.U8 32#usize) (lt : Bool) (decided : Bool) (i : Std.Usize)
+  :
+  Result Bool
+  := do
+  loop
+    (fun (lt1, decided1, i1) =>
+      ed_sigs.verification_key.check_scalar_canonical_loop.body bytes lt1
+      decided1 i1)
+    (lt, decided, i)
+
+/-- [curve25519::ed_sigs::verification_key::check_scalar_canonical]:
+    Source: 'curve25519/solana-ed25519/src/ed_sigs/verification_key.rs', lines 480:0-507:1 -/
+def ed_sigs.verification_key.check_scalar_canonical
+  (bytes : Array Std.U8 32#usize) :
+  Result (core.result.Result scalar.Scalar ed_sigs.error.Error)
+  := do
+  let lt ←
+    ed_sigs.verification_key.check_scalar_canonical_loop bytes false false
+      32#usize
+  if lt
+  then
+    let s ← scalar.Scalar.from_bytes_mod_order bytes
+    ok (core.result.Result.Ok s)
+  else ok (core.result.Result.Err ed_sigs.error.Error.InvalidSignature)
+
+/-- [curve25519::ed_sigs::verification_key::is_legacy_excluded_r]: loop body 1:
+    Source: 'curve25519/solana-ed25519/src/ed_sigs/verification_key.rs', lines 516:8-521:9 -/
+@[rust_loop_body]
+def ed_sigs.verification_key.is_legacy_excluded_r_loop0_loop0.body
+  (r : Array Std.U8 32#usize) (i : Std.Usize) (eq : Bool) (j : Std.Usize) :
+  Result (ControlFlow (Bool × Std.Usize) Bool)
+  := do
+  if j < 32#usize
+  then
+    let a ←
+      Array.index_usize ed_sigs.verification_key.LEGACY_EXCLUDED_R_ENCODINGS i
+    let i1 ← Array.index_usize a j
+    let i2 ← Array.index_usize r j
+    let eq1 ← if i1 != i2
+                then ok false
+                else ok eq
+    let j1 ← j + 1#usize
+    ok (cont (eq1, j1))
+  else ok (done eq)
+
+/-- [curve25519::ed_sigs::verification_key::is_legacy_excluded_r]: loop 1:
+    Source: 'curve25519/solana-ed25519/src/ed_sigs/verification_key.rs', lines 516:8-521:9 -/
+@[rust_loop]
+def ed_sigs.verification_key.is_legacy_excluded_r_loop0_loop0
+  (r : Array Std.U8 32#usize) (i : Std.Usize) (eq : Bool) (j : Std.Usize) :
+  Result Bool
+  := do
+  loop
+    (fun (eq1, j1) =>
+      ed_sigs.verification_key.is_legacy_excluded_r_loop0_loop0.body r i eq1
+      j1)
+    (eq, j)
+
+/-- [curve25519::ed_sigs::verification_key::is_legacy_excluded_r]: loop body 0:
+    Source: 'curve25519/solana-ed25519/src/ed_sigs/verification_key.rs', lines 513:4-526:5 -/
+@[rust_loop_body]
+def ed_sigs.verification_key.is_legacy_excluded_r_loop0.body
+  (r : Array Std.U8 32#usize) (found : Bool) (i : Std.Usize) :
+  Result (ControlFlow (Bool × Std.Usize) Bool)
+  := do
+  if i < 11#usize
+  then
+    let eq ←
+      ed_sigs.verification_key.is_legacy_excluded_r_loop0_loop0 r i true
+        0#usize
+    let found1 ← if eq
+                   then ok true
+                   else ok found
+    let i1 ← i + 1#usize
+    ok (cont (found1, i1))
+  else ok (done found)
+
+/-- [curve25519::ed_sigs::verification_key::is_legacy_excluded_r]: loop 0:
+    Source: 'curve25519/solana-ed25519/src/ed_sigs/verification_key.rs', lines 513:4-526:5 -/
+@[rust_loop]
+def ed_sigs.verification_key.is_legacy_excluded_r_loop0
+  (r : Array Std.U8 32#usize) (found : Bool) (i : Std.Usize) :
+  Result Bool
+  := do
+  loop
+    (fun (found1, i1) =>
+      ed_sigs.verification_key.is_legacy_excluded_r_loop0.body r found1 i1)
+    (found, i)
+
+/-- [curve25519::ed_sigs::verification_key::is_legacy_excluded_r]:
+    Source: 'curve25519/solana-ed25519/src/ed_sigs/verification_key.rs', lines 510:0-528:1 -/
+@[reducible]
+def ed_sigs.verification_key.is_legacy_excluded_r
+  (r : Array Std.U8 32#usize) : Result Bool := do
+  ed_sigs.verification_key.is_legacy_excluded_r_loop0 r false 0#usize
+
+/-- [curve25519::ed_sigs::verification_key::{curve25519::ed_sigs::verification_key::VerificationKey}::a_bytes_nonzero]: loop body 0:
+    Source: 'curve25519/solana-ed25519/src/ed_sigs/verification_key.rs', lines 535:8-540:9 -/
+@[rust_loop_body]
+def ed_sigs.verification_key.VerificationKey.a_bytes_nonzero_loop.body
+  (self : ed_sigs.verification_key.VerificationKey) (nonzero : Bool)
+  (i : Std.Usize) :
+  Result (ControlFlow (Bool × Std.Usize) Bool)
+  := do
+  if i < 32#usize
+  then
+    let a := self.A_bytes
+    let i1 ← Array.index_usize a i
+    let nonzero1 ← if i1 != 0#u8
+                     then ok true
+                     else ok nonzero
+    let i2 ← i + 1#usize
+    ok (cont (nonzero1, i2))
+  else ok (done nonzero)
+
+/-- [curve25519::ed_sigs::verification_key::{curve25519::ed_sigs::verification_key::VerificationKey}::a_bytes_nonzero]: loop 0:
+    Source: 'curve25519/solana-ed25519/src/ed_sigs/verification_key.rs', lines 535:8-540:9 -/
+@[rust_loop]
+def ed_sigs.verification_key.VerificationKey.a_bytes_nonzero_loop
+  (self : ed_sigs.verification_key.VerificationKey) (nonzero : Bool)
+  (i : Std.Usize) :
+  Result Bool
+  := do
+  loop
+    (fun (nonzero1, i1) =>
+      ed_sigs.verification_key.VerificationKey.a_bytes_nonzero_loop.body self
+      nonzero1 i1)
+    (nonzero, i)
+
+/-- [curve25519::ed_sigs::verification_key::{curve25519::ed_sigs::verification_key::VerificationKey}::a_bytes_nonzero]:
+    Source: 'curve25519/solana-ed25519/src/ed_sigs/verification_key.rs', lines 532:4-542:5 -/
+@[reducible]
+def ed_sigs.verification_key.VerificationKey.a_bytes_nonzero
+  (self : ed_sigs.verification_key.VerificationKey) : Result Bool := do
+  ed_sigs.verification_key.VerificationKey.a_bytes_nonzero_loop self false
+    0#usize
+
+/-- [curve25519::scalar::{curve25519::scalar::Scalar}::from_bytes_mod_order_wide]:
+    Source: 'curve25519/solana-ed25519/src/scalar.rs', lines 220:4-229:5
+    Visibility: public -/
+def scalar.Scalar.from_bytes_mod_order_wide
+  (input : Array Std.U8 64#usize) : Result scalar.Scalar := do
+  let unpacked ← backend.serial.u64.scalar.Scalar52.from_bytes_wide input
+  scalar.Scalar52.pack unpacked
+
+/-- [curve25519::edwards::{curve25519::edwards::EdwardsPoint}::vartime_double_scalar_mul_basepoint]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 1068:4-1074:5
+    Visibility: public -/
+def edwards.EdwardsPoint.vartime_double_scalar_mul_basepoint
+  (a : scalar.Scalar) (A : edwards.EdwardsPoint) (b : scalar.Scalar) :
+  Result edwards.EdwardsPoint
+  := do
+  backend.vartime_double_base_mul a A b
+
+/-- [curve25519::field::{curve25519::backend::serial::u64::field::FieldElement51}::pow22501]:
+    Source: 'curve25519/solana-ed25519/src/field.rs', lines 159:4-193:5 -/
+def field.FieldElement51.pow22501
+  (self : backend.serial.u64.field.FieldElement51) :
+  Result (backend.serial.u64.field.FieldElement51 ×
+    backend.serial.u64.field.FieldElement51)
+  := do
+  let t0 ← backend.serial.u64.field.FieldElement51.square self
+  let fe ← backend.serial.u64.field.FieldElement51.square t0
+  let t1 ← backend.serial.u64.field.FieldElement51.square fe
+  let t2 ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      self t1
+  let t3 ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      t0 t2
+  let t4 ← backend.serial.u64.field.FieldElement51.square t3
+  let t5 ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      t2 t4
+  let t6 ← backend.serial.u64.field.FieldElement51.pow2k t5 5#u32
+  let t7 ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      t6 t5
+  let t8 ← backend.serial.u64.field.FieldElement51.pow2k t7 10#u32
+  let t9 ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      t8 t7
+  let t10 ← backend.serial.u64.field.FieldElement51.pow2k t9 20#u32
+  let t11 ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      t10 t9
+  let t12 ← backend.serial.u64.field.FieldElement51.pow2k t11 10#u32
+  let t13 ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      t12 t7
+  let t14 ← backend.serial.u64.field.FieldElement51.pow2k t13 50#u32
+  let t15 ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      t14 t13
+  let t16 ← backend.serial.u64.field.FieldElement51.pow2k t15 100#u32
+  let t17 ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      t16 t15
+  let t18 ← backend.serial.u64.field.FieldElement51.pow2k t17 50#u32
+  let t19 ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      t18 t13
+  ok (t19, t3)
+
+/-- [curve25519::field::{curve25519::backend::serial::u64::field::FieldElement51}::invert]:
+    Source: 'curve25519/solana-ed25519/src/field.rs', lines 280:4-289:5 -/
+def field.FieldElement51.invert
+  (self : backend.serial.u64.field.FieldElement51) :
+  Result backend.serial.u64.field.FieldElement51
+  := do
+  let (t19, t3) ← field.FieldElement51.pow22501 self
+  let t20 ← backend.serial.u64.field.FieldElement51.pow2k t19 5#u32
+  Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+    t20 t3
+
+/-- [curve25519::edwards::{curve25519::edwards::EdwardsPoint}::to_affine]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 564:4-569:5 -/
+def edwards.EdwardsPoint.to_affine
+  (self : edwards.EdwardsPoint) : Result edwards.affine.AffinePoint := do
+  let recip ← field.FieldElement51.invert self.Z
+  let x ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      self.X recip
+  let y ←
+    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
+      self.Y recip
+  ok { x, y }
+
+/-- [curve25519::field::{curve25519::backend::serial::u64::field::FieldElement51}::is_negative]:
+    Source: 'curve25519/solana-ed25519/src/field.rs', lines 139:4-142:5 -/
+def field.FieldElement51.is_negative
+  (self : backend.serial.u64.field.FieldElement51) : Result subtle.Choice := do
+  let bytes ← backend.serial.u64.field.FieldElement51.to_bytes self
+  let i ← Array.index_usize bytes 0#usize
+  let i1 ← lift (i &&& 1#u8)
+  core.convert.IntoFrom.into subtle.Choice.Insts.CoreConvertFromU8 i1
+
+/-- [curve25519::edwards::affine::{curve25519::edwards::affine::AffinePoint}::compress]:
+    Source: 'curve25519/solana-ed25519/src/edwards/affine.rs', lines 71:4-75:5
+    Visibility: public -/
+def edwards.affine.AffinePoint.compress
+  (self : edwards.affine.AffinePoint) : Result edwards.CompressedEdwardsY := do
+  let s ← backend.serial.u64.field.FieldElement51.to_bytes self.y
+  let c ← field.FieldElement51.is_negative self.x
+  let i ← subtle.Choice.unwrap_u8 c
+  let i1 ← i <<< 7#i32
+  let i2 ← Array.index_usize s 31#usize
+  let i3 ← lift (i2 ^^^ i1)
+  let s1 ← Array.update s 31#usize i3
+  ok s1
+
+/-- [curve25519::edwards::{curve25519::edwards::EdwardsPoint}::compress]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 615:4-617:5
+    Visibility: public -/
+def edwards.EdwardsPoint.compress
+  (self : edwards.EdwardsPoint) : Result edwards.CompressedEdwardsY := do
+  let ap ← edwards.EdwardsPoint.to_affine self
+  edwards.affine.AffinePoint.compress ap
+
+/-- [curve25519::ed_sigs::verification_key::{curve25519::ed_sigs::verification_key::VerificationKey}::recompute_r_sha512]:
+    Source: 'curve25519/solana-ed25519/src/ed_sigs/verification_key.rs', lines 546:4-558:5 -/
+def ed_sigs.verification_key.VerificationKey.recompute_r_sha512
+  (self : ed_sigs.verification_key.VerificationKey)
+  (r_bytes : Array Std.U8 32#usize) (s : scalar.Scalar) (msg : Slice Std.U8) :
+  Result edwards.CompressedEdwardsY
+  := do
+  let s1 ←
+    core.array.Array.index (core.ops.index.IndexSlice
+      (core.ops.range.RangeFull.Insts.CoreSliceIndexSliceIndexSliceSlice
+      Std.U8)) r_bytes ()
+  let a := self.A_bytes
+  let s2 ←
+    core.array.Array.index (core.ops.index.IndexSlice
+      (core.ops.range.RangeFull.Insts.CoreSliceIndexSliceIndexSliceSlice
+      Std.U8)) a ()
+  let a1 ← ed_sigs.sha512_hash3 s1 s2 msg
+  let k ← scalar.Scalar.from_bytes_mod_order_wide a1
+  let ep ←
+    edwards.EdwardsPoint.vartime_double_scalar_mul_basepoint k self.minus_A s
+  edwards.EdwardsPoint.compress ep
+
+/-- [curve25519::edwards::{curve25519::edwards::CompressedEdwardsY}::as_bytes]:
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 198:4-200:5
+    Visibility: public -/
+def edwards.CompressedEdwardsY.as_bytes
+  (self : edwards.CompressedEdwardsY) : Result (Array Std.U8 32#usize) := do
+  ok self
+
+/-- [curve25519::ed_sigs::verification_key::{curve25519::ed_sigs::verification_key::VerificationKey}::verify_sha512]: loop body 0:
+    Source: 'curve25519/solana-ed25519/src/ed_sigs/verification_key.rs', lines 581:8-586:9
+    Visibility: public -/
+@[rust_loop_body]
+def ed_sigs.verification_key.VerificationKey.verify_sha512_loop.body
+  (r_bytes : Array Std.U8 32#usize) (e : Array Std.U8 32#usize) (equal : Bool)
+  (k : Std.Usize) :
+  Result (ControlFlow (Bool × Std.Usize) Bool)
+  := do
+  if k < 32#usize
+  then
+    let i ← Array.index_usize e k
+    let i1 ← Array.index_usize r_bytes k
+    let equal1 ← if i != i1
+                   then ok false
+                   else ok equal
+    let k1 ← k + 1#usize
+    ok (cont (equal1, k1))
+  else ok (done equal)
+
+/-- [curve25519::ed_sigs::verification_key::{curve25519::ed_sigs::verification_key::VerificationKey}::verify_sha512]: loop 0:
+    Source: 'curve25519/solana-ed25519/src/ed_sigs/verification_key.rs', lines 581:8-586:9
+    Visibility: public -/
+@[rust_loop]
+def ed_sigs.verification_key.VerificationKey.verify_sha512_loop
+  (r_bytes : Array Std.U8 32#usize) (e : Array Std.U8 32#usize) (equal : Bool)
+  (k : Std.Usize) :
+  Result Bool
+  := do
+  loop
+    (fun (equal1, k1) =>
+      ed_sigs.verification_key.VerificationKey.verify_sha512_loop.body r_bytes
+      e equal1 k1)
+    (equal, k)
+
+/-- [curve25519::ed_sigs::verification_key::{curve25519::ed_sigs::verification_key::VerificationKey}::verify_sha512]:
+    Source: 'curve25519/solana-ed25519/src/ed_sigs/verification_key.rs', lines 563:4-592:5
+    Visibility: public -/
+def ed_sigs.verification_key.VerificationKey.verify_sha512
+  (self : ed_sigs.verification_key.VerificationKey) (sig : ed25519.Signature)
+  (msg : Slice Std.U8) :
+  Result (core.result.Result Unit ed_sigs.error.Error)
+  := do
+  let r_bytes ← ed25519.Signature.r_bytes sig
+  let s_bytes ← ed25519.Signature.s_bytes sig
+  let b ← ed_sigs.verification_key.VerificationKey.a_bytes_nonzero self
+  if b
+  then
+    let b1 ← ed_sigs.verification_key.is_legacy_excluded_r r_bytes
+    if b1
+    then ok (core.result.Result.Err ed_sigs.error.Error.InvalidSignature)
+    else
+      let r ← ed_sigs.verification_key.check_scalar_canonical s_bytes
+      let cf ← core.result.Result.Insts.CoreOpsTry_traitTry.branch r
+      match cf with
+      | core.ops.control_flow.ControlFlow.Continue val =>
+        let expected_r ←
+          ed_sigs.verification_key.VerificationKey.recompute_r_sha512 self
+            r_bytes val msg
+        let e ← edwards.CompressedEdwardsY.as_bytes expected_r
+        let equal ←
+          ed_sigs.verification_key.VerificationKey.verify_sha512_loop r_bytes e
+            true 0#usize
+        if equal
+        then ok (core.result.Result.Ok ())
+        else ok (core.result.Result.Err ed_sigs.error.Error.InvalidSignature)
+      | core.ops.control_flow.ControlFlow.Break residual =>
+        core.result.Result.Insts.CoreOpsTry_traitFromResidualResultInfallibleE.from_residual
+          Unit (core.convert.FromSame ed_sigs.error.Error) residual
+  else ok (core.result.Result.Err ed_sigs.error.Error.InvalidSignature)
 
 /-- [curve25519::edwards::affine::{impl core::clone::Clone for curve25519::edwards::affine::AffinePoint}::clone]:
     Source: 'curve25519/solana-ed25519/src/edwards/affine.rs', lines 11:15-11:20
@@ -4071,29 +4576,6 @@ def edwards.affine.AffinePoint.to_edwards
   let fe1 ← backend.serial.u64.field.FieldElement51.ONE
   ok { X := self.x, Y := self.y, Z := fe1, T := fe }
 
-/-- [curve25519::field::{curve25519::backend::serial::u64::field::FieldElement51}::is_negative]:
-    Source: 'curve25519/solana-ed25519/src/field.rs', lines 139:4-142:5 -/
-def field.FieldElement51.is_negative
-  (self : backend.serial.u64.field.FieldElement51) : Result subtle.Choice := do
-  let bytes ← backend.serial.u64.field.FieldElement51.to_bytes self
-  let i ← Array.index_usize bytes 0#usize
-  let i1 ← lift (i &&& 1#u8)
-  core.convert.IntoFrom.into subtle.Choice.Insts.CoreConvertFromU8 i1
-
-/-- [curve25519::edwards::affine::{curve25519::edwards::affine::AffinePoint}::compress]:
-    Source: 'curve25519/solana-ed25519/src/edwards/affine.rs', lines 71:4-75:5
-    Visibility: public -/
-def edwards.affine.AffinePoint.compress
-  (self : edwards.affine.AffinePoint) : Result edwards.CompressedEdwardsY := do
-  let s ← backend.serial.u64.field.FieldElement51.to_bytes self.y
-  let c ← field.FieldElement51.is_negative self.x
-  let i ← subtle.Choice.unwrap_u8 c
-  let i1 ← i <<< 7#i32
-  let i2 ← Array.index_usize s 31#usize
-  let i3 ← lift (i2 ^^^ i1)
-  let s1 ← Array.update s 31#usize i3
-  ok s1
-
 /-- [curve25519::edwards::{impl core::ops::arith::Mul<curve25519::scalar::Scalar, curve25519::edwards::EdwardsPoint> for curve25519::edwards::EdwardsPoint}::mul]:
     Source: 'curve25519/solana-ed25519/src/macros.rs', lines 107:12-109:13
     Visibility: public -/
@@ -4184,13 +4666,6 @@ def edwards.CompressedEdwardsY.Insts.CoreHashHash : core.hash.Hash
   hash := fun {H : Type} (corehashHasherInst : core.hash.Hasher H) =>
     edwards.CompressedEdwardsY.Insts.CoreHashHash.hash corehashHasherInst
 }
-
-/-- [curve25519::edwards::{curve25519::edwards::CompressedEdwardsY}::as_bytes]:
-    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 198:4-200:5
-    Visibility: public -/
-def edwards.CompressedEdwardsY.as_bytes
-  (self : edwards.CompressedEdwardsY) : Result (Array Std.U8 32#usize) := do
-  ok self
 
 /-- [curve25519::edwards::{impl subtle::ConstantTimeEq for curve25519::edwards::CompressedEdwardsY}::ct_eq]:
     Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 178:4-180:5
@@ -4535,67 +5010,6 @@ def edwards.EdwardsPoint.Insts.CoreCmpEq : core.cmp.Eq edwards.EdwardsPoint
     edwards.EdwardsPoint.Insts.CoreCmpEq.assert_fields_are_eq
 }
 
-/-- [curve25519::field::{curve25519::backend::serial::u64::field::FieldElement51}::pow22501]:
-    Source: 'curve25519/solana-ed25519/src/field.rs', lines 159:4-193:5 -/
-def field.FieldElement51.pow22501
-  (self : backend.serial.u64.field.FieldElement51) :
-  Result (backend.serial.u64.field.FieldElement51 ×
-    backend.serial.u64.field.FieldElement51)
-  := do
-  let t0 ← backend.serial.u64.field.FieldElement51.square self
-  let fe ← backend.serial.u64.field.FieldElement51.square t0
-  let t1 ← backend.serial.u64.field.FieldElement51.square fe
-  let t2 ←
-    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
-      self t1
-  let t3 ←
-    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
-      t0 t2
-  let t4 ← backend.serial.u64.field.FieldElement51.square t3
-  let t5 ←
-    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
-      t2 t4
-  let t6 ← backend.serial.u64.field.FieldElement51.pow2k t5 5#u32
-  let t7 ←
-    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
-      t6 t5
-  let t8 ← backend.serial.u64.field.FieldElement51.pow2k t7 10#u32
-  let t9 ←
-    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
-      t8 t7
-  let t10 ← backend.serial.u64.field.FieldElement51.pow2k t9 20#u32
-  let t11 ←
-    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
-      t10 t9
-  let t12 ← backend.serial.u64.field.FieldElement51.pow2k t11 10#u32
-  let t13 ←
-    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
-      t12 t7
-  let t14 ← backend.serial.u64.field.FieldElement51.pow2k t13 50#u32
-  let t15 ←
-    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
-      t14 t13
-  let t16 ← backend.serial.u64.field.FieldElement51.pow2k t15 100#u32
-  let t17 ←
-    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
-      t16 t15
-  let t18 ← backend.serial.u64.field.FieldElement51.pow2k t17 50#u32
-  let t19 ←
-    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
-      t18 t13
-  ok (t19, t3)
-
-/-- [curve25519::field::{curve25519::backend::serial::u64::field::FieldElement51}::invert]:
-    Source: 'curve25519/solana-ed25519/src/field.rs', lines 280:4-289:5 -/
-def field.FieldElement51.invert
-  (self : backend.serial.u64.field.FieldElement51) :
-  Result backend.serial.u64.field.FieldElement51
-  := do
-  let (t19, t3) ← field.FieldElement51.pow22501 self
-  let t20 ← backend.serial.u64.field.FieldElement51.pow2k t19 5#u32
-  Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
-    t20 t3
-
 /-- [curve25519::edwards::{curve25519::edwards::EdwardsPoint}::as_affine_niels]:
     Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 551:4-561:5 -/
 def edwards.EdwardsPoint.as_affine_niels
@@ -4624,19 +5038,6 @@ def edwards.EdwardsPoint.as_affine_niels
       y x
   ok { y_plus_x := fe2, y_minus_x := fe3, xy2d }
 
-/-- [curve25519::edwards::{curve25519::edwards::EdwardsPoint}::to_affine]:
-    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 564:4-569:5 -/
-def edwards.EdwardsPoint.to_affine
-  (self : edwards.EdwardsPoint) : Result edwards.affine.AffinePoint := do
-  let recip ← field.FieldElement51.invert self.Z
-  let x ←
-    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
-      self.X recip
-  let y ←
-    Shared0FieldElement51.Insts.CoreOpsArithMulSharedAFieldElement51FieldElement51.mul
-      self.Y recip
-  ok { x, y }
-
 /-- [curve25519::edwards::{curve25519::edwards::EdwardsPoint}::to_montgomery]:
     Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 580:4-590:5
     Visibility: public -/
@@ -4654,14 +5055,6 @@ def edwards.EdwardsPoint.to_montgomery
       U fe
   let a ← backend.serial.u64.field.FieldElement51.to_bytes u
   ok a
-
-/-- [curve25519::edwards::{curve25519::edwards::EdwardsPoint}::compress]:
-    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 615:4-617:5
-    Visibility: public -/
-def edwards.EdwardsPoint.compress
-  (self : edwards.EdwardsPoint) : Result edwards.CompressedEdwardsY := do
-  let ap ← edwards.EdwardsPoint.to_affine self
-  edwards.affine.AffinePoint.compress ap
 
 /-- Trait implementation: [curve25519::edwards::{impl core::ops::arith::Add<&'a curve25519::edwards::EdwardsPoint, curve25519::edwards::EdwardsPoint> for &'_1 curve25519::edwards::EdwardsPoint}]
     Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 783:0-788:1 -/
@@ -4864,15 +5257,6 @@ def edwards.EdwardsPoint.mul_base_clamped
   (bytes : Array Std.U8 32#usize) : Result edwards.EdwardsPoint := do
   let a ← scalar.clamp_integer bytes
   edwards.EdwardsPoint.mul_base { bytes := a }
-
-/-- [curve25519::edwards::{curve25519::edwards::EdwardsPoint}::vartime_double_scalar_mul_basepoint]:
-    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 1068:4-1074:5
-    Visibility: public -/
-def edwards.EdwardsPoint.vartime_double_scalar_mul_basepoint
-  (a : scalar.Scalar) (A : edwards.EdwardsPoint) (b : scalar.Scalar) :
-  Result edwards.EdwardsPoint
-  := do
-  backend.vartime_double_base_mul a A b
 
 /-- [curve25519::edwards::{curve25519::edwards::EdwardsPoint}::vartime_triple_scalar_mul_basepoint]:
     Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 1099:4-1107:5
@@ -5397,54 +5781,5 @@ def edwards.EdwardsPoint.Insts.CoreOpsArithMulAssignScalar :
   mul_assign :=
     edwards.EdwardsPoint.Insts.CoreOpsArithMulAssignScalar.mul_assign
 }
-
-/-- [curve25519::scalar::{curve25519::backend::serial::u64::scalar::Scalar52}::pack]:
-    Source: 'curve25519/solana-ed25519/src/scalar.rs', lines 1331:4-1335:5 -/
-def scalar.Scalar52.pack
-  (self : backend.serial.u64.scalar.Scalar52) : Result scalar.Scalar := do
-  let a ← backend.serial.u64.scalar.Scalar52.to_bytes self
-  ok { bytes := a }
-
-/-- [curve25519::scalar::{curve25519::scalar::Scalar}::unpack]:
-    Source: 'curve25519/solana-ed25519/src/scalar.rs', lines 1288:4-1290:5 -/
-def scalar.Scalar.unpack
-  (self : scalar.Scalar) : Result backend.serial.u64.scalar.Scalar52 := do
-  backend.serial.u64.scalar.Scalar52.from_bytes self.bytes
-
-/-- [curve25519::scalar::{curve25519::scalar::Scalar}::reduce]:
-    Source: 'curve25519/solana-ed25519/src/scalar.rs', lines 1303:4-1320:5 -/
-def scalar.Scalar.reduce (self : scalar.Scalar) : Result scalar.Scalar := do
-  let x ← scalar.Scalar.unpack self
-  let xR ←
-    backend.serial.u64.scalar.Scalar52.mul_internal x
-      backend.serial.u64.constants.R
-  let x_mod_l ← backend.serial.u64.scalar.Scalar52.montgomery_reduce xR
-  scalar.Scalar52.pack x_mod_l
-
-/-- [curve25519::scalar::{impl core::ops::index::Index<usize, u8> for curve25519::scalar::Scalar}::index]:
-    Source: 'curve25519/solana-ed25519/src/scalar.rs', lines 290:4-292:5
-    Visibility: public -/
-def scalar.Scalar.Insts.CoreOpsIndexIndexUsizeU8.index
-  (self : scalar.Scalar) (_index : Std.Usize) : Result Std.U8 := do
-  Array.index_usize self.bytes _index
-
-/-- [curve25519::scalar::{curve25519::scalar::Scalar}::from_bytes_mod_order]:
-    Source: 'curve25519/solana-ed25519/src/scalar.rs', lines 207:4-216:5
-    Visibility: public -/
-def scalar.Scalar.from_bytes_mod_order
-  (bytes : Array Std.U8 32#usize) : Result scalar.Scalar := do
-  let s ← scalar.Scalar.reduce { bytes }
-  let i ← scalar.Scalar.Insts.CoreOpsIndexIndexUsizeU8.index s 31#usize
-  let right_val ← i >>> 7#i32
-  massert (0#u8 = right_val)
-  ok s
-
-/-- [curve25519::scalar::{curve25519::scalar::Scalar}::from_bytes_mod_order_wide]:
-    Source: 'curve25519/solana-ed25519/src/scalar.rs', lines 220:4-229:5
-    Visibility: public -/
-def scalar.Scalar.from_bytes_mod_order_wide
-  (input : Array Std.U8 64#usize) : Result scalar.Scalar := do
-  let unpacked ← backend.serial.u64.scalar.Scalar52.from_bytes_wide input
-  scalar.Scalar52.pack unpacked
 
 end curve25519

@@ -80,6 +80,29 @@ axiom U32.Insts.CoreIterRangeStep.forward_checked
 axiom U32.Insts.CoreIterRangeStep.steps_between
   : Std.U32 → Std.U32 → Result (Std.Usize × (Option Std.Usize))
 
+/-- [core::result::{impl core::ops::try_trait::Try for core::result::Result<T, E>}::branch]:
+    Source: '/rustc/library/core/src/result.rs', lines 2177:4-2177:64
+    Name pattern: [core::result::{core::ops::try_trait::Try<core::result::Result<@T, @E>>}::branch]
+    Visibility: public -/
+@[rust_fun
+  "core::result::{core::ops::try_trait::Try<core::result::Result<@T, @E>>}::branch"]
+axiom core.result.Result.Insts.CoreOpsTry_traitTry.branch
+  {T : Type} {E : Type} :
+  core.result.Result T E → Result (core.ops.control_flow.ControlFlow
+    (core.result.Result core.convert.Infallible E) T)
+
+/-- [core::result::{impl core::ops::try_trait::FromResidual<core::result::Result<core::convert::Infallible, E>> for core::result::Result<T, F>}::from_residual]:
+    Source: '/rustc/library/core/src/result.rs', lines 2192:4-2192:70
+    Name pattern: [core::result::{core::ops::try_trait::FromResidual<core::result::Result<@T, @F>, core::result::Result<core::convert::Infallible, @E>>}::from_residual]
+    Visibility: public -/
+@[rust_fun
+  "core::result::{core::ops::try_trait::FromResidual<core::result::Result<@T, @F>, core::result::Result<core::convert::Infallible, @E>>}::from_residual"]
+axiom
+  core.result.Result.Insts.CoreOpsTry_traitFromResidualResultInfallibleE.from_residual
+  (T : Type) {E : Type} {F : Type} (convertFromInst : core.convert.From F E) :
+  core.result.Result core.convert.Infallible E → Result (core.result.Result T
+    F)
+
 /-- [core::slice::index::{impl core::slice::index::SliceIndex<[T], [T]> for core::ops::range::RangeFull}::index_mut]:
     Source: '/rustc/library/core/src/slice/index.rs', lines 660:4-660:51
     Name pattern: [core::slice::index::{core::slice::index::SliceIndex<core::ops::range::RangeFull, [@T], [@T]>}::index_mut]
@@ -145,6 +168,22 @@ axiom core.ops.range.RangeFull.Insts.CoreSliceIndexSliceIndexSliceSlice.get_mut
 axiom core.ops.range.RangeFull.Insts.CoreSliceIndexSliceIndexSliceSlice.get
   {T : Type} :
   core.ops.range.RangeFull → Slice T → Result (Option (Slice T))
+
+/-- [ed25519::{ed25519::Signature}::r_bytes]:
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/ed25519-2.2.3/src/lib.rs', lines 341:4-341:44
+    Name pattern: [ed25519::{ed25519::Signature}::r_bytes]
+    Visibility: public -/
+@[rust_fun "ed25519::{ed25519::Signature}::r_bytes"]
+axiom ed25519.Signature.r_bytes
+  : ed25519.Signature → Result (Array Std.U8 32#usize)
+
+/-- [ed25519::{ed25519::Signature}::s_bytes]:
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/ed25519-2.2.3/src/lib.rs', lines 346:4-346:44
+    Name pattern: [ed25519::{ed25519::Signature}::s_bytes]
+    Visibility: public -/
+@[rust_fun "ed25519::{ed25519::Signature}::s_bytes"]
+axiom ed25519.Signature.s_bytes
+  : ed25519.Signature → Result (Array Std.U8 32#usize)
 
 /-- [subtle::{subtle::Choice}::unwrap_u8]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 133:4-133:33
@@ -283,35 +322,16 @@ axiom backend.serial.scalar_mul.vartime_triple_base.mul_128_128_256_prechecked
   scalar.Scalar → edwards.EdwardsPoint → scalar.Scalar →
     edwards.EdwardsPoint → scalar.Scalar → Result edwards.EdwardsPoint
 
-/-- [curve25519::backend::vector::scalar_mul::variable_base::spec_avx2::mul]:
-    Source: 'curve25519/solana-ed25519/src/backend/vector/scalar_mul/variable_base.rs', lines 3:0-3:68
-    Visibility: public -/
-axiom backend.vector.scalar_mul.variable_base.spec_avx2.mul
-  : edwards.EdwardsPoint → scalar.Scalar → Result edwards.EdwardsPoint
-
-/-- [curve25519::backend::vector::scalar_mul::vartime_double_base::spec_avx2::mul]:
-    Source: 'curve25519/solana-ed25519/src/backend/vector/scalar_mul/vartime_double_base.rs', lines 14:0-14:68
-    Visibility: public -/
-axiom backend.vector.scalar_mul.vartime_double_base.spec_avx2.mul
-  :
-  scalar.Scalar → edwards.EdwardsPoint → scalar.Scalar → Result
-    edwards.EdwardsPoint
-
-/-- [curve25519::backend::vector::scalar_mul::vartime_triple_base::spec_avx2::mul_128_128_256_prechecked]:
-    Source: 'curve25519/solana-ed25519/src/backend/vector/scalar_mul/vartime_triple_base.rs', lines 10:0-10:68 -/
-axiom
-  backend.vector.scalar_mul.vartime_triple_base.spec_avx2.mul_128_128_256_prechecked
-  :
-  scalar.Scalar → edwards.EdwardsPoint → scalar.Scalar →
-    edwards.EdwardsPoint → scalar.Scalar → Result edwards.EdwardsPoint
-
-/-- [curve25519::backend::get_selected_backend]:
-    Source: 'curve25519/solana-ed25519/src/backend.rs', lines 53:0-64:1 -/
-axiom backend.get_selected_backend : Result backend.BackendKind
-
 /-- [curve25519::backend::scalar_fits_in_128_bits]:
     Source: 'curve25519/solana-ed25519/src/backend.rs', lines 283:0-285:1 -/
 axiom backend.scalar_fits_in_128_bits : scalar.Scalar → Result Bool
+
+/-- [curve25519::ed_sigs::sha512_hash3]:
+    Source: 'curve25519/solana-ed25519/src/ed_sigs.rs', lines 45:0-54:1 -/
+axiom ed_sigs.sha512_hash3
+  :
+  Slice Std.U8 → Slice Std.U8 → Slice Std.U8 → Result (Array Std.U8
+    64#usize)
 
 /-- [curve25519::edwards::affine::{impl subtle::ConditionallySelectable for curve25519::edwards::affine::AffinePoint}::conditional_swap]:
     Source: 'curve25519/solana-ed25519/src/edwards/affine.rs', lines 23:0-30:1

@@ -23,8 +23,12 @@ source ~/aeneas-toolchain/env.sh
 HERE="$(cd "$(dirname "$0")" && pwd)"
 CRATE=~/GitClone/FormalVerification/sources/anza-cryptography-source/curve25519/solana-ed25519
 
-echo "[1/2] charon: Rust -> LLBC (field + curve_models + edwards + scalar [MERGED GEN])"
+echo "[1/2] charon: Rust -> LLBC (field + curve_models + edwards + scalar + verify [MERGED GEN])"
 cd "$CRATE"
+# Pin the serial backend: the AVX2 dispatch arm compiles out, so backend
+# selection extracts as the real constant Serial (no dispatch axiom).
+export RUSTFLAGS='--cfg curve25519_serial_only'
+cargo clean -p solana-ed25519 2>/dev/null || true
 charon cargo --preset=aeneas \
   --start-from crate::field \
   --start-from crate::backend::serial::u64::field \
@@ -43,6 +47,9 @@ charon cargo --preset=aeneas \
   --start-from 'crate::backend::serial::u64::scalar::_::from_bytes_wide' \
   --start-from 'crate::scalar::_::from_bytes_mod_order' \
   --start-from 'crate::scalar::_::from_bytes_mod_order_wide' \
+  --start-from 'crate::ed_sigs::verification_key::_::verify_sha512' \
+  --opaque 'crate::ed_sigs::sha512_hash3' \
+  --opaque 'ed25519' \
   --opaque 'crate::field::_::internal_invert_batch' \
   --opaque 'crate::backend::serial::scalar_mul::variable_base' \
   --opaque 'crate::backend::serial::scalar_mul::vartime_triple_base' \
@@ -51,7 +58,6 @@ charon cargo --preset=aeneas \
   --opaque 'crate::backend::serial::scalar_mul::precomputed_straus' \
   --opaque 'crate::backend::serial::scalar_mul::pippenger' \
   --opaque 'crate::backend::vector' \
-  --opaque 'crate::backend::get_selected_backend' \
   --opaque 'crate::backend::scalar_fits_in_128_bits' \
   --opaque 'crate::edwards::decompress' \
   --opaque 'crate::edwards::_::sum' \

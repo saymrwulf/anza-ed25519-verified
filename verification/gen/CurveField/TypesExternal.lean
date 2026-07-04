@@ -22,3 +22,9 @@ set_option maxRecDepth 2048
     identity, so we model the type as `U8` directly. -/
 @[reducible, rust_type "subtle::Choice"]
 def subtle.Choice : Type := Std.U8
+
+/-- [ed25519::Signature]: the foreign wire-format signature type — opaque
+    (apex boundary); its two byte accessors are axiomatized in
+    FunsExternal.lean. -/
+@[rust_type "ed25519::Signature"]
+axiom ed25519.Signature : Type
