@@ -161,7 +161,7 @@ structure traits.ValidityCheck (Self : Type) where
   is_valid : Self → Result Bool
 
 /-- [curve25519::edwards::EdwardsPoint]
-    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 390:0-395:1
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 395:0-400:1
     Visibility: public -/
 structure edwards.EdwardsPoint where
   X : backend.serial.u64.field.FieldElement51
@@ -223,7 +223,7 @@ structure edwards.affine.AffinePoint where
   y : backend.serial.u64.field.FieldElement51
 
 /-- [curve25519::edwards::CompressedEdwardsY]
-    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 175:0-175:44
+    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 174:0-174:44
     Visibility: public -/
 @[reducible]
 def edwards.CompressedEdwardsY := Array Std.U8 32#usize

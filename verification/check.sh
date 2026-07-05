@@ -67,6 +67,9 @@ PROOFS=(
   SigApexSpec
   PointLiftSpec
   PointEqSpec
+  DecompressSpec
+  FromBytesSpec
+  DecompressMain
 )
 # Fully-qualified certificate names; each must be axiom-clean.
 CERTS=(
@@ -91,6 +94,12 @@ CERTS=(
   ScalarProofs.from_bytes_mod_order_wide_spec
   CurveFieldProofs.vartime_dsm_basepoint_spec
   CurveFieldProofs.enc_point_inj
+  CurveFieldProofs.pow_p58_spec
+  CurveFieldProofs.fe_ct_eq_spec
+  CurveFieldProofs.sqrt_core
+  CurveFieldProofs.sqrt_ratio_i_sq_spec
+  CurveFieldProofs.from_bytes_spec
+  CurveFieldProofs.decompress_of_canonical
 )
 # Imports needed so every certificate in CERTS is in scope for the audit.
 AUDIT_IMPORTS=(
@@ -107,6 +116,9 @@ AUDIT_IMPORTS=(
   Proofs.ScalarPackSpec
   Proofs.PointLiftSpec
   Proofs.PointEqSpec
+  Proofs.DecompressSpec
+  Proofs.FromBytesSpec
+  Proofs.DecompressMain
 )
 
 # ── Phase 0: resource + integrity guards ────────────────────────────────────
@@ -198,17 +210,18 @@ lake env bash -c "
   cd '$HERE'
   ALLOWED='[propext, Classical.choice, Quot.sound, ed25519.Signature, ed_sigs.sha512_hash3, ed25519.Signature.r_bytes, ed25519.Signature.s_bytes]'
   AUD=\$(mktemp '$HERE/.apex-XXXX.lean')
-  { echo 'import Proofs.SigApexSpec'; echo 'import Proofs.PointLiftSpec'; echo 'import Proofs.PointEqSpec'; echo '#print axioms CurveFieldProofs.verify_accepts_iff'; echo '#print axioms CurveFieldProofs.verify_accepts_iff_point'; echo '#print axioms CurveFieldProofs.verify_accepts_iff_point_eq'; } > \"\$AUD\"
+  { echo 'import Proofs.SigApexSpec'; echo 'import Proofs.PointLiftSpec'; echo 'import Proofs.PointEqSpec'; echo 'import Proofs.DecompressMain'; echo '#print axioms CurveFieldProofs.verify_accepts_iff'; echo '#print axioms CurveFieldProofs.verify_accepts_iff_point'; echo '#print axioms CurveFieldProofs.verify_accepts_iff_point_eq'; echo '#print axioms CurveFieldProofs.verify_accepts_iff_decompress'; } > \"\$AUD\"
   OUT=\$(LEAN_TIMEOUT=$TIMEOUT LEAN_MEM_MB=4096 '$HERE/lean-guard' \"\$AUD\" 2>&1)
   echo \"\$OUT\"
   rm -f \"\$AUD\"
   FLAT=\$(echo \"\$OUT\" | tr '\\n' ' ' | tr -s ' ')
   if echo \"\$FLAT\" | grep -qF \"'CurveFieldProofs.verify_accepts_iff' depends on axioms: \$ALLOWED\" \
      && echo \"\$FLAT\" | grep -qF \"'CurveFieldProofs.verify_accepts_iff_point' depends on axioms: \$ALLOWED\" \
-     && echo \"\$FLAT\" | grep -qF \"'CurveFieldProofs.verify_accepts_iff_point_eq' depends on axioms: \$ALLOWED\"; then
-    echo '  apex axiom cone = exactly the SHA-512 + wire-format boundary (no curve/scalar/backend axioms)'
+     && echo \"\$FLAT\" | grep -qF \"'CurveFieldProofs.verify_accepts_iff_point_eq' depends on axioms: \$ALLOWED\" \
+     && echo \"\$FLAT\" | grep -qF \"'CurveFieldProofs.verify_accepts_iff_decompress' depends on axioms: \$ALLOWED\"; then
+    echo '  apex + full-lift axiom cones = exactly the SHA-512 + wire-format boundary (no curve/scalar/backend axioms)'
   else
-    echo 'APEX AUDIT FAILED: verify_accepts_iff cone is not the documented boundary'; exit 1
+    echo 'APEX AUDIT FAILED: apex/full-lift cone is not the documented boundary'; exit 1
   fi
 "
 
