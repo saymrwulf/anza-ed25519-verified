@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Scalar-layer check (Scalar52 arithmetic mod ℓ). Compiles the gen model + the
-# proven foundation. add/sub (Range-loop reductions) and the Montgomery mul
-# path are in progress — see README. Guarded compiles throughout.
+# Scalar-layer check (Scalar52 arithmetic mod ℓ) — the layer is COMPLETE:
+# add, sub, Montgomery mul, and the byte-parsing chain, all kernel-audited.
+# Runs against the merged gen/CurveField universe (the scalar module lives
+# there since the merge; see extract.sh). Guarded compiles throughout.
 set -uo pipefail
 source ~/aeneas-toolchain/env.sh
 HERE="$(cd "$(dirname "$0")" && pwd)"

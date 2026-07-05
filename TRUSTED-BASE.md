@@ -15,11 +15,20 @@ running Rust code. Everything else is machine-checked.
    plumbing, formatting) are axiomatized as opaque symbols. The axiom audit
    proves none of these axioms enters the dependency cone of any certificate,
    except where a model is explicitly listed below.
-5. **SHA-512 (signature layer only)**: the hash is modeled as an opaque
-   function ℬ* → ℬ⁶⁴ with no algebraic properties assumed. The signature
-   certificate has the shape "IF the hash model computes SHA-512, THEN an
-   accepted signature satisfies the EdDSA verification equation". The hash
-   implementation itself is NOT verified.
+5. **The signature-apex boundary (signature layer only)**: the apex
+   certificate `CurveFieldProofs.verify_accepts_iff` ("the verifier accepts
+   iff compress([s]·B − [k]·A) = R byte-for-byte") is `#print axioms`-audited
+   by check.sh Phase 3b against EXACTLY the standard three plus this
+   documented set, and the build fails on any deviation:
+   `ed25519.Signature` (the foreign wire-format type), the single SHA-512
+   oracle `ed_sigs.sha512_hash3` (semantically `Sha512(R ‖ A ‖ msg)`), and
+   the two byte accessors `ed25519.Signature.r_bytes`/`s_bytes`. The
+   `Error` enum, the parse/filter helpers, and backend selection are real
+   extracted code (no axioms). The hash is an oracle with no algebraic
+   properties assumed — the theorem holds for whatever bytes it produces;
+   the SHA-512 implementation itself is NOT verified. The verified entry
+   point is `verify_sha512` ≡ `verify_dalek` (canonical-R path), not the
+   crate's default HEEA/Zebra `verify()`.
 6. **Compilation of Rust to machine code** (rustc backend) is out of scope,
    as is side-channel behaviour (timing, speculation). The proofs are about
    functional correctness at the MIR/LLBC level.
