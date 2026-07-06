@@ -15,20 +15,27 @@ running Rust code. Everything else is machine-checked.
    plumbing, formatting) are axiomatized as opaque symbols. The axiom audit
    proves none of these axioms enters the dependency cone of any certificate,
    except where a model is explicitly listed below.
-5. **The signature-apex boundary (signature layer only)**: the apex
-   certificate `CurveFieldProofs.verify_accepts_iff` ("the verifier accepts
-   iff compress([s]·B − [k]·A) = R byte-for-byte") is `#print axioms`-audited
-   by check.sh Phase 3b against EXACTLY the standard three plus this
-   documented set, and the build fails on any deviation:
+5. **The signature-apex boundary (signature layer only)**: FOUR apex-tier
+   certificates — `CurveFieldProofs.verify_accepts_iff` (byte apex:
+   accepted iff compress([s]·B − [k]·A) = R byte-for-byte),
+   `verify_accepts_iff_point` (half-lift: R is the canonical encoding of
+   the recomputed point), `verify_accepts_iff_point_eq` (point equation:
+   canonically-encoded Q accepted iff Q equals the recomputed point), and
+   `verify_accepts_iff_decompress` (full lift: R decompresses to a valid
+   on-curve point that equals the recomputed point) — are each
+   `#print axioms`-audited by check.sh Phase 3b against EXACTLY the
+   standard three plus this documented set, and the build fails on any
+   deviation:
    `ed25519.Signature` (the foreign wire-format type), the single SHA-512
    oracle `ed_sigs.sha512_hash3` (semantically `Sha512(R ‖ A ‖ msg)`), and
    the two byte accessors `ed25519.Signature.r_bytes`/`s_bytes`. The
    `Error` enum, the parse/filter helpers, and backend selection are real
    extracted code (no axioms). The hash is an oracle with no algebraic
-   properties assumed — the theorem holds for whatever bytes it produces;
+   properties assumed — the theorems hold for whatever bytes it produces;
    the SHA-512 implementation itself is NOT verified. The verified entry
    point is `verify_sha512` ≡ `verify_dalek` (canonical-R path), not the
-   crate's default HEEA/Zebra `verify()`.
+   crate's default HEEA/Zebra `verify()`. The constructive decompress theorem underneath the full lift
+   (`decompress_of_canonical`) carries the standard three axioms ONLY.
 6. **Compilation of Rust to machine code** (rustc backend) is out of scope,
    as is side-channel behaviour (timing, speculation). The proofs are about
    functional correctness at the MIR/LLBC level.

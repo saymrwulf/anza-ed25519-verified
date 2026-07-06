@@ -398,23 +398,6 @@ axiom edwards.affine.AffinePoint.Insts.CoreCmpEq.assert_fields_are_eq
 axiom edwards.CompressedEdwardsY.Insts.CoreCmpEq.assert_fields_are_eq
   : edwards.CompressedEdwardsY → Result Unit
 
-/-- [curve25519::edwards::decompress::step_2]:
-    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 240:4-257:5 -/
-axiom edwards.decompress.step_2
-  :
-  edwards.CompressedEdwardsY → backend.serial.u64.field.FieldElement51 →
-    backend.serial.u64.field.FieldElement51 →
-    backend.serial.u64.field.FieldElement51 → Result edwards.EdwardsPoint
-
-/-- [curve25519::edwards::decompress::step_1]:
-    Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 226:4-237:5 -/
-axiom edwards.decompress.step_1
-  :
-  edwards.CompressedEdwardsY → Result (subtle.Choice ×
-    backend.serial.u64.field.FieldElement51 ×
-    backend.serial.u64.field.FieldElement51 ×
-    backend.serial.u64.field.FieldElement51)
-
 /-- [curve25519::edwards::{curve25519::edwards::CompressedEdwardsY}::from_slice]:
     Source: 'curve25519/solana-ed25519/src/edwards.rs', lines 423:4-425:5
     Visibility: public -/

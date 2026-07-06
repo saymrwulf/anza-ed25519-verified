@@ -5,7 +5,7 @@ coherent proof pyramid in Lean 4 via the Charon/Aeneas transpilation pipeline:
 
 ```
         ┌──────────────────────────────┐
-        │  Signature (EdDSA verify)    │   accepted ⇔ compress([s]B−[k]A) = R
+        │  Signature (EdDSA verify)    │   accepted ⇔ decompress(R) = [k](−A)+[s]B
         ├──────────────────────────────┤
         │  Scalar arithmetic mod ℓ     │   Scalar52 ops correct mod ℓ
         ├──────────────────────────────┤
@@ -28,12 +28,12 @@ in this repository.
 | Field 𝔽_p          | `fieldImplementation`    | ✅ proven | `[propext, Classical.choice, Quot.sound]` |
 | Group law (Edwards) | `edwardsImplementation`  | ✅ proven | `[propext, Classical.choice, Quot.sound]` |
 | Scalar mod ℓ        | `scalarImplementation` (add ✅ sub ✅ mul ✅) | ✅ proven | `[propext, Classical.choice, Quot.sound]` |
-| Signature (EdDSA)   | `verify_accepts_iff` | ✅ proven (phase 1) | standard three + the button-enforced SHA-512/wire-format boundary — see [The signature apex](#the-signature-apex-phase-1) |
+| Signature (EdDSA)   | `verify_accepts_iff` … `verify_accepts_iff_decompress` (4 tiers) | ✅ proven (phases 1+2) | standard three + the button-enforced SHA-512/wire-format boundary — see [The signature apex](#the-signature-apex-phases-1-and-2) |
 
 Status legend: ✅ proven & axiom-audited · ⏳ in progress · ❌ not started.
 This table is updated only when `verification/check.sh` passes for the layer.
 
-## The signature apex (phase 1)
+## The signature apex (phases 1 and 2)
 
 The apex certificate `CurveFieldProofs.verify_accepts_iff` is the literal EdDSA
 acceptance criterion, proven about the extracted verifier:
@@ -59,7 +59,7 @@ boundary of the four sibling repos.
 > different acceptance criterion and is **not** covered by this certificate.
 
 `check.sh` has a dedicated audit phase (Phase 3b) that fails the build unless
-the apex certificate's axiom cone is **exactly**
+each apex-tier certificate's axiom cone is **exactly**
 
 `[propext, Classical.choice, Quot.sound]` + `{ed25519.Signature, ed_sigs.sha512_hash3, ed25519.Signature.r_bytes, ed25519.Signature.s_bytes}`
 
@@ -68,16 +68,30 @@ boundary. Zero curve, scalar, or backend axioms. The companion certificate
 `verify_loop_full` (the 32-byte comparison loop computes array equality)
 carries the standard three axioms only.
 
-**Phase 2 (deferred, documented):** lifting the byte-level equation to the
-point level (`[s]B − [k]A = decompress R`) additionally needs `compress`
-canonicity and a verified `decompress`; it is deliberately out of scope for
-this milestone, mirroring the layer-by-layer phase split used below the apex.
+**Phase 2 (complete): the point-level lift.** Phase 3b enforces the SAME
+axiom boundary on three further tiers that lift the byte equation to points:
+
+| Tier | Certificate | Statement |
+|------|-------------|-----------|
+| half-lift | `verify_accepts_iff_point` | accepted ⇔ R = the **canonical encoding** of `[k]·minus_A + [s]·B` (compress semantics + `as_bytes` canonicity + hash-to-scalar, recompute chain inverted) |
+| point equation | `verify_accepts_iff_point_eq` | for any valid on-curve `Q` canonically encoded by R: accepted ⇔ `Q = [k]·minus_A + [s]·B` **as points** (encoding-injectivity: d non-square + parity root-selection) |
+| full lift | `verify_accepts_iff_decompress` | R **decompresses** to a valid on-curve `Pt`, and accepted ⇔ `Pt = [k]·minus_A + [s]·B` — the constructive capstone |
+
+The full lift runs through the extracted `CompressedEdwardsY::decompress`
+itself, proven end-to-end: `from_bytes` parses the y-residue exactly below
+bit 255 (`from_bytes_spec`), `sqrt_ratio_i` returns the even square root of
+`(y²−1)/(dy²+1)` (`sqrt_ratio_i_sq_spec`, Fermat-exponent square root), and
+the sign bit selects the x-parity (`decompress_of_canonical`, standard three
+axioms). Byte comparison ↔ encoding equality ↔ point equality ↔
+decompressed-point equality: every link is machine-checked over the
+extracted code, and `check.sh` fails the build if any of the four tiers'
+cones deviates from the boundary above.
 
 
 ## Source
 
 - **Upstream**: [anza-xyz/cryptography](https://github.com/anza-xyz/cryptography), commit `0a54cca`
-- **Pinned/patched source**: [saymrwulf/anza-cryptography-source](https://github.com/saymrwulf/anza-cryptography-source), commit `77043ab`
+- **Pinned/patched source**: [saymrwulf/anza-cryptography-source](https://github.com/saymrwulf/anza-cryptography-source), commit `5f8e70e` (adds the decompress step_2 negate-then-assign patch)
 - **Patches**: minimal Aeneas-compatibility only (documented in the source repo)
 - Closest relative of the reference solution (same crate layout as solana-ed25519).
 
