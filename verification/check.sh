@@ -12,6 +12,11 @@
 #   2. compile gen/ + Proofs/ in dependency order (explicit -o, capped cores,
 #      per-file timeout). Any "declaration uses 'sorry'" warning is a FAILURE
 #      (this catches sorry robustly — text greps can't, comments mention it).
+#  2b. kernel-side axiom-declaration gate: read every compiled Proofs/*.olean
+#      and reject ANY axiom declared there. Phase 1's grep reads source text
+#      and is evadable four ways (see the phase header); this one asks the
+#      kernel, derives its scope from the filesystem, and fails closed if the
+#      set of compiled modules does not match the set of shipped sources.
 #   3. axiom audit: #print axioms for every certificate in CERTS; each must
 #      report exactly [propext, Classical.choice, Quot.sound]
 # ─────────────────────────────────────────────────────────────────────────────
@@ -175,6 +180,83 @@ lake env bash -c "
 if grep -q "uses 'sorry'" "$LOG"; then
   echo "STUB DETECTED: a compiled declaration uses 'sorry'"; exit 1; fi
 rm -f "$LOG"
+
+# ── Phase 2b: kernel-side axiom-declaration gate ────────────────────────────
+# WHY THIS EXISTS. Phase 1's anti-smuggling check reads SOURCE TEXT, and a
+# source-text grep is the wrong instrument. Measured on Lean v4.30.0-rc2
+# (2026-07-28), each of the following compiles cleanly and slips past it:
+#     ` axiom cheat : ...`        (one leading space — the pattern is anchored)
+#     `@[simp] axiom cheat : ...` (line starts with the attribute)
+#     `unsafe axiom cheat : ...`  (`unsafe` is not in the modifier alternation)
+#     `axiom` <newline> `  cheat` (no space follows the keyword)
+# Only the tab variant is blocked, and by Lean itself, not by us. Hardening the
+# pattern would fix the exhibited syntax rather than the class; the class fix is
+# to stop parsing text and ask the kernel, which is what this phase does.
+# Ported from fips205-slhdsa-verified/verification/Proofs/Audit.lean.
+#
+# Phase 1's grep is kept as a fast, readable first line of defence. THIS is the
+# gate that is load-bearing.
+echo "=== Phase 2b: kernel-side axiom-declaration gate ==="
+# dot-prefixed and inside $HERE: `lean` refuses a file outside the root
+# directory, and a leading dot keeps it out of every *.lean glob.
+# The gate reads the COMPILED ARTIFACTS directly (readModuleData) rather than
+# importing the modules. Two reasons, both load-bearing:
+#   · Proofs.Basic and Proofs.ConstSpecs deliberately reuse the name
+#     `zero_spec` (they are never imported together), so a whole-corpus import
+#     is impossible by construction — it fails with "environment already
+#     contains". Reading oleans merges nothing, so collisions cannot arise.
+#   · Membership is then SELF-DERIVING from the filesystem: every .olean under
+#     Proofs/ is scanned, including Scalar* and AxiomCheck, which the CERTS
+#     audit and the dead-file gate both skip. Nothing is on a hand-kept list.
+# Cost is ~3 s for the whole corpus (no mathlib import), against ~53 s for a
+# single module-importing invocation.
+N_PROOF_SRC=$(ls -1 "$HERE"/Proofs/*.lean 2>/dev/null | wc -l)
+GATE=$(mktemp "$HERE/.axgate-XXXX.lean")
+{
+  echo "import Lean"
+  echo "open Lean"
+  echo "def expectedModules : Nat := $N_PROOF_SRC"
+  cat <<'LEANGATE'
+
+run_cmd do
+  let dir : System.FilePath := "Proofs"
+  let mut errs : Array String := #[]
+  let mut nMod := 0
+  let mut nConst := 0
+  for entry in (← dir.readDir) do
+    if entry.path.extension == some "olean" then
+      nMod := nMod + 1
+      let (mod, _) ← readModuleData entry.path
+      for ci in mod.constants do
+        nConst := nConst + 1
+        if ci matches .axiomInfo _ then
+          errs := errs.push s!"  {entry.fileName}: {ci.name}"
+  unless errs.isEmpty do
+    throwError "AXIOM DECLARED under Proofs/ (kernel-side gate):\n{String.intercalate "\n" errs.toList}"
+  -- FAIL CLOSED ON ABSENCE: an empty result and a clean result must not share
+  -- a code path. A deleted .olean would make the scan above vacuous; an extra
+  -- one is orphan litter with no shipped source.
+  if nMod != expectedModules then
+    throwError "COVERAGE MISMATCH under Proofs/: scanned {nMod} compiled modules, but the directory ships {expectedModules} sources. A missing .olean makes this gate vacuous; an extra .olean is an orphan with no source."
+  logInfo s!"  kernel confirms: {nConst} declarations across {nMod} compiled Proofs modules, none is an axiom"
+LEANGATE
+} > "$GATE"
+cd "$AENEAS_LEAN"
+# The temp source AND its compiled artifact are removed on BOTH paths. Under
+# `set -e` a bare `rm` after the call never runs when the gate goes red, which
+# is exactly how this repo accumulated 101 orphan .olean files (fixed today).
+GATE_RC=0
+lake env bash -c "
+  set -euo pipefail
+  cd '$HERE/gen' && export LEAN_PATH=\"\$LEAN_PATH:\$PWD:$HERE\"
+  cd '$HERE'
+  LEAN_TIMEOUT=$TIMEOUT LEAN_MAX_CORES=$CORES '$HERE/lean-guard' '$GATE'
+" || GATE_RC=$?
+rm -f "$GATE" "${GATE%.lean}.olean"
+if [ "$GATE_RC" -ne 0 ]; then
+  echo "AXIOM SMUGGLING GATE FAILED (kernel-side) — see the error above."
+  exit 1
+fi
 
 # ── Phase 3: axiom audit of every certificate ───────────────────────────────
 echo "=== Phase 3: axiom audit ==="
