@@ -39,3 +39,19 @@ running Rust code. Everything else is machine-checked.
 6. **Compilation of Rust to machine code** (rustc backend) is out of scope,
    as is side-channel behaviour (timing, speculation). The proofs are about
    functional correctness at the MIR/LLBC level.
+7. **What the axiom gate binds, and what it does not.** `check.sh` Phase 2b
+   reads every compiled `Proofs/*.olean` and fails the build if any
+   declaration there is an axiom. It asks the kernel rather than parsing
+   source text, because the source-text check in Phase 1 is evadable four
+   ways — an indented `axiom`, `@[simp] axiom`, `unsafe axiom`, and `axiom`
+   with the name on the following line all compile and all miss its pattern.
+   Membership self-derives from the filesystem, so `Scalar*` and `AxiomCheck`
+   are covered as well, and the count of compiled modules must equal the
+   count of shipped sources, so a deleted `.olean` cannot make the scan pass
+   vacuously. `selftest-axgate.sh` attacks the shipping gate rather than a
+   copy of it, and was itself negative-tested by removing the gate's error.
+   **The residue you must still supply yourself:** this binds *declarations*,
+   not *statements*. Nothing in the button establishes that a certificate's
+   theorem says what its name — or this document — suggests it says. A
+   theorem gutted to a tautology with the same axiom cone would pass every
+   phase. Reading the statements remains a human act.
