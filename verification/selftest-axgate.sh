@@ -23,6 +23,9 @@ CORES="${LEAN_MAX_CORES:-0-3}"
 ATTACK="$HERE/Proofs/ZZSelftestAttack.lean"
 STASH="$(mktemp -d)"
 FAILURES=0
+# Recorded before anything is touched, so the restore check compares against
+# reality rather than assuming a pristine checkout.
+TREE_AT_START="$(cd "$(dirname "$0")/.." && git status --porcelain -- verification/Proofs)"
 
 cleanup() {
   rm -f "$ATTACK" "${ATTACK%.lean}.olean"
@@ -106,12 +109,18 @@ else
   echo "  ok   no litter left by either the green or the red path"
 fi
 
-# ── 5. Restored: the self-test must leave the working tree exactly as found.
-DIRT=$(cd "$HERE/.." && git status --porcelain -- verification/Proofs | wc -l)
-if [ "$DIRT" -ne 0 ]; then
-  echo "  FAIL restore: $DIRT file(s) under Proofs/ left modified"; FAILURES=$((FAILURES+1))
+# ── 5. Restored: the self-test must leave the working tree exactly as it found
+#      it. Compared against the state recorded at START, not against a pristine
+#      checkout — files can be legitimately uncommitted while work is in flight,
+#      and a test that assumes otherwise reports its own premise as a failure.
+if ! diff -q <(echo "$TREE_AT_START") \
+             <(cd "$HERE/.." && git status --porcelain -- verification/Proofs) >/dev/null; then
+  echo "  FAIL restore: Proofs/ differs from how this test found it:"
+  diff <(echo "$TREE_AT_START") \
+       <(cd "$HERE/.." && git status --porcelain -- verification/Proofs) | sed 's/^/        /'
+  FAILURES=$((FAILURES+1))
 else
-  echo "  ok   working tree restored"
+  echo "  ok   working tree restored to its starting state"
 fi
 
 echo ""

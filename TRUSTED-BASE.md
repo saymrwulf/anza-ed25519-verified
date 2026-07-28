@@ -55,3 +55,35 @@ running Rust code. Everything else is machine-checked.
    theorem says what its name — or this document — suggests it says. A
    theorem gutted to a tautology with the same axiom cone would pass every
    phase. Reading the statements remains a human act.
+8. **What the statement binding covers.** `check.sh` Phase 3c compiles
+   `Proofs/Audit.lean`, which emits a canonical block containing the policy
+   constants, every certificate's fully-elaborated statement (`pp.all`, so
+   implicit arguments, instances and universe levels are all visible), and the
+   fully-elaborated body of every specification constant transitively
+   reachable from those statements. The SHA-256 of that block is pinned in
+   `check.sh` and the block itself is committed as `AUDIT-MANIFEST.txt`, so a
+   mismatch is diffed rather than merely reported. This is what makes a
+   certificate gutted to a tautology of the same axiom cone fail, and what
+   makes a reference definition redefined to BE the extracted code fail — two
+   attacks that move no cone at all. Phase 0b separately pins the bytes of
+   every extracted-model file under `gen/`, with membership derived from the
+   filesystem so a new model file fails closed.
+
+   **The residue you must still supply yourself.** Three things, stated
+   plainly because a reader would otherwise assume them:
+
+   · *A digest binds identity, not meaning.* The audit proves the statements
+     are the ones that were reviewed. Whether those statements say something
+     worth believing about ed25519 is a question only a human reading them
+     answers. `AUDIT-MANIFEST.txt` is committed precisely so that reading is
+     possible without re-running anything.
+
+   · *An author can rotate the pins.* Editing a statement and refreshing the
+     digest in the same commit passes every phase. The defence is that both
+     changes are visible in the diff, reviewed at the pinned commit — not that
+     the script prevents it. No harness audits its own author.
+
+   · *Phase 0b pins the model; it does not verify the translation.* That the
+     bytes under `gen/` are the reviewed bytes says nothing about whether
+     Charon and Aeneas translated the Rust faithfully. That assumption is
+     item 3 above and is unchanged.
