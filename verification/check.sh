@@ -183,6 +183,54 @@ if ! ( cd "$HERE/gen" && sha256sum -c --quiet "$HERE/GEN-MODEL.sha256" ) ; then
   exit 1
 fi
 echo "  $(wc -l < "$HERE/GEN-MODEL.sha256") extracted-model files match their pins"
+# ── Phase 0c: harness integrity ─────────────────────────────────────────────
+# WHY. Every gate in this script is executed by a script that, until now,
+# nothing pinned. Round-5 review of the companion SLH-DSA repository stubbed
+# the compiler wrapper alone and the button printed ALL GREEN in 3.6 seconds
+# over deliberately destroyed proofs; flipping two guards in the audit driver
+# disabled every check with the digest byte-identical. Depth of checking is
+# worth nothing if the thing doing the checking is unbound.
+#
+# WHICH files must be pinned is POLICY, and policy lives here — in the root of
+# trust — never inside the map being consulted. If the required set were read
+# from HARNESS.sha256, deleting an entry would silently un-pin the file rather
+# than failing the build.
+#
+# The set is SELF-DERIVING from the executable bit: anything this script can
+# shell out to must be pinned, so a NEW script fails closed until someone pins
+# it deliberately. Non-executable files that are nonetheless load-bearing —
+# the audit driver, the committed manifests, the policy tables — cannot be
+# discovered that way and are listed explicitly.
+HARNESS_EXTRA=(
+  AUDIT-MANIFEST.txt      # the statement block Phase 3c's digest is taken over
+  GEN-MODEL.sha256        # the extracted-model pins Phase 0b enforces
+  Proofs/Audit.lean       # the audit driver: it computes the digest it is judged by
+)
+echo "=== Phase 0c: harness integrity ==="
+if [ ! -s "$HERE/HARNESS.sha256" ]; then
+  echo "FATAL: HARNESS.sha256 is missing or empty — the harness is unpinned."
+  exit 1
+fi
+# NOTE ON check.sh ITSELF: it is pinned like everything else. That catches
+# drift and accident. It does NOT stop an author who edits this script and
+# refreshes its pin in the same commit — nothing executed by the harness can.
+# The defence there is that both changes appear in the diff at the pinned
+# commit, which is why TRUSTED-BASE.md says the consumer's check is review.
+HARNESS_REQUIRED=$( { find "$HERE" -type f -executable -not -path '*/.git/*' -printf '%P\n'
+                      printf '%s\n' "${HARNESS_EXTRA[@]}"; } | sort -u )
+HARNESS_PINNED=$(awk '{print $2}' "$HERE/HARNESS.sha256" | sort -u)
+if [ "$HARNESS_REQUIRED" != "$HARNESS_PINNED" ]; then
+  echo "FATAL: the set of harness files does not match HARNESS.sha256."
+  echo "  (< pinned, > present and requiring a pin)"
+  diff <(echo "$HARNESS_PINNED") <(echo "$HARNESS_REQUIRED") | sed 's/^/    /'
+  exit 1
+fi
+if ! ( cd "$HERE" && sha256sum -c --quiet HARNESS.sha256 ) ; then
+  echo "FATAL: a harness file does not match its pin. The button you are"
+  echo "running is not the button that was reviewed."
+  exit 1
+fi
+echo "  $(wc -l < "$HERE/HARNESS.sha256") harness files match their pins"
 # ── Phase 1: stub + axiom-smuggling audit ───────────────────────────────────
 echo "=== Phase 1: stub audit ==="
 if grep -rn 'by trivial' "$HERE"/Proofs/*Spec*.lean 2>/dev/null; then

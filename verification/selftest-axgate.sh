@@ -113,11 +113,14 @@ fi
 #      it. Compared against the state recorded at START, not against a pristine
 #      checkout — files can be legitimately uncommitted while work is in flight,
 #      and a test that assumes otherwise reports its own premise as a failure.
-if ! diff -q <(echo "$TREE_AT_START") \
-             <(cd "$HERE/.." && git status --porcelain -- verification/Proofs) >/dev/null; then
+# Compare the two states AS STRINGS. Comparing `echo "$VAR"` against a raw
+# command substitution is asymmetric: for a clean tree the variable is empty
+# and `echo` still emits one blank line while the command emits none, so the
+# check reports a spurious difference exactly when nothing is wrong.
+TREE_NOW="$(cd "$HERE/.." && git status --porcelain -- verification/Proofs)"
+if [ "$TREE_AT_START" != "$TREE_NOW" ]; then
   echo "  FAIL restore: Proofs/ differs from how this test found it:"
-  diff <(echo "$TREE_AT_START") \
-       <(cd "$HERE/.." && git status --porcelain -- verification/Proofs) | sed 's/^/        /'
+  diff <(printf '%s\n' "$TREE_AT_START") <(printf '%s\n' "$TREE_NOW") | sed 's/^/        /'
   FAILURES=$((FAILURES+1))
 else
   echo "  ok   working tree restored to its starting state"

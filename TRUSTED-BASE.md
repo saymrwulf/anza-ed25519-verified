@@ -87,3 +87,27 @@ running Rust code. Everything else is machine-checked.
      bytes under `gen/` are the reviewed bytes says nothing about whether
      Charon and Aeneas translated the Rust faithfully. That assumption is
      item 3 above and is unchanged.
+
+9. **The harness is pinned, and what that is worth.** `check.sh` Phase 0c
+   requires every executable file under `verification/` — plus the audit
+   driver, the committed manifests and the policy tables, which are not
+   executable and are therefore listed explicitly in the script — to match
+   `HARNESS.sha256`. Membership is derived from the executable bit, so a new
+   script fails the build until someone pins it deliberately, and the required
+   set is computed from the filesystem rather than read out of the pin file,
+   so deleting an entry is a failure rather than a silent un-pinning.
+   `lean-guard` is inside that set: stubbing the memory-capped compiler
+   wrapper is the cheapest known route to a false green, demonstrated
+   elsewhere in this estate as ALL GREEN in 3.6 seconds over deliberately
+   destroyed proofs. `selftest-harness.sh` replays that attack and four
+   others.
+
+   **What it does NOT buy, stated plainly.** Pinning a harness from inside
+   that harness is circular, and no amount of engineering removes the
+   circularity. An author who edits `check.sh` — or `lean-guard`, or the
+   audit driver — and refreshes its pin in the SAME commit passes every
+   phase. What the pin changes is that the edit can no longer be silent: it
+   must appear in the diff, at the commit you are reviewing. That is why the
+   consumer's protection is, and has always been, *review at the pinned
+   commit* rather than the button's own verdict. A green button says "this is
+   the apparatus that was reviewed", never "this apparatus is trustworthy".

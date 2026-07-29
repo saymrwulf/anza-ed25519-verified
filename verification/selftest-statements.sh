@@ -243,9 +243,13 @@ fi
 
 # ── 6. Restored: green again, and the working tree is as we found it.
 expect "restored to green" 0 "audit-manifest sha256"
-if ! diff -q <(echo "$TREE_AT_START") <(cd "$HERE/.." && git status --porcelain) >/dev/null; then
+# String comparison, not diff of process substitutions: for a clean tree the
+# variable is empty and `echo` emits a blank line the raw command does not,
+# which reports a difference precisely when there is none.
+TREE_NOW="$(cd "$HERE/.." && git status --porcelain)"
+if [ "$TREE_AT_START" != "$TREE_NOW" ]; then
   echo "  FAIL restore: the working tree differs from how this test found it:"
-  diff <(echo "$TREE_AT_START") <(cd "$HERE/.." && git status --porcelain) | sed 's/^/        /'
+  diff <(printf '%s\n' "$TREE_AT_START") <(printf '%s\n' "$TREE_NOW") | sed 's/^/        /'
   FAILURES=$((FAILURES+1))
 else
   echo "  ok   working tree restored to its starting state"
