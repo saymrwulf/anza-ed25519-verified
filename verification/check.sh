@@ -202,9 +202,13 @@ echo "  $(wc -l < "$HERE/GEN-MODEL.sha256") extracted-model files match their pi
 # the audit driver, the committed manifests, the policy tables — cannot be
 # discovered that way and are listed explicitly.
 HARNESS_EXTRA=(
-  AUDIT-MANIFEST.txt      # the statement block Phase 3c's digest is taken over
-  GEN-MODEL.sha256        # the extracted-model pins Phase 0b enforces
-  Proofs/Audit.lean       # the audit driver: it computes the digest it is judged by
+  AUDIT-MANIFEST.txt        # the statement block Phase 3c's digest is taken over
+  GEN-MODEL.sha256          # the extracted-model pins Phase 0b enforces
+  inventory-allowlist.txt   # the audit surface Phase 2c diffs against
+  Proofs/Audit.lean         # the audit driver: it computes the digest it is judged by
+  Proofs/InventoryCore.lean # inventory machinery
+  Proofs/Inventory.lean     # inventory driver: main chain
+  Proofs/InventoryBasic.lean # inventory driver: Proofs.Basic
 )
 echo "=== Phase 0c: harness integrity ==="
 if [ ! -s "$HERE/HARNESS.sha256" ]; then
@@ -266,6 +270,11 @@ lake env bash -c "
   for f in Proofs/*.lean; do
     b=\$(basename \"\$f\" .lean)
     [ \"\$b\" = AxiomCheck ] && continue
+    # Inventory drivers are compiled by Phase 2c, not here: they must elaborate
+    # with the corpus already in the environment, and the two of them cannot be
+    # imported together. They are NOT unchecked — Phase 2b reads their compiled
+    # .olean like every other module, and Phase 0c pins their sources.
+    case \"\$b\" in Inventory|InventoryBasic|InventoryCore) continue;; esac
     case \"\$b\" in Scalar*) continue;; esac  # scalar layer: checked by check-scalar.sh (coherence pass 2)
     case \" ${PROOFS[*]} \" in (*\" \$b \"*) ;; (*) echo \"DEAD FILE: \$f not in check manifest\"; exit 1;; esac
   done
@@ -351,6 +360,85 @@ if [ "$GATE_RC" -ne 0 ]; then
   exit 1
 fi
 
+# ── Phase 2c: environment-derived declaration inventory ─────────────────────
+# WHAT THIS ADDS over Phase 2b. Phase 2b asks the kernel whether any AXIOM is
+# declared under Proofs/. It says nothing about the ~3000 other declarations:
+# a `def` or `theorem` whose cone quietly acquired an oracle, a declaration
+# renamed, added or removed, or a compiler-generated auxiliary that changed
+# shape, all pass 2b unremarked.
+#
+# This phase pins the whole surface. Every constant originating in an audited
+# module contributes NAME, MODULE, KIND and full AXIOM CONE, and the observed
+# set must equal inventory-allowlist.txt EXACTLY, both directions:
+# UNCLASSIFIED (in the environment, not allowlisted) and STALE (allowlisted,
+# not in the environment) are both build failures.
+#
+# PORTED from ltl-accumulator-verified, where a nine-attack self-test proved a
+# source-regex enumerator evadable by attributed, private, indented and
+# `instance` declarations and by a nested-namespace basename collision.
+#
+# TWO DRIVERS, because this corpus cannot be imported as one environment:
+# Proofs.Basic and Proofs.ConstSpecs both declare CurveFieldProofs.zero_spec.
+# The records carry their originating module precisely so those two remain
+# distinct entries — keyed on name alone they were byte-identical, and the
+# merged allowlist covered 3022 declarations with 3021 entries.
+echo "=== Phase 2c: environment-derived declaration inventory ==="
+INVFAIL=0
+INVLOG=$(mktemp /tmp/check-inv-XXXX.log)
+cd "$AENEAS_LEAN"
+# The DRIVERS are discovered, not listed: whether this corpus needs one or two
+# is a per-repo fact (dalek and anza cannot import Proofs.Basic together with
+# Proofs.ConstSpecs; risc0 and betrusted have no Proofs.Basic at all). A
+# hardcoded pair would silently look for a file that does not exist here.
+DRIVERS=$(ls "$HERE"/Proofs/Inventory*.lean 2>/dev/null | xargs -r -n1 basename \
+          | sed 's/\.lean$//' | grep -v '^InventoryCore$' | sort)
+if [ -z "$DRIVERS" ]; then
+  echo "  NO INVENTORY DRIVER FOUND — the audit surface would go unchecked."; exit 1
+fi
+N_DRIVERS=$(printf '%s\n' "$DRIVERS" | grep -c .)
+for drv in $DRIVERS; do
+  lake env bash -c "
+    set -uo pipefail
+    cd '$HERE/gen' && export LEAN_PATH=\"\$LEAN_PATH:\$PWD:$HERE\"
+    cd '$HERE'
+    LEAN_TIMEOUT=$TIMEOUT LEAN_MEM_MB=8192 '$HERE/lean-guard' Proofs/$drv.lean
+  " >> "$INVLOG" 2>&1 || { cat "$INVLOG"; echo "INVENTORY COMPILE FAILED ($drv)"; rm -f "$INVLOG"; exit 1; }
+done
+# Reconcile the two trailers into one. Summing them and comparing against the
+# lines actually collected preserves the integrity property in the presence of
+# the split: truncation in EITHER driver shows up as a mismatch.
+N_TRAILERS=$(grep -c '^INV-COUNT|' "$INVLOG")
+if [ "$N_TRAILERS" -ne "$N_DRIVERS" ]; then
+  echo "  INVENTORY INCOMPLETE: expected a count trailer from each of the $N_DRIVERS driver(s), saw $N_TRAILERS"
+  INVFAIL=1
+fi
+SUM=$(grep '^INV-COUNT|' "$INVLOG" | cut -d'|' -f2 | paste -sd+ - | bc)
+OBS=$(mktemp /tmp/check-inv-obs-XXXX.log)
+grep '^INV|' "$INVLOG" > "$OBS"
+echo "INV-COUNT|${SUM:-0}" >> "$OBS"
+"$HERE/inventory_gate.sh" "$OBS" "$HERE/inventory-allowlist.txt" || INVFAIL=1
+rm -f "$INVLOG" "$OBS"
+
+# The drivers' corpus lists must together BE the compile manifest, minus the
+# audit infrastructure and the scalar layer. Checked in both directions so a
+# module cannot fall between the two drivers, and NO SILENT TRUNCATION: what
+# this phase does not cover is named on stdout every run.
+COVERED=$(for d in $DRIVERS; do grep -ohE '`Proofs\.[A-Za-z0-9]+' "$HERE/Proofs/$d.lean"; done \
+          | sed 's/`Proofs\.//' | sort -u)
+for m in "${PROOFS[@]}"; do
+  case "$m" in Audit|Inventory|InventoryBasic|InventoryCore) continue;; esac
+  grep -qx "$m" <<<"$COVERED" || { echo "  UNINVENTORIED: $m is compiled by this script but no driver covers it"; INVFAIL=1; }
+done
+while read -r m; do
+  [ -z "$m" ] && continue
+  case " ${PROOFS[*]} " in (*" $m "*) ;; (*) echo "  PHANTOM: driver claims $m, which this script does not compile"; INVFAIL=1;; esac
+done <<<"$COVERED"
+for f in "$HERE"/Proofs/*.lean; do
+  b=$(basename "$f" .lean)
+  case "$b" in Audit|Inventory|InventoryBasic|InventoryCore) continue;; esac
+  grep -qx "$b" <<<"$COVERED" || echo "  NOT INVENTORIED HERE (separate button): Proofs/$b.lean"
+done
+[ "$INVFAIL" = 0 ] || { echo "INVENTORY COVERAGE FAILED"; exit 1; }
 # ── Phase 3: axiom audit of every certificate ───────────────────────────────
 echo "=== Phase 3: axiom audit ==="
 EXPECTED="[propext, Classical.choice, Quot.sound]"

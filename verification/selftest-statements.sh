@@ -68,7 +68,9 @@ build_driver() {
     sed -n '/^CERTS=(/,/^)/p' "$HERE/check.sh"
     # `$0` inside Phase 3c must resolve to the shipping check.sh, not to this
     # driver, or the apex-name recovery would read the wrong file.
-    sed -n '/^# ── Phase 3c/,/^echo ""$/p' "$HERE/check.sh" | sed '$d' \
+    # Stop at the next phase marker, not at a blank echo: a terminator that is
+    # not itself a phase boundary breaks the moment the phase's body changes.
+    awk '/^# ── Phase 3c/{f=1} f&&/^# ── Phase /&&!/Phase 3c/{exit} f{print}' "$HERE/check.sh" \
       | sed "s|\"\$0\"|\"$HERE/check.sh\"|g"
   } > "$DRIVER"
   if [ "$(wc -l < "$DRIVER")" -lt 60 ]; then

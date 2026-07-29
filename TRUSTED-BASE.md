@@ -111,3 +111,38 @@ running Rust code. Everything else is machine-checked.
    consumer's protection is, and has always been, *review at the pinned
    commit* rather than the button's own verdict. A green button says "this is
    the apparatus that was reviewed", never "this apparatus is trustworthy".
+
+10. **The whole declaration surface is pinned, not just the certificates.**
+   `check.sh` Phase 2c reads the compiled environment and records, for EVERY
+   constant originating in an audited module — roughly three thousand of them,
+   compiler-generated auxiliaries included — its originating module, fully
+   qualified name, declaration kind and complete axiom cone. The observed set
+   must equal `inventory-allowlist.txt` exactly, in BOTH directions: a
+   declaration present but not allowlisted (`UNCLASSIFIED`) and an allowlist
+   entry with no declaration (`STALE`) are both build failures, and a count
+   trailer disagreeing with the lines received is a third.
+
+   The gap this closes: Phase 2b asks the kernel only whether an AXIOM is
+   declared, and Phase 3 pins the cones of the named certificates. Between
+   them sat every helper lemma in the corpus. One of those quietly acquiring
+   a hash oracle in its cone moved nothing either phase looked at.
+
+   **Two limits, stated because a reader would otherwise assume neither.**
+
+   · *No independent cone walker here.* The companion accumulator runs a
+     hand-written closure walker alongside the kernel's `collectAxioms` and
+     requires the two to agree on every constant, so each checks the other.
+     Ported to this corpus on 2026-07-29 that walker was wrong in BOTH
+     directions on mathlib's inductive shapes — it reported no axioms for
+     `CurveFieldProofs.EdPoint` where the kernel reported three, and after
+     being extended it reported three for `CurveFieldProofs.ProjPoint` where
+     the kernel reported none. Two implementations disagreeing both ways are
+     not a cross-check; they are a second wrong answer. The cone figures here
+     therefore rest on `collectAxioms` alone. The accumulator keeps its
+     cross-check, its corpus being mathlib-free.
+
+   · *The scalar layer is outside this phase.* Thirteen `Proofs/Scalar*`
+     modules belong to `check-scalar.sh` and are inventoried by nothing. That
+     is the two-button seam, still open. Phase 2c prints every uncovered
+     module by name on every run, so the omission is visible rather than
+     inferred.

@@ -43,11 +43,22 @@ DRIVER="$STASH/phase2b.sh"
   echo "HERE=\"$HERE\""
   echo 'AENEAS_LEAN="$AENEAS_HOME/backends/lean"'
   echo "TIMEOUT=$TIMEOUT; CORES=\"$CORES\""
-  sed -n '/^# ── Phase 2b/,/^# ── Phase 3/p' "$HERE/check.sh" | sed '$d'
+  # Stop at the NEXT phase marker, whatever it is called. A hardcoded
+  # terminator ("...to Phase 3") silently widens the moment a phase is
+  # inserted between the two: adding Phase 2c made this driver swallow 2c as
+  # well and die on variables that phase expects check.sh to have defined,
+  # which surfaced as the BASELINE failing — a self-test blaming a gate for
+  # its own extraction bug.
+  awk '/^# ── Phase 2b/{f=1} f&&/^# ── Phase /&&!/Phase 2b/{exit} f{print}' "$HERE/check.sh"
 } > "$DRIVER"
 if [ "$(wc -l < "$DRIVER")" -lt 40 ]; then
   echo "FATAL: could not lift Phase 2b out of check.sh — the phase markers moved."
   echo "This self-test must attack the shipping gate; refusing to run against nothing."
+  exit 1
+fi
+if [ "$(grep -c '^# ── Phase ' "$DRIVER")" -ne 1 ]; then
+  echo "FATAL: the lifted block spans more than one phase; the extraction is wrong."
+  grep '^# ── Phase ' "$DRIVER" | sed 's/^/    /'
   exit 1
 fi
 
