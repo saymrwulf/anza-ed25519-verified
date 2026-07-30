@@ -70,7 +70,7 @@ build_driver() {
     # driver, or the apex-name recovery would read the wrong file.
     # Stop at the next phase marker, not at a blank echo: a terminator that is
     # not itself a phase boundary breaks the moment the phase's body changes.
-    awk '/^# ── Phase 3c/{f=1} f&&/^# ── Phase /&&!/Phase 3c/{exit} f{print}' "$HERE/check.sh" \
+    awk '/^# ── Phase 3c/{f=1} f&&/^# ── (Phase |Phases end)/&&!/Phase 3c/{exit} f{print}' "$HERE/check.sh" \
       | sed "s|\"\$0\"|\"$HERE/check.sh\"|g"
   } > "$DRIVER"
   if [ "$(wc -l < "$DRIVER")" -lt 60 ]; then

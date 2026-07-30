@@ -49,7 +49,7 @@ DRIVER="$STASH/phase2b.sh"
   # well and die on variables that phase expects check.sh to have defined,
   # which surfaced as the BASELINE failing — a self-test blaming a gate for
   # its own extraction bug.
-  awk '/^# ── Phase 2b/{f=1} f&&/^# ── Phase /&&!/Phase 2b/{exit} f{print}' "$HERE/check.sh"
+  awk '/^# ── Phase 2b/{f=1} f&&/^# ── (Phase |Phases end)/&&!/Phase 2b/{exit} f{print}' "$HERE/check.sh"
 } > "$DRIVER"
 if [ "$(wc -l < "$DRIVER")" -lt 40 ]; then
   echo "FATAL: could not lift Phase 2b out of check.sh — the phase markers moved."

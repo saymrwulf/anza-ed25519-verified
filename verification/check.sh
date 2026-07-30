@@ -37,6 +37,41 @@ TIMEOUT="${LEAN_TIMEOUT:-300}"
 export LEAN_MEM_MB="${LEAN_MEM_MB:-8192}"  # 8192: ReduceSpec exceeds 6144 (coherence pass 2)
 CORES="${LEAN_MAX_CORES:-0-3}"
 
+# ── Mode selection ──────────────────────────────────────────────────────────
+# --audit-only runs every gate EXCEPT the compile, against the .olean files a
+# previous full run left behind. It exists because gate work dominates this
+# estate's wall-clock: on 2026-07-29, 3.9 hours of a session went to Lean
+# re-elaborating proofs nobody had edited, while the audit phases themselves
+# take about fifteen seconds.
+#
+# IT MUST BE IMPOSSIBLE TO MISUSE, so:
+#   · it refuses to run unless a previous FULL run recorded a basis of source
+#     hashes AND every source still matches it byte-for-byte. Not mtimes —
+#     `touch` defeats those, and a stale-artifact check that fails open is
+#     worse than no shortcut at all, because a green button would then
+#     describe a corpus that is no longer on disk;
+#   · the basis file is build state, never committed, so a fresh clone cannot
+#     inherit permission to skip compiling;
+#   · the final banner DIFFERS, and says in words that the run is not evidence.
+#     A transcript must never be mistakable for a full one.
+AUDIT_ONLY=0
+for arg in "$@"; do
+  case "$arg" in
+    --audit-only) AUDIT_ONLY=1 ;;
+    --help|-h) echo "usage: check.sh [--audit-only]"; exit 0 ;;
+    *) echo "unknown argument: $arg (see --help)"; exit 1 ;;
+  esac
+done
+BASIS="$HERE/.audit-basis"          # gitignored build state, written by full runs
+
+# Every .lean this repository ships, with its hash: the exact set whose
+# recompilation --audit-only proposes to skip.
+source_basis() {
+  { find "$HERE/Proofs" -name '*.lean' -type f -printf '%P\n' | sed 's|^|Proofs/|'
+    find "$HERE/gen" -name '*.lean' -type f -printf '%P\n' | sed 's|^|gen/|'; } \
+  | LC_ALL=C sort | while read -r f; do printf '%s  %s\n' "$(sha256sum "$HERE/$f" | cut -d' ' -f1)" "$f"; done
+}
+
 # Layer manifests (extended as the pyramid grows; ORDER = import order).
 GEN_MODULES=(
   CurveField/TypesExternal
@@ -297,6 +332,34 @@ done <<<"$SCALAR_MANIFEST"
 [ "$SEAMFAIL" = 0 ] && echo "  every proof source belongs to exactly one button ($(grep -c . <<<"$MAIN_MANIFEST") here, $(grep -c . <<<"$SCALAR_MANIFEST") scalar)"
 [ "$SEAMFAIL" = 0 ] || { echo "SEAM CHECK FAILED"; exit 1; }
 # ── Phase 2: compile everything shipped ─────────────────────────────────────
+if [ "$AUDIT_ONLY" = 1 ]; then
+  echo "=== Phase 2: SKIPPED (--audit-only) ==="
+  if [ ! -s "$BASIS" ]; then
+    echo "REFUSING: no basis from a previous full run ($BASIS absent)."
+    echo "  --audit-only may only follow a full green run in this working tree."
+    echo "  Run ./check.sh with no arguments first."
+    exit 1
+  fi
+  if ! diff -q <(source_basis) "$BASIS" >/dev/null 2>&1; then
+    echo "REFUSING: the sources no longer match the basis of the last full run."
+    echo "  The .olean files on disk describe a corpus that has changed, so every"
+    echo "  audit below would be judging artifacts that no source produces."
+    echo "  Differences (< basis, > now):"
+    diff <(source_basis) "$BASIS" | head -20 | sed 's/^/    /'
+    echo "  Run ./check.sh with no arguments."
+    exit 1
+  fi
+  # Fail closed on absence too: a source with no artifact cannot be audited.
+  MISSING=0
+  for m in "${PROOFS[@]}"; do
+    [ -f "$HERE/Proofs/$m.olean" ] || { echo "  MISSING ARTIFACT: Proofs/$m.olean"; MISSING=1; }
+  done
+  for m in "${GEN_MODULES[@]}"; do
+    [ -f "$HERE/gen/$m.olean" ] || { echo "  MISSING ARTIFACT: gen/$m.olean"; MISSING=1; }
+  done
+  [ "$MISSING" = 0 ] || { echo "REFUSING: run ./check.sh with no arguments."; exit 1; }
+  echo "  sources byte-identical to the last full run's basis; $(grep -c . "$BASIS") files"
+else
 echo "=== Phase 2: compile ==="
 LOG=$(mktemp /tmp/check-compile-XXXX.log)
 cd "$AENEAS_LEAN"
@@ -329,6 +392,7 @@ lake env bash -c "
 if grep -q "uses 'sorry'" "$LOG"; then
   echo "STUB DETECTED: a compiled declaration uses 'sorry'"; exit 1; fi
 rm -f "$LOG"
+fi
 
 # ── Phase 2b: kernel-side axiom-declaration gate ────────────────────────────
 # WHY THIS EXISTS. Phase 1's anti-smuggling check reads SOURCE TEXT, and a
@@ -635,6 +699,22 @@ fi
 grep -o 'statement audit PASSED:.*' <<<"$AUD_OUT" | sed 's/^/  /'
 echo "  audit-manifest sha256 = $GOT_SHA (matches the committed block byte-for-byte)"
 
+# ── Phases end ──────────────────────────────────────────────────────────────
+# Sentinel. Self-tests lift a phase by scanning from its header to the NEXT
+# marker; without this the final phase's lift ran to end-of-file and picked up
+# everything appended afterwards. Do not remove: anything added below this line
+# would otherwise silently become part of the last phase from a lifter's point
+# of view.
+
 echo ""
+if [ "$AUDIT_ONLY" = 1 ]; then
+  echo "AUDIT-ONLY RUN — GATES PASSED, PROOFS NOT RECOMPILED."
+  echo "This is NOT evidence: the kernel did not re-elaborate a single proof in"
+  echo "this run. It says the gates accept the artifacts a previous full run"
+  echo "left behind. For a recorded result, run ./check.sh with no arguments."
+  exit 0
+fi
+# Only a full run earns the right to let a later --audit-only skip compiling.
+source_basis > "$BASIS"
 echo "ALL PROOFS PASS. ALL CERTIFICATES AXIOM-CLEAN. NO DEAD FILES."
 echo "STATEMENTS AND SPECIFICATIONS BOUND TO THE COMMITTED AUDIT MANIFEST."

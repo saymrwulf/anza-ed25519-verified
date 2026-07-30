@@ -177,3 +177,33 @@ running Rust code. Everything else is machine-checked.
    button's driver. All three now test membership in a manifest. This is the
    same family as the source-text axiom grep that began this campaign:
    reasoning about names instead of about the thing itself.
+
+12. **`--audit-only`, and why a green transcript from it is not evidence.**
+   `check.sh --audit-only` runs every gate but skips recompilation, against the
+   `.olean` files a previous full run left behind: about 60 seconds against
+   about 1280. It exists because gate work dominates this estate's wall-clock,
+   and it is safe only because it refuses.
+
+   It refuses unless every shipped `.lean` is BYTE-IDENTICAL to a basis
+   recorded by a previous full run — not mtimes, which `touch` defeats, and a
+   stale-artifact check that fails open would be worse than no shortcut at all:
+   a green button would then describe a corpus that is no longer on disk. The
+   basis is gitignored build state, so a fresh clone cannot inherit permission
+   to skip compiling, and the closing banner says in words that the run is not
+   evidence.
+
+   **The kernel re-elaborates nothing in such a run.** What it establishes is
+   that the gates accept artifacts produced earlier — useful while developing a
+   gate, worthless as a record. `formal-verification-control/tools/record-run.py`
+   enforces that: it refuses to archive any transcript bearing the audit-only
+   markers, and also any transcript without a terminal success banner, any
+   containing `error:`, and any repository whose tree is dirty at record time.
+   A banner is a request; that tool is the gate.
+
+   Also worth knowing when reading a red run: `lean-guard` clamps Lean's memory
+   budget to what the machine can spare, and under load that clamp can be too
+   small to elaborate a large module. It surfaces as `FAIL: Proofs/<module>`,
+   which reads exactly like a broken proof and is not one — it is a resource
+   condition, and the cap is what protects this machine from the global OOM
+   that killed a session on 2026-07-02. Check the transcript for a `clamping`
+   line before concluding anything about the mathematics.
