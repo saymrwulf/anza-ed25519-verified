@@ -119,7 +119,42 @@ PROOFS=(
   DecompressSpec
   FromBytesSpec
   DecompressMain
-  Audit          # LAST: imports the certificate corpus and runs the audit
+  Audit          # imports the certificate corpus and runs the audit
+  InventoryCore  # inventory machinery (imports only Lean)
+  Inventory      # inventory driver: main chain
+  InventoryBasic # inventory driver: Proofs.Basic (kept separate: name collision)
+)
+# Modules this button must COMPILE but does not OWN.
+#
+# The signature apex rests on scalar arithmetic: PointLiftSpec needs
+# ScalarPackSpec which needs ScalarFromBytesSpec, and SigApexSpec needs
+# ScalarDenote. Twelve of the scalar layer's thirteen modules are
+# transitive prerequisites of this manifest.
+#
+# Until Phase 0a began purging, this button appeared to work without them:
+# it silently consumed .olean files that a previous check-scalar.sh run had
+# left lying about. The verdict depended on untracked build state produced
+# by a DIFFERENT script — precisely the condition build hygiene exists to
+# expose, and it stayed invisible for as long as nothing ever cleaned up.
+#
+# OWNERSHIP IS UNCHANGED: check-scalar.sh audits these — their cones, their
+# declaration inventory, their axiom gate. This button only builds them so
+# that running it alone is self-contained. Phase 1b asserts that every name
+# here belongs to the OTHER manifest, so this list can never quietly become
+# a second claim of ownership.
+PREREQ=(
+  ScalarDenote
+  ScalarLoop
+  ScalarSubSpec
+  ScalarAddSpec
+  ScalarMulSpec
+  ScalarMontSpec
+  ScalarReduceSpec
+  ScalarFullMulSpec
+  ScalarWideSpec
+  ScalarBytesSpec
+  ScalarUnpackSpec
+  ScalarFromBytesSpec
 )
 # Fully-qualified certificate names; each must be axiom-clean.
 CERTS=(
@@ -183,6 +218,50 @@ for f in "$HERE"/gen/CurveField/*.lean "$HERE"/Proofs/*.lean; do
 done
 echo "  all sources valid"
 
+# ── Phase 0a: build hygiene ─────────────────────────────────────────────────
+# The verdict must depend on COMMITTED BYTES, never on build state left behind
+# by an earlier run. An orphan .olean with no source still satisfies an import,
+# and .olean is gitignored, so `git status` shows a clean tree while the
+# compiler happily reads a module nobody can review.
+#
+# NOT RUN UNDER --audit-only, for the obvious reason: that mode exists to audit
+# the artifacts a previous full run produced, and purging them would make the
+# two features destroy each other. That is also why an audit-only transcript is
+# not evidence — it has not had this hygiene applied.
+if [ "$AUDIT_ONLY" = 0 ]; then
+  echo "=== Phase 0a: build hygiene ==="
+  find "$HERE" -name '*.olean' -delete 2>/dev/null || true
+  echo "  purged every .olean under verification/ — this run compiles from source"
+else
+  echo "=== Phase 0a: SKIPPED (--audit-only keeps the artifacts it audits) ==="
+fi
+
+# Stray Lean files at the verification/ root join the build through LEAN_PATH,
+# which contains $PWD. gen/ and Proofs/ are the only sanctioned locations.
+STRAY=$(find "$HERE" -maxdepth 1 \( -name '*.lean' -o -name '*.olean' \) -printf '%f\n' 2>/dev/null || true)
+if [ -n "$STRAY" ]; then
+  echo "$STRAY" | sed 's/^/  STRAY Lean file outside gen\/ and Proofs\/: /'
+  echo "These join the build via LEAN_PATH and are audited by nothing."
+  exit 1
+fi
+
+# gen/ as a SET, not as a list of names: every .lean under gen/ must be either
+# a compiled model module or an Aeneas *_Template.lean. The templates are KEPT
+# here, unlike the companion SLH-DSA repo which deletes them: extract.sh directs
+# the operator to diff the hand-written external models against them, so they
+# are the reference for that comparison and deleting them would destroy it.
+GENFAIL=0
+while read -r f; do
+  [ -z "$f" ] && continue
+  case "$f" in *_Template.lean) continue;; esac
+  b="${f%.lean}"
+  case " ${GEN_MODULES[*]} " in (*" $b "*) ;; (*) echo "  DEAD MODEL FILE: gen/$f is in no manifest"; GENFAIL=1;; esac
+done < <(cd "$HERE/gen" && find . -name '*.lean' -printf '%P\n' | sort)
+for m in "${GEN_MODULES[@]}"; do
+  [ -f "$HERE/gen/$m.lean" ] || { echo "  MISSING MODEL FILE: gen/$m.lean is in the manifest but absent"; GENFAIL=1; }
+done
+[ "$GENFAIL" = 0 ] || { echo "MODEL-SET CHECK FAILED"; exit 1; }
+echo "  gen/ is exactly the manifest plus its pinned templates"
 # ── Phase 0b: pin the extracted model ───────────────────────────────────────
 # WHY. The certificates are stated ABOUT the extracted model in gen/. Phase 3c
 # binds their statements and the specification definitions those statements are
@@ -329,6 +408,14 @@ while read -r m; do
   [ -z "$m" ] && continue
   [ -f "$HERE/Proofs/$m.lean" ] || { echo "  PHANTOM: check-scalar.sh lists $m, which does not exist"; SEAMFAIL=1; }
 done <<<"$SCALAR_MANIFEST"
+# PREREQ is a borrowing, not a claim: every name in it must belong to the
+# OTHER manifest. Without this the list could silently grow into a second
+# ownership claim over modules this button never audits.
+for m in "${PREREQ[@]}"; do
+  grep -qx "$m" <<<"$SCALAR_MANIFEST" || { echo "  PREREQ NOT OWNED BY THE SCALAR BUTTON: $m"; SEAMFAIL=1; }
+  grep -qx "$m" <<<"$MAIN_MANIFEST"   && { echo "  PREREQ ALSO CLAIMED HERE: $m"; SEAMFAIL=1; }
+done
+[ "$SEAMFAIL" = 0 ] && echo "  ${#PREREQ[@]} prerequisites borrowed from check-scalar.sh, which audits them"
 [ "$SEAMFAIL" = 0 ] && echo "  every proof source belongs to exactly one button ($(grep -c . <<<"$MAIN_MANIFEST") here, $(grep -c . <<<"$SCALAR_MANIFEST") scalar)"
 [ "$SEAMFAIL" = 0 ] || { echo "SEAM CHECK FAILED"; exit 1; }
 # ── Phase 2: compile everything shipped ─────────────────────────────────────
@@ -372,6 +459,12 @@ lake env bash -c "
   }
   for m in ${GEN_MODULES[*]}; do compile \"\$m\"; done
   cd '$HERE'
+  # Prerequisites first: owned and audited by check-scalar.sh, built here so
+  # this run does not depend on artifacts another script may have left behind.
+  for m in ${PREREQ[*]}; do
+    [ -f \"Proofs/\$m.lean\" ] || { echo \"MISSING PREREQ: Proofs/\$m.lean\"; exit 1; }
+    compile \"Proofs/\$m\"
+  done
   for m in ${PROOFS[*]}; do
     [ -f \"Proofs/\$m.lean\" ] || { echo \"MISSING: Proofs/\$m.lean listed in manifest\"; exit 1; }
     compile \"Proofs/\$m\"
@@ -380,11 +473,8 @@ lake env bash -c "
   for f in Proofs/*.lean; do
     b=\$(basename \"\$f\" .lean)
     [ \"\$b\" = AxiomCheck ] && continue
-    # Inventory drivers are compiled by Phase 2c, not here: they must elaborate
-    # with the corpus already in the environment, and the two of them cannot be
-    # imported together. They are NOT unchecked — Phase 2b reads their compiled
-    # .olean like every other module, and Phase 0c pins their sources.
-    case \"\$b\" in Inventory|InventoryBasic|InventoryCore|InventoryScalar) continue;; esac
+    # InventoryScalar belongs to the other button; the rest are in PROOFS above.
+    case \"\$b\" in InventoryScalar) continue;; esac
     case \"\$b\" in Scalar*) continue;; esac  # scalar layer: checked by check-scalar.sh (coherence pass 2)
     case \" ${PROOFS[*]} \" in (*\" \$b \"*) ;; (*) echo \"DEAD FILE: \$f not in check manifest\"; exit 1;; esac
   done
@@ -423,12 +513,16 @@ echo "=== Phase 2b: kernel-side axiom-declaration gate ==="
 #     audit and the dead-file gate both skip. Nothing is on a hand-kept list.
 # Cost is ~3 s for the whole corpus (no mathlib import), against ~53 s for a
 # single module-importing invocation.
-N_PROOF_SRC=$(ls -1 "$HERE"/Proofs/*.lean 2>/dev/null | wc -l)
+# MEMBERSHIP, not a glob. Phase 0a purges every .olean and this button
+# rebuilds only its own manifest; the scalar layer's artifacts belong to the
+# other button. Counting Proofs/*.lean here would demand artifacts this run
+# never makes — the spelling-versus-ownership error ScalarPackSpec exposed.
+PROOF_OLEANS=$(printf '"%s.olean", ' "${PROOFS[@]}" | sed 's/, $//')
 GATE=$(mktemp "$HERE/.axgate-XXXX.lean")
 {
   echo "import Lean"
   echo "open Lean"
-  echo "def expectedModules : Nat := $N_PROOF_SRC"
+  echo "def expected : List String := [$PROOF_OLEANS]"
   cat <<'LEANGATE'
 
 run_cmd do
@@ -436,22 +530,24 @@ run_cmd do
   let mut errs : Array String := #[]
   let mut nMod := 0
   let mut nConst := 0
-  for entry in (← dir.readDir) do
-    if entry.path.extension == some "olean" then
-      nMod := nMod + 1
-      let (mod, _) ← readModuleData entry.path
-      for ci in mod.constants do
-        nConst := nConst + 1
-        if ci matches .axiomInfo _ then
-          errs := errs.push s!"  {entry.fileName}: {ci.name}"
+  for name in expected do
+    let p := dir / name
+    -- FAIL CLOSED ON ABSENCE: a manifest module whose artifact is missing makes
+    -- this gate vacuous for that module. It must be an error, never a skip.
+    unless (← p.pathExists) do
+      throwError "COVERAGE: {name} is in the compile manifest but its artifact is absent"
+    nMod := nMod + 1
+    let (mod, _) ← readModuleData p
+    for ci in mod.constants do
+      nConst := nConst + 1
+      if ci matches .axiomInfo _ then
+        errs := errs.push s!"  {name}: {ci.name}"
   unless errs.isEmpty do
     throwError "AXIOM DECLARED under Proofs/ (kernel-side gate):\n{String.intercalate "\n" errs.toList}"
   -- FAIL CLOSED ON ABSENCE: an empty result and a clean result must not share
   -- a code path. A deleted .olean would make the scan above vacuous; an extra
   -- one is orphan litter with no shipped source.
-  if nMod != expectedModules then
-    throwError "COVERAGE MISMATCH under Proofs/: scanned {nMod} compiled modules, but the directory ships {expectedModules} sources. A missing .olean makes this gate vacuous; an extra .olean is an orphan with no source."
-  logInfo s!"  kernel confirms: {nConst} declarations across {nMod} compiled Proofs modules, none is an axiom"
+  logInfo s!"  kernel confirms: {nConst} declarations across {nMod} compiled modules (this button's manifest, by membership), none is an axiom"
 LEANGATE
 } > "$GATE"
 cd "$AENEAS_LEAN"

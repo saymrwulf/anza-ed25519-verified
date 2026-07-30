@@ -207,3 +207,36 @@ running Rust code. Everything else is machine-checked.
    condition, and the cap is what protects this machine from the global OOM
    that killed a session on 2026-07-02. Check the transcript for a `clamping`
    line before concluding anything about the mathematics.
+
+13. **The verdict depends on committed bytes, not on build state — and what
+   proving that revealed.** `check.sh` Phase 0a purges every `.olean` under
+   `verification/` before compiling, forbids stray Lean files at the
+   verification root (they join the build through `LEAN_PATH`, which contains
+   `$PWD`), and requires `gen/` to be exactly the model manifest plus its
+   pinned Aeneas templates. The templates are KEPT here, unlike the companion
+   SLH-DSA repository which deletes them: `extract.sh` directs the operator to
+   diff the hand-written external models against them, so they are the
+   reference for that comparison. The purge does not run under `--audit-only`,
+   which exists to audit the artifacts a previous full run produced; that is a
+   further reason an audit-only transcript is not evidence.
+
+   **What the purge exposed, on 2026-07-30.** This button had never in its life
+   compiled the corpus from nothing. The signature apex rests on scalar
+   arithmetic — `PointLiftSpec` → `ScalarPackSpec` → `ScalarFromBytesSpec`, and
+   `SigApexSpec` → `ScalarDenote` — and TWELVE of the scalar layer's thirteen
+   modules are transitive prerequisites of this manifest. They were never
+   compiled here. The button worked because `check-scalar.sh` had run at some
+   earlier point and left its `.olean` files behind, and `.olean` is gitignored,
+   so no `git status` could ever have shown a reader that the verdict rested on
+   untracked artifacts produced by a different script. Nothing about the proofs
+   was wrong; the *evidence* was resting on something invisible.
+
+   Those twelve are now compiled here as `PREREQ` — **borrowed, not owned**.
+   `check-scalar.sh` still audits them: their cones, their declaration
+   inventory, their axiom gate. Phase 1b asserts that every borrowed name
+   belongs to the other manifest and to neither twice, so the list cannot
+   quietly become a second claim of ownership.
+
+   The general lesson, which is why the purge is worth its minutes: a
+   verification that never cleans up cannot distinguish "these proofs check"
+   from "these proofs check given whatever happens to be lying around".
