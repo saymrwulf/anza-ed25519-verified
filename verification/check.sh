@@ -205,8 +205,10 @@ HARNESS_EXTRA=(
   AUDIT-MANIFEST.txt        # the statement block Phase 3c's digest is taken over
   GEN-MODEL.sha256          # the extracted-model pins Phase 0b enforces
   inventory-allowlist.txt   # the audit surface Phase 2c diffs against
+  inventory-allowlist-scalar.txt # the scalar layer's audit surface (second button)
   Proofs/Audit.lean         # the audit driver: it computes the digest it is judged by
   Proofs/InventoryCore.lean # inventory machinery
+  Proofs/InventoryScalar.lean # inventory driver: the scalar layer
   Proofs/Inventory.lean     # inventory driver: main chain
   Proofs/InventoryBasic.lean # inventory driver: Proofs.Basic
 )
@@ -249,6 +251,51 @@ if grep -rnE '^(private |protected |noncomputable )*axiom ' "$HERE"/Proofs/*.lea
 fi
 echo "  clean: no trivial stubs, no True targets, no axioms outside gen/"
 
+# ── Phase 1b: the two-button seam ───────────────────────────────────────────
+# WHY. This repository is checked by TWO buttons: this script covers the field,
+# curve and signature layers, and check-scalar.sh covers the scalar layer.
+# Until 2026-07-30 neither asserted anything about the other's scope, and this
+# script's dead-file gate simply SKIPPED anything named Scalar*. A new
+# Proofs/ScalarX.lean was therefore gated by nothing at all: absent from this
+# manifest by exemption, absent from the other by omission, compiled by
+# neither, inventoried by neither.
+#
+# The fix is mutual: each button reads the OTHER's manifest and asserts that
+# every shipped proof source belongs to exactly one of them. Both directions,
+# so a file can neither fall between the two nor be claimed by both.
+echo "=== Phase 1b: two-button seam ==="
+SEAMFAIL=0
+SCALAR_SH="$HERE/check-scalar.sh"
+if [ ! -f "$SCALAR_SH" ]; then
+  echo "  FATAL: check-scalar.sh is absent — half the corpus would go unchecked."
+  exit 1
+fi
+SCALAR_MANIFEST=$(grep -m1 '^PROOFS=(' "$SCALAR_SH" | sed 's/^PROOFS=(//; s/).*$//' | tr ' ' '\n' | sed '/^$/d' | sort -u)
+if [ -z "$SCALAR_MANIFEST" ]; then
+  echo "  FATAL: could not read check-scalar.sh's manifest; refusing to guess its scope."
+  exit 1
+fi
+MAIN_MANIFEST=$(printf '%s\n' "${PROOFS[@]}" | sort -u)
+# 1. Every shipped proof source belongs to exactly one manifest.
+for f in "$HERE"/Proofs/*.lean; do
+  b=$(basename "$f" .lean)
+  case "$b" in AxiomCheck|Inventory|InventoryBasic|InventoryCore|InventoryScalar) continue;; esac
+  inm=0; ins=0
+  grep -qx "$b" <<<"$MAIN_MANIFEST"   && inm=1
+  grep -qx "$b" <<<"$SCALAR_MANIFEST" && ins=1
+  if [ $((inm + ins)) -eq 0 ]; then
+    echo "  ORPHAN: Proofs/$b.lean is in NEITHER manifest — compiled and audited by no button"; SEAMFAIL=1
+  elif [ $((inm + ins)) -eq 2 ]; then
+    echo "  DOUBLE-CLAIMED: Proofs/$b.lean is in BOTH manifests — the buttons disagree about scope"; SEAMFAIL=1
+  fi
+done
+# 2. Neither manifest may name a file that does not exist.
+while read -r m; do
+  [ -z "$m" ] && continue
+  [ -f "$HERE/Proofs/$m.lean" ] || { echo "  PHANTOM: check-scalar.sh lists $m, which does not exist"; SEAMFAIL=1; }
+done <<<"$SCALAR_MANIFEST"
+[ "$SEAMFAIL" = 0 ] && echo "  every proof source belongs to exactly one button ($(grep -c . <<<"$MAIN_MANIFEST") here, $(grep -c . <<<"$SCALAR_MANIFEST") scalar)"
+[ "$SEAMFAIL" = 0 ] || { echo "SEAM CHECK FAILED"; exit 1; }
 # ── Phase 2: compile everything shipped ─────────────────────────────────────
 echo "=== Phase 2: compile ==="
 LOG=$(mktemp /tmp/check-compile-XXXX.log)
@@ -274,7 +321,7 @@ lake env bash -c "
     # with the corpus already in the environment, and the two of them cannot be
     # imported together. They are NOT unchecked — Phase 2b reads their compiled
     # .olean like every other module, and Phase 0c pins their sources.
-    case \"\$b\" in Inventory|InventoryBasic|InventoryCore) continue;; esac
+    case \"\$b\" in Inventory|InventoryBasic|InventoryCore|InventoryScalar) continue;; esac
     case \"\$b\" in Scalar*) continue;; esac  # scalar layer: checked by check-scalar.sh (coherence pass 2)
     case \" ${PROOFS[*]} \" in (*\" \$b \"*) ;; (*) echo \"DEAD FILE: \$f not in check manifest\"; exit 1;; esac
   done
@@ -391,7 +438,10 @@ cd "$AENEAS_LEAN"
 # Proofs.ConstSpecs; risc0 and betrusted have no Proofs.Basic at all). A
 # hardcoded pair would silently look for a file that does not exist here.
 DRIVERS=$(ls "$HERE"/Proofs/Inventory*.lean 2>/dev/null | xargs -r -n1 basename \
-          | sed 's/\.lean$//' | grep -v '^InventoryCore$' | sort)
+          | sed 's/\.lean$//' | grep -vE '^(InventoryCore|InventoryScalar)$' | sort)
+# InventoryScalar belongs to check-scalar.sh, which compiles the modules it
+# covers. Globbing Inventory*.lean swept it in here, after which this phase
+# correctly complained that its own manifest lacks the scalar modules.
 if [ -z "$DRIVERS" ]; then
   echo "  NO INVENTORY DRIVER FOUND — the audit surface would go unchecked."; exit 1
 fi
@@ -435,7 +485,7 @@ while read -r m; do
 done <<<"$COVERED"
 for f in "$HERE"/Proofs/*.lean; do
   b=$(basename "$f" .lean)
-  case "$b" in Audit|Inventory|InventoryBasic|InventoryCore) continue;; esac
+  case "$b" in Audit|Inventory|InventoryBasic|InventoryCore|InventoryScalar) continue;; esac
   grep -qx "$b" <<<"$COVERED" || echo "  NOT INVENTORIED HERE (separate button): Proofs/$b.lean"
 done
 [ "$INVFAIL" = 0 ] || { echo "INVENTORY COVERAGE FAILED"; exit 1; }

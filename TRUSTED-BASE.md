@@ -146,3 +146,34 @@ running Rust code. Everything else is machine-checked.
      is the two-button seam, still open. Phase 2c prints every uncovered
      module by name on every run, so the omission is visible rather than
      inferred.
+
+11. **Both buttons, and the seam between them.** This repository is checked by
+   two scripts: `check.sh` covers the field, curve and signature layers,
+   `check-scalar.sh` the scalar layer. Until 2026-07-30 neither asserted
+   anything about the other's scope and the main one simply SKIPPED anything
+   named `Scalar*`, so a new `Proofs/ScalarX.lean` was gated by nothing at all
+   — absent from one manifest by exemption, from the other by omission,
+   compiled by neither, inventoried by neither. Each button now reads the
+   other's manifest and requires every shipped proof source to belong to
+   EXACTLY ONE of them, both directions: neither orphaned nor double-claimed.
+
+   The scalar button was also brought to the main one's standard, having been
+   left behind by every hardening round: it now checks source integrity,
+   verifies the harness pins (so running it alone is protected too), asks the
+   KERNEL about axiom declarations instead of grepping source text, inventories
+   its ~1,880 declarations against its own allowlist, and asserts each of its
+   13 certificates by name rather than counting how many lines of output
+   matched. A count cannot say WHICH certificate is clean, and passes just as
+   happily if one cone is reported twice.
+
+   **What this cost, recorded because the lesson generalises.** Three separate
+   gates in this work reasoned about how a thing is SPELLED rather than what it
+   BELONGS TO, and the corpus punished each one: `Proofs/ScalarPackSpec.lean`
+   is named like the scalar layer and owned by the main button. A dead-file
+   gate globbing `Scalar*` demanded it be scalar-owned; an axiom gate scanning
+   `Scalar*.olean` swept in an artifact this button does not compile, which on
+   a fresh tree is absent and would have failed the run for a false reason; and
+   the inventory driver discovery globbing `Inventory*.lean` claimed the other
+   button's driver. All three now test membership in a manifest. This is the
+   same family as the source-text axiom grep that began this campaign:
+   reasoning about names instead of about the thing itself.
