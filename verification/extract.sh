@@ -18,6 +18,16 @@
 # After regenerating, diff the templates against the hand-written files:
 #   diff gen/CurveField/FunsExternal_Template.lean gen/CurveField/FunsExternal.lean
 #
+# That diff is a READING aid, not a gate — the two files legitimately differ in
+# almost every line (the template holds holes and Aeneas's own comments; the
+# model holds real definitions and the modeling policy). What IS enforced, by
+# check.sh Phase 0d, is the classification: every name the template declares
+# must be answered either by the hand-written model or by a real definition in
+# the proven corpus, and which of the two must match MODEL-CORRESPONDENCE.txt.
+# Regenerate that table with `python3 model-correspondence.py .` and commit the
+# change deliberately — a proof silently becoming an assumption is exactly what
+# the phase exists to stop.
+#
 # Usage:  ./extract.sh
 set -euo pipefail
 

@@ -318,6 +318,7 @@ echo "  $(wc -l < "$HERE/GEN-MODEL.sha256") extracted-model files match their pi
 HARNESS_EXTRA=(
   AUDIT-MANIFEST.txt        # the statement block Phase 3c's digest is taken over
   GEN-MODEL.sha256          # the extracted-model pins Phase 0b enforces
+  MODEL-CORRESPONDENCE.txt  # the extraction boundary Phase 0d recomputes
   inventory-allowlist.txt   # the audit surface Phase 2c diffs against
   inventory-allowlist-scalar.txt # the scalar layer's audit surface (second button)
   Proofs/Audit.lean         # the audit driver: it computes the digest it is judged by
@@ -351,6 +352,63 @@ if ! ( cd "$HERE" && sha256sum -c --quiet HARNESS.sha256 ) ; then
   exit 1
 fi
 echo "  $(wc -l < "$HERE/HARNESS.sha256") harness files match their pins"
+# ── Phase 0d: template/model correspondence ─────────────────────────────────
+# WHAT AENEAS'S TEMPLATE IS. When Aeneas extracts the Rust it also emits, for
+# each crate, a *_Template.lean naming everything the extracted code needs from
+# OUTSIDE itself. That template is the extraction's own statement of its
+# boundary. The hand-written *External.lean beside it is our answer to that
+# statement, and `extract.sh` has always said, in prose, "after regenerating,
+# diff the template against the hand-written file". Prose is not a gate.
+#
+# WHAT THIS ADDS, given that three other things already stand here. Phase 0b
+# byte-pins both files, so neither can drift from its pin unnoticed. The
+# generated Funs.lean imports the model and CALLS these externals, so the Lean
+# compiler already enforces their types wherever the extracted code uses them.
+# The per-certificate exact cones catch any external that becomes — or stops
+# being — an assumption anything depends on. What none of those three sees is
+# the CLASSIFICATION: for each name the extraction asks for, whether this
+# repository answers with an assumption or with a proof.
+#
+# That distinction is the tier-A/B claim, and it was prose until 2026-07-31.
+# The docs say the curve calls (compress, as_bytes,
+# vartime_double_scalar_mul_basepoint, from_bytes_mod_order{,_wide}) and the
+# three curve TYPES resolve to the PROVEN model's own definitions rather than
+# to axioms — because gen/CurveField/Funs.lean opens `namespace
+# curve25519_dalek`, so the names Aeneas asks for are the names it defines.
+# Nothing checked it. A regeneration that renamed one of those, or a model that
+# quietly answered one with an axiom instead, would have left the documents
+# claiming a proof where the repository now had an assumption.
+#
+# model-correspondence.py recomputes the classification from the files —
+# namespace-aware, so a definition inside `namespace curve25519_dalek` counts
+# under its full name — and the result must equal the committed table exactly.
+# UNRESOLVED is a hard failure in the tool itself: the extraction asking for
+# something this repository does not provide at all.
+echo "=== Phase 0d: template/model correspondence ==="
+CORR_FILE="$HERE/MODEL-CORRESPONDENCE.txt"
+if [ ! -s "$CORR_FILE" ]; then
+  echo "FATAL: MODEL-CORRESPONDENCE.txt is missing or empty — the extraction boundary is unpinned."
+  exit 1
+fi
+CORR_OBSERVED=$(cd "$HERE" && python3 model-correspondence.py .) || {
+  echo "$CORR_OBSERVED" | grep UNRESOLVED | sed 's/^/  /'
+  echo "MODEL CORRESPONDENCE FAILED: the extraction declares an external that neither"
+  echo "the hand-written model nor the proven corpus provides."
+  exit 1
+}
+if ! diff -u "$CORR_FILE" <(printf '%s\n' "$CORR_OBSERVED") > /tmp/corr-diff.$$ 2>&1; then
+  echo "  MODEL CORRESPONDENCE DRIFT (< committed, > observed):"
+  sed -n '4,24p' /tmp/corr-diff.$$ | sed 's/^/    /'
+  rm -f /tmp/corr-diff.$$
+  echo "MODEL CORRESPONDENCE FAILED: an external changed how it is answered."
+  exit 1
+fi
+rm -f /tmp/corr-diff.$$
+echo "  $(grep -c '|MODEL$' "$CORR_FILE") externals answered by the hand-written model (assumptions)"
+echo "  $(grep -c '|PROVEN$' "$CORR_FILE") answered by PROVEN definitions in the extracted corpus"
+echo "  $(grep -c '|EXTRA$' "$CORR_FILE") model declarations beyond what the extraction asks for"
+echo ""
+
 # ── Phase 1: stub + axiom-smuggling audit ───────────────────────────────────
 echo "=== Phase 1: stub audit ==="
 if grep -rn 'by trivial' "$HERE"/Proofs/*Spec*.lean 2>/dev/null; then

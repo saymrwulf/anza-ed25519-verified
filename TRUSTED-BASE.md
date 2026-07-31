@@ -46,6 +46,20 @@ running Rust code. Everything else is machine-checked.
    rejected, and are. Before those cases existed nothing in the harness
    distinguished "this tier needs no hash oracle" from "this tier happens
    not to use one today".
+   **What answers each external, and whether it is a proof or an assumption.**
+   Aeneas emits a `*_Template.lean` naming everything the extracted code needs
+   from outside itself — the extraction's own statement of its boundary. Phase
+   0d requires every one of those names to be answered either by the
+   hand-written model beside it (an assumption, then governed by the axiom gate
+   and the cones) or by a real definition already in the extracted corpus, and
+   requires the classification to equal the committed
+   `MODEL-CORRESPONDENCE.txt` exactly. That second class is the tier-A/B claim
+   this document makes above — the curve calls and curve types resolving to
+   proven definitions rather than to axioms — and until 2026-07-31 it was prose
+   that nothing checked. `selftest-correspondence.sh` attacks it, including the
+   case that matters most: a PROVEN external answered by an axiom instead,
+   which changes no name anywhere, leaves every byte pin matching, and compiles
+   cleanly because the signature is unchanged.
 6. **Compilation of Rust to machine code** (rustc backend) is out of scope,
    as is side-channel behaviour (timing, speculation). The proofs are about
    functional correctness at the MIR/LLBC level.
