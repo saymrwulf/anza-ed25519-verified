@@ -60,6 +60,15 @@ running Rust code. Everything else is machine-checked.
    count of shipped sources, so a deleted `.olean` cannot make the scan pass
    vacuously. `selftest-axgate.sh` attacks the shipping gate rather than a
    copy of it, and was itself negative-tested by removing the gate's error.
+   `selftest-shapes.sh` asks the companion question about Phase 2c: can a
+   declaration HIDE from the walker? It adds four shapes to an audited module
+   — `@[simp]`, `private`, an `instance`, and a nested namespace reusing an
+   audited basename — and requires the walker to report every one of them by
+   name, not merely to fail. Those four shapes are the ones that defeated a
+   source-regex enumerator in ltl-accumulator-verified and caused Phase 2c to
+   be written against the Lean environment instead; until 2026-07-31 the fix
+   was ported here but never re-attacked. It too was negative-tested, by
+   removing the injection and confirming the run then reports the walker blind.
    **The residue you must still supply yourself:** this binds *declarations*,
    not *statements*. Nothing in the button establishes that a certificate's
    theorem says what its name — or this document — suggests it says. A
