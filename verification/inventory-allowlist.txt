@@ -1,15 +1,15 @@
-# inventory-allowlist.txt — the pinned audit surface (check.sh Phase 2c).
 #
-# One line per constant in the compiled environment of the audited corpus:
+#
+#
 #   INV|<fully qualified name>|<kind>|<comma-separated axiom cone>
-#
 # Generated from a green run; every entry reviewed as a DIFF, not read
+# One line per constant in the compiled environment of the audited corpus:
+# Regenerate deliberately: run check.sh, take the observed inventory, and
+# inventory-allowlist.txt — the pinned audit surface (check.sh Phase 2c).
 # line by line — 3000 compiler-generated auxiliaries are not human-readable
 # prose, and pretending otherwise would be the point of failure. What a
 # reader checks is that a change to this file is explained by a change to
 # the proofs.
-#
-# Regenerate deliberately: run check.sh, take the observed inventory, and
 INV|Proofs.AddSpec|Aeneas.Std.core.cmp.impls.PartialOrdUsize.lt.eq_1|theorem|
 INV|Proofs.AddSpec|Aeneas.Std.core.iter.range.StepUsize.forward_checked.eq_1|theorem|propext
 INV|Proofs.AddSpec|CurveFieldProofs.add_limbs_spec._proof_1_18|theorem|Classical.choice,Quot.sound,propext
@@ -122,6 +122,7 @@ INV|Proofs.CompressSpec|CurveFieldProofs.is_negative_spec._simp_1_8|theorem|prop
 INV|Proofs.CompressSpec|CurveFieldProofs.is_negative_spec._simp_1_9|theorem|propext
 INV|Proofs.CompressSpec|CurveFieldProofs.is_negative_spec|theorem|Classical.choice,Quot.sound,propext
 INV|Proofs.CompressSpec|CurveFieldProofs.to_bytes_spec'|theorem|Classical.choice,Quot.sound,propext
+INV|Proofs.CompressSpec|subtle.Choice.Insts.CoreConvertFromU8.from.eq_1|theorem|
 INV|Proofs.CompressSpec|subtle.Choice.unwrap_u8.eq_1|theorem|
 INV|Proofs.ConstSpecs|Aeneas.Std.Array.make.eq_1|theorem|
 INV|Proofs.ConstSpecs|CurveFieldProofs.feVal._sparseCasesOn_1.else_eq|theorem|propext

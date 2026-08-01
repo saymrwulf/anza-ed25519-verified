@@ -22,3 +22,6 @@ def corpus : Array Name :=
   #[`Proofs.Basic]
 
 #eval show MetaM Unit from emitInventory corpus
+
+-- Its OWN declarations only; InventoryCore is accounted by Inventory.lean.
+#eval show MetaM Unit from emitDrivers #[]

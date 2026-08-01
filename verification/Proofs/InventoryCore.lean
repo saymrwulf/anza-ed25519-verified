@@ -107,4 +107,64 @@ def emitInventory (corpus : Array Name) : MetaM Unit := do
   -- received, in both directions.
   IO.println s!"INV-COUNT|{sorted.size}"
 
+/-- THE INSTRUMENTS' OWN SURFACE.
+
+    `emitInventory` walks the CORPUS. It says nothing about the modules that
+    perform the audit, and until 2026-07-31 nothing else enumerated them either:
+    the kernel counted 3058 declarations across this button's 43 modules while
+    the inventory accounted for 3022, and the 36-declaration difference — the
+    drivers' own machinery — was covered by no allowlist row.
+
+    That difference was never a soundness hole. The drivers ARE members of
+    check.sh's compile manifest, so Phase 2b's kernel-side gate reads their
+    `.olean`s and an axiom in one is rejected whatever its indentation. What was
+    missing is the weaker but still real property: that an instrument declares
+    nothing but inert machinery, and that every declaration the kernel sees is
+    ACCOUNTED FOR by exactly one of the two walks.
+
+    The policy is not "declare nothing" — these files legitimately declare their
+    own functions. It is that an instrument may not declare an AXIOM (which
+    would widen the trusted base outside every cone) nor a standalone CLAIM
+    (which no certificate covers and no allowlist pins). A theorem whose name
+    extends a constant declared alongside it is an artefact the elaborator
+    generated for a definition — well-founded recursion emits these — and is
+    allowed; a theorem whose parent is not a declared constant is not. -/
+def emitDrivers (drivers : Array Name) : MetaM Unit := do
+  let env ← getEnv
+  let mut idxs : Array Nat := #[]
+  for m in drivers do
+    match env.getModuleIdx? m with
+    | some i => idxs := idxs.push i
+    | none   => throwError "DRIVER SURFACE ERROR: driver module {m} is not imported"
+  -- Two passes: collect the names first, so the artefact test can ask whether a
+  -- theorem's parent is itself declared by an instrument.
+  let mut names : Std.HashSet Name := {}
+  let mut here : Array (Name × ConstantInfo) := #[]
+  for (n, ci) in env.constants.toList do
+    let mine : Bool :=
+      match env.getModuleIdxFor? n with
+      | some i => idxs.contains i
+      | none   => true   -- declared by the module being elaborated: this driver
+    if mine then
+      names := names.insert n
+      here := here.push (n, ci)
+  let mut lines : Array String := #[]
+  for (n, ci) in here do
+    let k := kindOf ci
+    if k == "axiom" then
+      throwError "DRIVER SURFACE VIOLATION: {n} is an axiom declared by the audit \
+                  infrastructure. An instrument may not widen the trusted base."
+    if k == "theorem" && !names.contains n.getPrefix then
+      throwError "DRIVER SURFACE VIOLATION: {n} is a standalone theorem declared by \
+                  the audit infrastructure. An instrument may declare definitions \
+                  and whatever the elaborator generates for them — never a claim \
+                  of its own."
+    lines := lines.push s!"DRV|{n}|{k}"
+  let sorted := lines.qsort (· < ·)
+  for l in sorted do
+    IO.println l
+  IO.println s!"DRV-COUNT|{sorted.size}"
+
+
+
 end Ed25519Inventory

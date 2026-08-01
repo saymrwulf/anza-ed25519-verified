@@ -588,6 +588,7 @@ run_cmd do
   let mut errs : Array String := #[]
   let mut nMod := 0
   let mut nConst := 0
+  let mut seen : Std.HashSet Name := {}
   for name in expected do
     let p := dir / name
     -- FAIL CLOSED ON ABSENCE: a manifest module whose artifact is missing makes
@@ -598,6 +599,7 @@ run_cmd do
     let (mod, _) ← readModuleData p
     for ci in mod.constants do
       nConst := nConst + 1
+      seen := seen.insert ci.name
       if ci matches .axiomInfo _ then
         errs := errs.push s!"  {name}: {ci.name}"
   unless errs.isEmpty do
@@ -606,6 +608,7 @@ run_cmd do
   -- a code path. A deleted .olean would make the scan above vacuous; an extra
   -- one is orphan litter with no shipped source.
   logInfo s!"  kernel confirms: {nConst} declarations across {nMod} compiled modules (this button's manifest, by membership), none is an axiom"
+  for n in seen do IO.println s!"KERNEL-NAME|{n}"
 LEANGATE
 } > "$GATE"
 cd "$AENEAS_LEAN"
@@ -613,12 +616,13 @@ cd "$AENEAS_LEAN"
 # `set -e` a bare `rm` after the call never runs when the gate goes red, which
 # is exactly how this repo accumulated 101 orphan .olean files (fixed today).
 GATE_RC=0
+KERNLOG=$(mktemp /tmp/check-kernel-XXXX.log)
 lake env bash -c "
   set -euo pipefail
   cd '$HERE/gen' && export LEAN_PATH=\"\$LEAN_PATH:\$PWD:$HERE\"
   cd '$HERE'
   LEAN_TIMEOUT=$TIMEOUT LEAN_MAX_CORES=$CORES '$HERE/lean-guard' '$GATE'
-" || GATE_RC=$?
+" 2>&1 | tee "$KERNLOG" || GATE_RC=${PIPESTATUS[0]}
 rm -f "$GATE" "${GATE%.lean}.olean"
 if [ "$GATE_RC" -ne 0 ]; then
   echo "AXIOM SMUGGLING GATE FAILED (kernel-side) — see the error above."
@@ -685,7 +689,64 @@ OBS=$(mktemp /tmp/check-inv-obs-XXXX.log)
 grep '^INV|' "$INVLOG" > "$OBS"
 echo "INV-COUNT|${SUM:-0}" >> "$OBS"
 "$HERE/inventory_gate.sh" "$OBS" "$HERE/inventory-allowlist.txt" || INVFAIL=1
-rm -f "$INVLOG" "$OBS"
+# ── THE ACCOUNTING IDENTITY ───────────────────────────────────────────────
+# Every declaration the kernel saw must be accounted for by exactly one walk:
+# the corpus inventory, or the instruments' own surface. Until 2026-07-31 the
+# two numbers were never compared — the kernel reported 3058 across this
+# button's manifest, the inventory accounted for 3022, and the 36-declaration
+# difference was the audit drivers' own machinery, covered by no allowlist row
+# and by no other check. It was not a soundness hole (the drivers ARE in the
+# manifest, so Phase 2b's kernel gate rejects an axiom in one whatever its
+# indentation) but it was an unexamined remainder, and an unexamined remainder
+# is where the next defect hides.
+#
+# COUNT DISTINCT CONSTANTS, NOT PHYSICAL DECLARATIONS. The two sides of this
+# identity were, at first, counting different things, and the gap was papered
+# over with a `+ N_DRIVERS` term justified as a "self-observation blind spot".
+# That explanation was WRONG. It fitted dalek and anza (2 drivers, residual 2)
+# and broke on risc0 and betrusted (1 driver, residual 2) — the residual is 2
+# everywhere and has nothing to do with drivers.
+#
+# The measured cause: Lean materialises equation lemmas LAZILY, when something
+# forces an unfold, and each module that forces one gets its own copy in its
+# object file. On every fork, `CurveFieldProofs.denote.eq_1` sits in both
+# `SubNegSpec.olean` and `ConstSpecs.olean`, and `CurveFieldProofs.limbsVal.eq_1`
+# in both `ReduceSpec.olean` and `ConstSpecs.olean`. The kernel gate reads each
+# object file separately and counts both copies; the environment holds one
+# constant per name and the inventory sees it once. Hence exactly 2.
+#
+# So the gate now reports DISTINCT names and the fudge term is gone. This still
+# fails closed: a declaration missing from both walks leaves the sum short, and
+# one counted twice leaves it long. A future mismatch must be explained — as
+# this one finally was — never absorbed into a constant.
+N_DRV=$(grep -c '^DRV|' "$INVLOG" || true)
+DRV_TRAILERS=$(grep -c '^DRV-COUNT|' "$INVLOG" || true)
+DRV_SUM=$(grep '^DRV-COUNT|' "$INVLOG" | cut -d'|' -f2 | paste -sd+ - | bc)
+KERN_NAMES=$(mktemp /tmp/check-kernnames-XXXX.txt)
+ACCT_NAMES=$(mktemp /tmp/check-acctnames-XXXX.txt)
+LC_ALL=C grep '^KERNEL-NAME|' "$KERNLOG" | cut -d'|' -f2 | LC_ALL=C sort -u > "$KERN_NAMES"
+{ LC_ALL=C awk -F'|' '/^INV\|/{print $3}' "$HERE/inventory-allowlist.txt"
+  LC_ALL=C grep '^DRV|' "$INVLOG" | cut -d'|' -f2
+} | LC_ALL=C sort -u > "$ACCT_NAMES"
+UNACCOUNTED=$(LC_ALL=C comm -23 "$KERN_NAMES" "$ACCT_NAMES")
+if [ "$DRV_TRAILERS" -ne "$N_DRIVERS" ]; then
+  echo "  DRIVER SURFACE INCOMPLETE: expected a trailer from each of the $N_DRIVERS driver(s), saw $DRV_TRAILERS"
+  INVFAIL=1
+elif [ "${DRV_SUM:-0}" != "$N_DRV" ]; then
+  echo "  DRIVER SURFACE TRUNCATED: trailers sum to ${DRV_SUM:-0}, observed $N_DRV lines"
+  INVFAIL=1
+elif [ ! -s "$KERN_NAMES" ]; then
+  echo "  ACCOUNTING FAILED: Phase 2b reported no constant names — the scan was vacuous"
+  INVFAIL=1
+elif [ -n "$UNACCOUNTED" ]; then
+  echo "  ACCOUNTING FAILED: the kernel holds constants that neither walk accounts for:"
+  printf '%s\n' "$UNACCOUNTED" | head -20 | sed 's/^/    /'
+  INVFAIL=1
+else
+  echo "  accounting: every one of $(wc -l < "$KERN_NAMES") kernel constants is covered by the corpus inventory or the instrument surface"
+fi
+rm -f "$KERN_NAMES" "$ACCT_NAMES"
+rm -f "$INVLOG" "$OBS" "$KERNLOG"
 
 # The drivers' corpus lists must together BE the compile manifest, minus the
 # audit infrastructure and the scalar layer. Checked in both directions so a

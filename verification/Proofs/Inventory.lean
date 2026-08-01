@@ -10,6 +10,7 @@
    a split is needed was determined by compiling a probe, per repo.
    ────────────────────────────────────────────────────────────────────────── -/
 import Proofs.InventoryCore
+import Proofs.Audit
 import Proofs.Denote
 import Proofs.P25519
 import Proofs.ReduceSpec
@@ -67,4 +68,11 @@ def corpus : Array Name :=
    `Proofs.SigApexSpec, `Proofs.PointLiftSpec, `Proofs.PointEqSpec,
    `Proofs.DecompressSpec, `Proofs.FromBytesSpec, `Proofs.DecompressMain]
 
+-- The instruments. `Proofs.Audit` is the statement-binding driver: a member of
+-- check.sh's compile manifest that was enumerated by NOTHING until 2026-07-31.
+-- This module has no index while it is being elaborated, so `emitDrivers` picks
+-- its own declarations up as the ones with no originating module.
+def drivers : Array Name := #[`Proofs.InventoryCore, `Proofs.Audit]
+
 #eval show MetaM Unit from emitInventory corpus
+#eval show MetaM Unit from emitDrivers drivers
