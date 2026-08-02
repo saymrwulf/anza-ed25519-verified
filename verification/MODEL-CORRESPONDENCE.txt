@@ -44,9 +44,6 @@ CurveField/FunsExternal|subtle.Choice.Insts.CoreOpsBitBitOrChoiceChoice.bitor|MO
 CurveField/FunsExternal|subtle.Choice.unwrap_u8|MODEL
 CurveField/FunsExternal|subtle.ConditionallySelectable.conditional_assign.default|MODEL
 CurveField/FunsExternal|subtle.ConditionallySelectable.conditional_swap.default|MODEL
-CurveField/FunsExternal|backend.vector.scalar_mul.variable_base.spec_avx2.mul|EXTRA
-CurveField/FunsExternal|backend.vector.scalar_mul.vartime_double_base.spec_avx2.mul|EXTRA
-CurveField/FunsExternal|backend.vector.scalar_mul.vartime_triple_base.spec_avx2.mul_128_128_256_prechecked|EXTRA
 CurveField/TypesExternal|ed25519.Signature|MODEL
 CurveField/TypesExternal|subtle.Choice|MODEL
-CORRESPONDENCE-COUNT|51
+CORRESPONDENCE-COUNT|48

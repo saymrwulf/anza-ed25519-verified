@@ -121,7 +121,11 @@ def strip_comments(text):
 
 
 def declared(path):
-    """Fully-qualified names declared in one file.
+    """{fully-qualified name: declaration keyword} for one file.
+
+    Returns a MAPPING, not a set, because the keyword is load-bearing: an
+    `axiom` the template never asks for must stop the button, while an extra
+    `def` is an ordinary helper. Callers that only need names take `set(...)`.
 
     Raises ScanError on any declaration keyword whose name cannot be read.
     """
@@ -131,7 +135,7 @@ def declared(path):
     # Scope events by offset, so each declaration can be placed in its stack.
     events = [(m.start(), m.group(1), m.group(2)) for m in NS.finditer(text)]
 
-    names = set()
+    names = {}
     for m in KW.finditer(text):
         im = IDENT.match(text, m.end())
         if not im:
@@ -144,12 +148,31 @@ def declared(path):
         for off, kind, arg in events:
             if off > m.start():
                 break
-            if kind in ('namespace', 'section'):
+            if kind == 'namespace':
                 stack.append(arg)
+            elif kind == 'section':
+                # A NAMED SECTION DOES NOT QUALIFY DECLARATION NAMES. `section
+                # Foo` opens a scope for `variable`/`open` and gives `end Foo` a
+                # label to match; it does not make `bar` into `Foo.bar`. This
+                # line pushed `arg`, so a template reading
+                #     section Foo
+                #     axiom bar : Nat
+                #     end Foo
+                # was reported as declaring `Foo.bar`. Round-8 review (GPT-5.6,
+                # register key `section-prefix-bug`) showed the consequence:
+                # `--names` handed Phase 2d only `Foo.bar`, Lean happily
+                # resolved an unrelated `Foo.bar` definition elsewhere in the
+                # corpus and returned PROVEN, and the axiom the extraction
+                # ACTUALLY depends on was never queried at all. The scanner had
+                # been rewritten that same week specifically to be fail-closed.
+                # None appends a frame so `end` still balances, and the
+                # comprehension below drops it from the prefix.
+                stack.append(None)
             elif stack:
                 stack.pop()
         prefix = [p for p in stack if p]
-        names.add('.'.join(prefix + [im.group(1)]) if prefix else im.group(1))
+        full = '.'.join(prefix + [im.group(1)]) if prefix else im.group(1)
+        names.setdefault(full, m.group(1))
     return names
 
 
@@ -163,14 +186,15 @@ def main(root):
     for f in sorted(glob.glob(os.path.join(gen, '*', '*.lean'))):
         if f in models or f.endswith('_Template.lean'):
             continue
-        corpus |= declared(f)
+        corpus.update(declared(f))
 
     rows, unresolved = [], []
     for t in templates:
         model = t.replace('_Template', '')
         rel = os.path.relpath(t, gen).replace('_Template.lean', '')
-        tnames = declared(t)
-        mnames = declared(model) if os.path.exists(model) else set()
+        tnames = set(declared(t))
+        mkinds = declared(model) if os.path.exists(model) else {}
+        mnames = set(mkinds)
         for n in sorted(tnames):
             if n in mnames:
                 rows.append(f'{rel}|{n}|MODEL')
@@ -179,8 +203,29 @@ def main(root):
             else:
                 rows.append(f'{rel}|{n}|UNRESOLVED')
                 unresolved.append(f'{rel}|{n}')
+        # AN EXTRA AXIOM IS A FAILURE, and this is the second half of the
+        # round-8 section-prefix finding. EXTRA was the one verdict that could
+        # not fail: the model declares something the template did not ask for.
+        # When the scanner mis-derived the template's name (`Foo.bar` instead of
+        # `bar`), the axiom the extraction ACTUALLY depends on did not vanish —
+        # it landed here, as a harmless-looking EXTRA row, while the invented
+        # name was certified PROVEN. A silent bucket next to a fail-closed
+        # parser is just a slower way of dropping things.
+        #
+        # There is no benign reading of an extra AXIOM either way. The model
+        # exists to answer the template; an assumption nothing asks for is
+        # either a parse the scanner got wrong or an unaudited assumption
+        # nobody is governing. Both must stop the button. Extra non-axiom
+        # declarations stay reportable-but-tolerated: helper definitions in a
+        # model file are ordinary.
         for n in sorted(mnames - tnames):
-            rows.append(f'{rel}|{n}|EXTRA')
+            kind = mkinds.get(n, '')
+            if kind == 'axiom':
+                rows.append(f'{rel}|{n}|EXTRA-AXIOM')
+                unresolved.append(f'{rel}|{n} (axiom in the model that no '
+                                  f'template external asks for)')
+            else:
+                rows.append(f'{rel}|{n}|EXTRA')
     print('\n'.join(rows))
     print(f'CORRESPONDENCE-COUNT|{len(rows)}')
     return 1 if unresolved else 0

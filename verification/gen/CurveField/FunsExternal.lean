@@ -342,28 +342,6 @@ axiom backend.serial.scalar_mul.vartime_triple_base.mul_128_128_256_prechecked
   scalar.Scalar → edwards.EdwardsPoint → scalar.Scalar →
     edwards.EdwardsPoint → scalar.Scalar → Result edwards.EdwardsPoint
 
-/-- [curve25519::backend::vector::scalar_mul::variable_base::spec_avx2::mul]:
-    Source: 'curve25519/solana-ed25519/src/backend/vector/scalar_mul/variable_base.rs', lines 3:0-3:68
-    Visibility: public -/
-axiom backend.vector.scalar_mul.variable_base.spec_avx2.mul
-  : edwards.EdwardsPoint → scalar.Scalar → Result edwards.EdwardsPoint
-
-/-- [curve25519::backend::vector::scalar_mul::vartime_double_base::spec_avx2::mul]:
-    Source: 'curve25519/solana-ed25519/src/backend/vector/scalar_mul/vartime_double_base.rs', lines 14:0-14:68
-    Visibility: public -/
-axiom backend.vector.scalar_mul.vartime_double_base.spec_avx2.mul
-  :
-  scalar.Scalar → edwards.EdwardsPoint → scalar.Scalar → Result
-    edwards.EdwardsPoint
-
-/-- [curve25519::backend::vector::scalar_mul::vartime_triple_base::spec_avx2::mul_128_128_256_prechecked]:
-    Source: 'curve25519/solana-ed25519/src/backend/vector/scalar_mul/vartime_triple_base.rs', lines 10:0-10:68 -/
-axiom
-  backend.vector.scalar_mul.vartime_triple_base.spec_avx2.mul_128_128_256_prechecked
-  :
-  scalar.Scalar → edwards.EdwardsPoint → scalar.Scalar →
-    edwards.EdwardsPoint → scalar.Scalar → Result edwards.EdwardsPoint
-
 /-- [curve25519::backend::scalar_fits_in_128_bits]:
     Source: 'curve25519/solana-ed25519/src/backend.rs', lines 283:0-285:1 -/
 axiom backend.scalar_fits_in_128_bits : scalar.Scalar → Result Bool
