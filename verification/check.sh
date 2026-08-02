@@ -768,6 +768,128 @@ for f in "$HERE"/Proofs/*.lean; do
   grep -qx "$b" <<<"$COVERED" || echo "  NOT INVENTORIED HERE (separate button): Proofs/$b.lean"
 done
 [ "$INVFAIL" = 0 ] || { echo "INVENTORY COVERAGE FAILED"; exit 1; }
+# ── Phase 2d: SEMANTIC model/template correspondence ────────────────────────
+# Phase 0d asks a text scanner what the extraction's boundary looks like. This
+# phase asks LEAN what it actually is, and requires the two to agree.
+#
+# WHY BOTH. Round-7 review (GPT-5.6, finding F1) showed the textual classifier
+# could be made to report PROVEN for a name Lean resolves to an axiom — a
+# definition inside a `/- -/` comment was read as real. Worse, and found while
+# repairing that: Aeneas wraps long declarations, and the old scanner required
+# keyword and name on one physical line, so it SILENTLY DROPPED them. Nine to
+# ten externals per fork had no row at all, and one — the tier-A/B `neg` — was
+# missing from every committed table while the docs claimed that class was
+# machine-checked.
+#
+# A source scanner cannot decide this question. Whether a name resolves to an
+# assumption or to a proof is a property of the elaborated ENVIRONMENT: it turns
+# on imports, namespaces, `export`, aliases and shadowing, none of which are
+# visible to a regex. So the scanner's job is now only DISCOVERY — what does the
+# template ask for — and even that fails closed. The verdict comes from Lean.
+#
+# The template itself is deliberately not imported: it declares the same names
+# as the hand-written model and the two would clash. Discovery is therefore
+# unavoidably textual, which is exactly why `model-correspondence.py` must stop
+# rather than skip on anything it cannot parse.
+echo "=== Phase 2d: semantic model/template correspondence ==="
+SEMNAMES=$(mktemp /tmp/check-semnames-XXXX.txt)
+SEMOUT=$(mktemp /tmp/check-semout-XXXX.txt)
+python3 "$HERE/model-correspondence.py" --names "$HERE" > "$SEMNAMES" || {
+  echo "MODEL CORRESPONDENCE FAILED: could not enumerate the extraction's externals."
+  rm -f "$SEMNAMES" "$SEMOUT"; exit 1; }
+
+SEM=$(mktemp "$HERE/.semcheck-XXXX.lean")
+{
+  # Import every generated module that is not a template. There are no name
+  # clashes between crates (verified), and the crate roots transitively pull
+  # their own models, so this is the same environment the proofs are built on.
+  for m in $(cd "$HERE/gen" && find . -name '*.lean' -not -name '*_Template.lean' \
+             | sed 's|^\./||; s|\.lean$||; s|/|.|g' | sort); do
+    echo "import $m"
+  done
+  cat <<'LEANSEM'
+open Lean in
+#eval show CoreM Unit from do
+  let env ← getEnv
+  let path := System.FilePath.mk (← IO.getEnv "SEMNAMES").get!
+  for line in (← IO.FS.lines path) do
+    let parts := line.splitOn "|"
+    if h : parts.length = 2 then
+      let rel := parts[0]!
+      let nm  := parts[1]!.toName
+      match env.find? nm with
+      | none => IO.println s!"SEM|{rel}|{parts[1]!}|ABSENT|-"
+      | some ci =>
+        let kind := match ci with
+          | .axiomInfo _  => "axiom"
+          | .defnInfo _   => "def"
+          | .thmInfo _    => "theorem"
+          | .opaqueInfo _ => "opaque"
+          | .inductInfo _ => "inductive"
+          | .ctorInfo _   => "ctor"
+          | .recInfo _    => "recursor"
+          | .quotInfo _   => "quot"
+        let mdl := match env.getModuleIdxFor? nm with
+          | some i => toString env.header.moduleNames[i]!
+          | none   => "<current>"
+        IO.println s!"SEM|{rel}|{parts[1]!}|{kind}|{mdl}"
+LEANSEM
+} > "$SEM"
+
+cd "$AENEAS_LEAN"
+SEM_RC=0
+SEMNAMES="$SEMNAMES" lake env bash -c "
+  set -uo pipefail
+  cd '$HERE/gen' && export LEAN_PATH=\"\$LEAN_PATH:\$PWD:$HERE\"
+  cd '$HERE'
+  LEAN_TIMEOUT=$TIMEOUT LEAN_MAX_CORES=$CORES '$HERE/lean-guard' '$SEM'
+" > "$SEMOUT" 2>&1 || SEM_RC=$?
+cd "$HERE"
+rm -f "$SEM" "${SEM%.lean}.olean"
+if [ "$SEM_RC" -ne 0 ]; then
+  echo "SEMANTIC CORRESPONDENCE FAILED: the resolver did not run."
+  tail -12 "$SEMOUT" | sed 's/^/    /'
+  rm -f "$SEMNAMES" "$SEMOUT"; exit 1
+fi
+
+# Every name the extraction asks for must have been resolved, and its Lean
+# verdict must equal the committed table's. The mapping is deliberately strict:
+#   resolves into the hand-written model module  -> MODEL
+#   resolves to a NON-AXIOM in a generated module -> PROVEN
+#   anything else                                 -> failure
+SEMFAIL=0
+NSEM=$(grep -c '^SEM|' "$SEMOUT" || true)
+NWANT=$(grep -c '|' "$SEMNAMES" || true)
+if [ "$NSEM" -ne "$NWANT" ]; then
+  echo "  SEMANTIC CORRESPONDENCE TRUNCATED: asked about $NWANT externals, Lean answered for $NSEM"
+  SEMFAIL=1
+fi
+while IFS='|' read -r _tag rel name kind mdl; do
+  [ "$_tag" = SEM ] || continue
+  want=$(awk -F'|' -v r="$rel" -v n="$name" '$1==r && $2==n {print $3}' "$HERE/MODEL-CORRESPONDENCE.txt")
+  case "$kind:$mdl" in
+    axiom:"${rel//\//.}")  got=MODEL ;;
+    *:"${rel//\//.}")      got=MODEL ;;
+    axiom:*)               got=AXIOM-OUTSIDE-MODEL ;;
+    ABSENT:*)              got=UNRESOLVED ;;
+    *)                     got=PROVEN ;;
+  esac
+  if [ -z "$want" ]; then
+    echo "  SEMANTIC DRIFT: $rel|$name resolves ($kind in $mdl) but has NO ROW in MODEL-CORRESPONDENCE.txt"
+    SEMFAIL=1
+  elif [ "$want" != "$got" ]; then
+    echo "  SEMANTIC DRIFT: $rel|$name — table says $want, Lean says $got ($kind in $mdl)"
+    SEMFAIL=1
+  fi
+done < "$SEMOUT"
+rm -f "$SEMNAMES" "$SEMOUT"
+if [ "$SEMFAIL" != 0 ]; then
+  echo "SEMANTIC CORRESPONDENCE FAILED: the committed table does not match what Lean resolves."
+  exit 1
+fi
+echo "  $NWANT externals resolved by Lean; every verdict matches the committed table"
+echo ""
+
 # ── Phase 3: axiom audit of every certificate ───────────────────────────────
 echo "=== Phase 3: axiom audit ==="
 EXPECTED="[propext, Classical.choice, Quot.sound]"

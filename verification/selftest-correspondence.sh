@@ -114,6 +114,49 @@ sed -i '0,/|MODEL$/s/|MODEL$/|PROVEN/' "$HERE/MODEL-CORRESPONDENCE.txt"
 expect "case 4: a verdict edited in the committed table" 1 "MODEL CORRESPONDENCE DRIFT"
 cp "$STASH/corr" "$HERE/MODEL-CORRESPONDENCE.txt"
 
+# ── 5/6. THE ROUND-7 FINDINGS, so they cannot regress ──────────────────────
+# Both were real. Case 5 is GPT-5.6's constructive counterexample: a definition
+# that exists ONLY inside a block comment was read as a real declaration, so the
+# scanner reported PROVEN for a name Lean resolves to an axiom. Case 6 is the
+# one that was live in four committed tables: Aeneas wraps long declarations,
+# the old scanner required keyword and name on one physical line, and so it
+# SILENTLY DROPPED them — nine to ten externals per fork had no row at all.
+#
+# Case 6 is the more important of the two. A gate that drops what it cannot
+# read is worse than no gate: it prints green across a gap that is invisible in
+# the diff. The scanner must now FAIL rather than skip.
+CX=$(mktemp -d)
+mkdir -p "$CX/gen/Forged"
+printf 'axiom Forged.value : Nat\n' > "$CX/gen/Forged/FunsExternal_Template.lean"
+printf 'axiom\n  Forged.value : Nat\n'  > "$CX/gen/Forged/FunsExternal.lean"
+printf '/-\nnamespace Forged\ndef value : Nat := 0\nend Forged\n-/\n' > "$CX/gen/Forged/Funs.lean"
+OUT=$(python3 "$HERE/model-correspondence.py" "$CX" 2>&1)
+if grep -q 'Forged.value|MODEL' <<<"$OUT"; then
+  echo "  ✓ case 5: a definition inside a block comment is not read as a declaration"
+else
+  echo "  ✗ case 5: comment-only definition mis-read — scanner says:"; sed 's/^/      /' <<<"$OUT"
+  FAILURES=$((FAILURES+1))
+fi
+
+printf 'axiom\n  Forged.wrapped\n  :\n  Nat\n' >> "$CX/gen/Forged/FunsExternal_Template.lean"
+OUT=$(python3 "$HERE/model-correspondence.py" "$CX" 2>&1); RC=$?
+if [ "$RC" -ne 0 ] && grep -q 'UNRESOLVED\|Forged.wrapped' <<<"$OUT"; then
+  echo "  ✓ case 6: a declaration whose name wraps to the next line is SEEN, not dropped"
+else
+  echo "  ✗ case 6: wrapped declaration dropped or mis-handled (rc=$RC):"; sed 's/^/      /' <<<"$OUT"
+  FAILURES=$((FAILURES+1))
+fi
+
+printf 'axiom\n' > "$CX/gen/Forged/FunsExternal_Template.lean"
+OUT=$(python3 "$HERE/model-correspondence.py" "$CX" 2>&1); RC=$?
+if [ "$RC" -eq 2 ] && grep -q 'fails closed' <<<"$OUT"; then
+  echo "  ✓ case 7: an unparseable declaration stops the scanner (exit 2), never silence"
+else
+  echo "  ✗ case 7: unparseable declaration did not fail closed (rc=$RC)"
+  FAILURES=$((FAILURES+1))
+fi
+rm -rf "$CX"
+
 expect "restored: the table matches again" 0 "answered by PROVEN definitions"
 
 echo ""
