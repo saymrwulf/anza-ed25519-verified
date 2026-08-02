@@ -47,37 +47,44 @@ cp "$HERE/AUDIT-MANIFEST.txt"  "$STASH/AUDIT-MANIFEST.txt"
 cp "$HERE/check.sh"            "$STASH/check.sh"
 
 DRIVER0B="$STASH/phase0b.sh"
+PAYLOAD0B="$STASH/payload0b.sh"
+sed -n '/^# ── Phase 0b/,/^# ── Phase 1/p' "$HERE/check.sh" | sed '$d' > "$PAYLOAD0B"
 {
   echo 'set -uo pipefail'
   echo "HERE=\"$HERE\""
-  sed -n '/^# ── Phase 0b/,/^# ── Phase 1/p' "$HERE/check.sh" | sed '$d'
+  cat "$PAYLOAD0B"
 } > "$DRIVER0B"
-if [ "$(wc -l < "$DRIVER0B")" -lt 20 ]; then
+if [ "$(wc -l < "$PAYLOAD0B")" -lt 20 ]; then
   echo "FATAL: could not lift Phase 0b out of check.sh."; exit 1
 fi
+"$HERE/lift-guard.sh" "$PAYLOAD0B" "$DRIVER0B" "check.sh Phase 0b" || exit 1
 
 DRIVER="$STASH/phase3c.sh"
+PAYLOAD="$STASH/payload3c.sh"
 build_driver() {
+  # `$0` inside Phase 3c must resolve to the shipping check.sh, not to this
+  # driver, or the apex-name recovery would read the wrong file.
+  # Stop at the next phase marker, not at a blank echo: a terminator that is
+  # not itself a phase boundary breaks the moment the phase's body changes.
+  awk '/^# ── Phase 3c/{f=1} f&&/^# ── (Phase |Phases end)/&&!/Phase 3c/{exit} f{print}' "$HERE/check.sh" \
+    | sed "s|\"\$0\"|\"$HERE/check.sh\"|g" > "$PAYLOAD"
   {
     echo 'set -uo pipefail'
     echo 'source ~/aeneas-toolchain/env.sh'
     echo "HERE=\"$HERE\""
     echo 'AENEAS_LEAN="$AENEAS_HOME/backends/lean"'
     echo "TIMEOUT=$TIMEOUT; CORES=\"$CORES\""
-    # CERTS is referenced by the cross-check inside Phase 3c.
+    # CERTS is referenced by the cross-check inside Phase 3c. Lifted verbatim,
+    # never re-derived, so this test cannot drift away from the button's set.
     sed -n '/^CERTS=(/,/^)/p' "$HERE/check.sh"
-    # `$0` inside Phase 3c must resolve to the shipping check.sh, not to this
-    # driver, or the apex-name recovery would read the wrong file.
-    # Stop at the next phase marker, not at a blank echo: a terminator that is
-    # not itself a phase boundary breaks the moment the phase's body changes.
-    awk '/^# ── Phase 3c/{f=1} f&&/^# ── (Phase |Phases end)/&&!/Phase 3c/{exit} f{print}' "$HERE/check.sh" \
-      | sed "s|\"\$0\"|\"$HERE/check.sh\"|g"
+    cat "$PAYLOAD"
   } > "$DRIVER"
-  if [ "$(wc -l < "$DRIVER")" -lt 60 ]; then
+  if [ "$(wc -l < "$PAYLOAD")" -lt 60 ]; then
     echo "FATAL: could not lift Phase 3c out of check.sh — the phase markers moved."
     echo "This self-test must attack the shipping gate; refusing to run against nothing."
     exit 1
   fi
+  "$HERE/lift-guard.sh" "$PAYLOAD" "$DRIVER" "check.sh Phase 3c" || exit 1
 }
 build_driver
 

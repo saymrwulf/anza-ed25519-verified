@@ -44,14 +44,19 @@ cp "$HERE/$MODEL_REL"               "$STASH/model"
 cp "$HERE/$TMPL_REL"                "$STASH/tmpl"
 
 # Phase 0d lifted from the shipping button.
+awk '/^# ── Phase 0d/{f=1} f&&/^# ── (Phase 1|Phases end)/{exit} f{print}' \
+  "$HERE/check.sh" > "$STASH/payload.sh"
 { echo 'set -euo pipefail'
   echo "HERE=\"$HERE\""
-  awk '/^# ── Phase 0d/{f=1} f&&/^# ── (Phase 1|Phases end)/{exit} f{print}' "$HERE/check.sh"
+  cat "$STASH/payload.sh"
 } > "$STASH/p0d.sh"
+# Assert on the PAYLOAD, not the concatenation: a marker appearing in the
+# preamble would otherwise satisfy a check meant to prove the lift landed.
 for want in 'Phase 0d' 'MODEL CORRESPONDENCE' 'model-correspondence.py'; do
-  grep -qF "$want" "$STASH/p0d.sh" || {
+  grep -qF "$want" "$STASH/payload.sh" || {
     echo "FATAL: the lifted driver has no '$want' — check.sh's phase markers moved."; exit 1; }
 done
+"$HERE/lift-guard.sh" "$STASH/payload.sh" "$STASH/p0d.sh" "check.sh Phase 0d" || exit 1
 
 expect() {  # expect <label> <want-rc> <want-substring>
   local label="$1" want_rc="$2" want_txt="$3" out rc

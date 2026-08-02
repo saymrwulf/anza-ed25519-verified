@@ -39,17 +39,20 @@ cp "$HERE/HARNESS.sha256" "$STASH/HARNESS.sha256"
 # Lift Phase 0c. The two repo families end the phase differently, so accept
 # either terminator rather than hardcoding one and silently lifting nothing.
 DRIVER="$STASH/phase0c.sh"
+PAYLOAD="$STASH/payload.sh"
+awk '/^# ── Phase 0c/{f=1} f{print} /^# ── Phase 1|^echo "=== Phase 1/{if(f && !/Phase 0c/) exit}' "$HERE/check.sh" \
+  | sed '/^# ── Phase 1/d; /^echo "=== Phase 1/d' > "$PAYLOAD"
 {
   echo 'set -uo pipefail'
   echo "HERE=\"$HERE\""
-  awk '/^# ── Phase 0c/{f=1} f{print} /^# ── Phase 1|^echo "=== Phase 1/{if(f && !/Phase 0c/) exit}' "$HERE/check.sh" \
-    | sed '/^# ── Phase 1/d; /^echo "=== Phase 1/d'
+  cat "$PAYLOAD"
 } > "$DRIVER"
-if [ "$(grep -c . "$DRIVER")" -lt 20 ]; then
+if [ "$(grep -c . "$PAYLOAD")" -lt 20 ]; then
   echo "FATAL: could not lift Phase 0c out of check.sh — the phase markers moved."
   echo "This self-test must attack the shipping gate; refusing to run against nothing."
   exit 1
 fi
+"$HERE/lift-guard.sh" "$PAYLOAD" "$DRIVER" "check.sh Phase 0c" || exit 1
 
 expect() {  # expect <label> <want-rc> <want-substring>
   local label="$1" want_rc="$2" want_txt="$3" out rc

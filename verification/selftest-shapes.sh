@@ -92,6 +92,20 @@ cp "$HERE/Proofs/$VICTIM_MOD.lean" "$STASH/victim"
 # produced a green report for a red condition while selftest-tiers.sh was being
 # built; do not "simplify" it away.)
 lift() {
+  # THE LIFT RANGE STOPS AT THE ACCOUNTING IDENTITY, and that boundary is the
+  # fix for round-7 finding F5 (Claude). Phase 2c grew an accounting block that
+  # reads $KERNLOG — a file created in Phase 2b, one phase ABOVE the lift. Under
+  # `set -u` the driver aborted on its first expansion, so this self-test could
+  # not pass on any fork from the moment that block was added. It failed loudly
+  # rather than passing vacuously, which is why it was a red test and not a
+  # false green; but it meant the four-shapes property went unverified.
+  #
+  # This test attacks the WALKER — can a declaration hide from the inventory —
+  # and the accounting identity is a separate property with its own coverage.
+  # Lifting it here would only drag in Phase 2b's state.
+  awk '/^# ── Phase 2c/{f=1} f&&/^# ── (Phase 2c-accounting|Phase 3|Phases end)/{exit} f{print}' \
+    "$HERE/check.sh" > "$STASH/payload.sh"
+
   { echo 'set -euo pipefail'
     echo 'source ~/aeneas-toolchain/env.sh'
     echo "HERE=\"$HERE\""
@@ -102,12 +116,29 @@ lift() {
     # test's idea of the manifest drift away from the button's, and then the
     # test would be checking its own opinion instead of the shipping one.
     sed -n '/^PROOFS=(/,/^)/p;/^SCALAR_SH=/p;/^SCALAR_MANIFEST=/p' "$HERE/check.sh"
-    awk '/^# ── Phase 2c/{f=1} f&&/^# ── (Phase 3|Phases end)/{exit} f{print}' "$HERE/check.sh"
+    cat "$STASH/payload.sh"
   } > "$STASH/p2c.sh"
-  for want in 'Phase 2c' 'inventory_gate.sh' 'PROOFS=(' 'SCALAR_MANIFEST='; do
-    grep -qF "$want" "$STASH/p2c.sh" || {
-      echo "FATAL: the lifted driver has no '$want' — check.sh's phase markers moved."; exit 1; }
+
+  # Guard on the PAYLOAD, not the concatenation. The previous version grepped
+  # the assembled file, so a marker appearing in the preamble or in a lifted
+  # definition would have satisfied it — the same shape as the line-count check
+  # that an empty driver once passed because the CERTS array padded it.
+  for want in 'Phase 2c' 'inventory_gate.sh'; do
+    grep -qF "$want" "$STASH/payload.sh" || {
+      echo "FATAL: the lifted PAYLOAD has no '$want' — check.sh's phase markers moved."; exit 1; }
   done
+  for want in 'PROOFS=(' 'SCALAR_MANIFEST='; do
+    grep -qF "$want" "$STASH/p2c.sh" || {
+      echo "FATAL: the lift carries no '$want' — a definition the phase needs is missing."; exit 1; }
+  done
+
+  # AND THE DURABLE GUARD: every variable the payload READS must be one the
+  # driver DEFINES. Derived mechanically rather than from a hand-kept list,
+  # because a hand-kept list is exactly what failed — the phase grew a
+  # dependency nobody thought to add. Shared with the other four lifting
+  # self-tests: ONE implementation, pinned, rather than five copies of the
+  # thing whose whole failure mode is drifting out of sync.
+  "$HERE/lift-guard.sh" "$STASH/payload.sh" "$STASH/p2c.sh" "check.sh Phase 2c" || exit 1
 }
 lift
 

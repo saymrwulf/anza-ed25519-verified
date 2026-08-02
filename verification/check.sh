@@ -689,6 +689,42 @@ OBS=$(mktemp /tmp/check-inv-obs-XXXX.log)
 grep '^INV|' "$INVLOG" > "$OBS"
 echo "INV-COUNT|${SUM:-0}" >> "$OBS"
 "$HERE/inventory_gate.sh" "$OBS" "$HERE/inventory-allowlist.txt" || INVFAIL=1
+
+# The drivers' corpus lists must together BE the compile manifest, minus the
+# audit infrastructure and the scalar layer. Checked in both directions so a
+# module cannot fall between the two drivers, and NO SILENT TRUNCATION: what
+# this phase does not cover is named on stdout every run.
+COVERED=$(for d in $DRIVERS; do grep -ohE '`Proofs\.[A-Za-z0-9]+' "$HERE/Proofs/$d.lean"; done \
+          | sed 's/`Proofs\.//' | sort -u)
+for m in "${PROOFS[@]}"; do
+  case "$m" in Audit|Inventory|InventoryBasic|InventoryCore) continue;; esac
+  grep -qx "$m" <<<"$COVERED" || { echo "  UNINVENTORIED: $m is compiled by this script but no driver covers it"; INVFAIL=1; }
+done
+while read -r m; do
+  [ -z "$m" ] && continue
+  case " ${PROOFS[*]} " in (*" $m "*) ;; (*) echo "  PHANTOM: driver claims $m, which this script does not compile"; INVFAIL=1;; esac
+done <<<"$COVERED"
+for f in "$HERE"/Proofs/*.lean; do
+  b=$(basename "$f" .lean)
+  case "$b" in Audit|Inventory|InventoryBasic|InventoryCore|InventoryScalar) continue;; esac
+  grep -qx "$b" <<<"$COVERED" || echo "  NOT INVENTORIED HERE (separate button): Proofs/$b.lean"
+done
+[ "$INVFAIL" = 0 ] || { echo "INVENTORY COVERAGE FAILED"; exit 1; }
+
+# ── Phase 2c-accounting: every kernel constant is accounted for ─────────────
+# SEPARATED FROM PHASE 2c DELIBERATELY, and the reason is a self-test that
+# could not pass (round-7 finding F5). This block reads $KERNLOG, created one
+# phase earlier in Phase 2b. selftest-shapes.sh lifts "Phase 2c" by text marker
+# and runs it standalone; once this block lived inside that range, the lifted
+# driver died on its first `$KERNLOG` expansion under `set -u`. The test failed
+# loudly in all four forks from the moment the block was added — so the shapes
+# property went unverified, though it never produced a false green.
+#
+# Truncating the lift is NOT the fix: Phase 2c's own verdict
+# (`INVENTORY COVERAGE FAILED`) sits after this block, so a shorter range drops
+# the phase's ability to fail at all. Instead the block gets its own marker and
+# its own verdict, which makes Phase 2c liftable BY CONSTRUCTION rather than by
+# the self-test knowing where to stop.
 # ── THE ACCOUNTING IDENTITY ───────────────────────────────────────────────
 # Every declaration the kernel saw must be accounted for by exactly one walk:
 # the corpus inventory, or the instruments' own surface. Until 2026-07-31 the
@@ -699,6 +735,10 @@ echo "INV-COUNT|${SUM:-0}" >> "$OBS"
 # manifest, so Phase 2b's kernel gate rejects an axiom in one whatever its
 # indentation) but it was an unexamined remainder, and an unexamined remainder
 # is where the next defect hides.
+#
+# Stating it as an IDENTITY rather than as two separate counts is what makes it
+# fail closed: a declaration that slipped out of both walks leaves the sum
+# short, and one counted twice leaves it long.
 #
 # COUNT DISTINCT CONSTANTS, NOT PHYSICAL DECLARATIONS. The two sides of this
 # identity were, at first, counting different things, and the gap was papered
@@ -731,43 +771,25 @@ LC_ALL=C grep '^KERNEL-NAME|' "$KERNLOG" | cut -d'|' -f2 | LC_ALL=C sort -u > "$
 UNACCOUNTED=$(LC_ALL=C comm -23 "$KERN_NAMES" "$ACCT_NAMES")
 if [ "$DRV_TRAILERS" -ne "$N_DRIVERS" ]; then
   echo "  DRIVER SURFACE INCOMPLETE: expected a trailer from each of the $N_DRIVERS driver(s), saw $DRV_TRAILERS"
-  INVFAIL=1
+  ACCTFAIL=1
 elif [ "${DRV_SUM:-0}" != "$N_DRV" ]; then
   echo "  DRIVER SURFACE TRUNCATED: trailers sum to ${DRV_SUM:-0}, observed $N_DRV lines"
-  INVFAIL=1
+  ACCTFAIL=1
 elif [ ! -s "$KERN_NAMES" ]; then
   echo "  ACCOUNTING FAILED: Phase 2b reported no constant names — the scan was vacuous"
-  INVFAIL=1
+  ACCTFAIL=1
 elif [ -n "$UNACCOUNTED" ]; then
   echo "  ACCOUNTING FAILED: the kernel holds constants that neither walk accounts for:"
   printf '%s\n' "$UNACCOUNTED" | head -20 | sed 's/^/    /'
-  INVFAIL=1
+  ACCTFAIL=1
 else
   echo "  accounting: every one of $(wc -l < "$KERN_NAMES") kernel constants is covered by the corpus inventory or the instrument surface"
 fi
 rm -f "$KERN_NAMES" "$ACCT_NAMES"
+ACCTFAIL=${ACCTFAIL:-0}
+[ "$ACCTFAIL" = 0 ] || { echo "ACCOUNTING FAILED"; rm -f "$INVLOG" "$OBS" "$KERNLOG"; exit 1; }
 rm -f "$INVLOG" "$OBS" "$KERNLOG"
-
-# The drivers' corpus lists must together BE the compile manifest, minus the
-# audit infrastructure and the scalar layer. Checked in both directions so a
-# module cannot fall between the two drivers, and NO SILENT TRUNCATION: what
-# this phase does not cover is named on stdout every run.
-COVERED=$(for d in $DRIVERS; do grep -ohE '`Proofs\.[A-Za-z0-9]+' "$HERE/Proofs/$d.lean"; done \
-          | sed 's/`Proofs\.//' | sort -u)
-for m in "${PROOFS[@]}"; do
-  case "$m" in Audit|Inventory|InventoryBasic|InventoryCore) continue;; esac
-  grep -qx "$m" <<<"$COVERED" || { echo "  UNINVENTORIED: $m is compiled by this script but no driver covers it"; INVFAIL=1; }
-done
-while read -r m; do
-  [ -z "$m" ] && continue
-  case " ${PROOFS[*]} " in (*" $m "*) ;; (*) echo "  PHANTOM: driver claims $m, which this script does not compile"; INVFAIL=1;; esac
-done <<<"$COVERED"
-for f in "$HERE"/Proofs/*.lean; do
-  b=$(basename "$f" .lean)
-  case "$b" in Audit|Inventory|InventoryBasic|InventoryCore|InventoryScalar) continue;; esac
-  grep -qx "$b" <<<"$COVERED" || echo "  NOT INVENTORIED HERE (separate button): Proofs/$b.lean"
-done
-[ "$INVFAIL" = 0 ] || { echo "INVENTORY COVERAGE FAILED"; exit 1; }
+rm -f "$INVLOG" "$OBS" "$KERNLOG"
 # ── Phase 2d: SEMANTIC model/template correspondence ────────────────────────
 # Phase 0d asks a text scanner what the extraction's boundary looks like. This
 # phase asks LEAN what it actually is, and requires the two to agree.

@@ -126,20 +126,31 @@ lift() {
   # exits 1 is masked by the echo's success and the driver reports green while
   # printing APEX AUDIT FAILED. The button gets this right at check.sh:32; a
   # lift that does not copy it tests something the button never runs.
+  awk '/^# ── Phase 3: axiom audit/{f=1} f&&/^# ── (Phase 3c|Phases end)/{exit} f{print}' \
+    "$HERE/check.sh" > "$STASH/payload.sh"
   { echo 'set -euo pipefail'
     echo 'source ~/aeneas-toolchain/env.sh'
     echo "HERE=\"$HERE\""
     echo 'AENEAS_LEAN="$AENEAS_HOME/backends/lean"'
     echo "TIMEOUT=$TIMEOUT"
     sed -n '/^EXPECTED=/p;/^AUDIT_IMPORTS=(/,/^)/p;/^CERTS=(/,/^)/p' "$HERE/check.sh"
-    awk '/^# ── Phase 3: axiom audit/{f=1} f&&/^# ── (Phase 3c|Phases end)/{exit} f{print}' "$HERE/check.sh"
+    cat "$STASH/payload.sh"
   } > "$STASH/p3.sh"
-  for want in 'AXIOM AUDIT FAILED' 'APEX AUDIT FAILED' 'CERTS=(' 'AUDIT_IMPORTS=(' 'EXPECTED='; do
-    if ! grep -qF "$want" "$STASH/p3.sh"; then
+  # The two diagnostics must come from the PAYLOAD; the three definitions are
+  # preamble, so those are asserted on the assembled driver.
+  for want in 'AXIOM AUDIT FAILED' 'APEX AUDIT FAILED'; do
+    if ! grep -qF "$want" "$STASH/payload.sh"; then
       echo "FATAL: the lifted driver has no '$want' — check.sh's phase markers moved."
       exit 1
     fi
   done
+  for want in 'CERTS=(' 'AUDIT_IMPORTS=(' 'EXPECTED='; do
+    if ! grep -qF "$want" "$STASH/p3.sh"; then
+      echo "FATAL: the lift carries no '$want' — a definition the phase needs is missing."
+      exit 1
+    fi
+  done
+  "$HERE/lift-guard.sh" "$STASH/payload.sh" "$STASH/p3.sh" "check.sh Phase 3" || exit 1
 }
 lift
 
