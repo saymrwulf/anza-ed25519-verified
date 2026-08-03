@@ -90,7 +90,13 @@ reads = set(re.findall(r'\$\{?([A-Za-z_][A-Za-z0-9_]*)', payload))
 # check.sh's Phase 1b. Not lifted today, which made it latent, not absent.
 for expr in (re.findall(r'\$\(\((.*?)\)\)', payload, re.S)
              + re.findall(r'(?<!\$)\(\((.*?)\)\)', payload, re.S)):
-    for tok in re.findall(r'[A-Za-z_][A-Za-z0-9_]*', expr):
+    # NOT PRECEDED BY A DIGIT OR WORD CHARACTER. Round-9 review (Claude, N1):
+    # `$((0x1F))` was read as a variable `x1F`, and `$((1e3))` as `e3`, because
+    # the pattern happily starts matching at the letter-bearing tail of a
+    # numeric literal. Two false alarms introduced by the round-8 fix for a
+    # false NEGATIVE — the guard was made to see more and started seeing things
+    # that are not there, which is the failure mode that gets a guard deleted.
+    for tok in re.findall(r'(?<![0-9A-Za-z_])[A-Za-z_][A-Za-z0-9_]*', expr):
         reads.add(tok)
 
 # What the DRIVER defines, in every form these scripts actually use.
@@ -108,6 +114,23 @@ assigns |= set(re.findall(
     r'\b(?:mapfile|readarray)\b(?:\s+-[A-Za-z]\s*\S*)*\s+([A-Za-z_][A-Za-z0-9_]*)',
     driver))
 assigns |= set(re.findall(r'\bprintf\b[^\n]*?\s-v\s+([A-Za-z_][A-Za-z0-9_]*)', driver))
+# SEVEN MORE BINDING FORMS — round-9 review (Claude, N1). Each was a false
+# alarm: the driver binds the name and the guard demanded it anyway. Listed in
+# the order reported, so the next reader can check the list against that report.
+assigns |= set(re.findall(r'\blet\s+([A-Za-z_][A-Za-z0-9_]*)\s*=', driver))
+assigns |= set(re.findall(r'\bselect\s+([A-Za-z_][A-Za-z0-9_]*)\s+in\b', driver))
+assigns |= set(re.findall(r'\bgetopts\b\s+\S+\s+([A-Za-z_][A-Za-z0-9_]*)', driver))
+assigns |= set(re.findall(r'(?:^|;|&&|\|\||\)|!|\bthen\b|\bdo\b|\belse\b|\{)\s*'
+                          r'([A-Za-z_][A-Za-z0-9_]*)\+=', driver, re.M))      # BAR+=b
+assigns |= set(re.findall(r'(?:^|;|&&|\|\||\)|!|\bthen\b|\bdo\b|\belse\b|\{)\s*'
+                          r'([A-Za-z_][A-Za-z0-9_]*)\[[^]]*\]=', driver, re.M))  # FOO[0]=x
+# Arithmetic CONTEXTS BIND TOO — `(( FOO = 1 ))`, `(( i++ ))`, and the C-style
+# `for (( i=0; i<3; i++ ))`. The reads-extraction above adds every identifier it
+# finds inside `(( ))`, so without this the guard demands the very names those
+# expressions assign.
+for expr in (re.findall(r'\$\(\((.*?)\)\)', driver, re.S)
+             + re.findall(r'(?<!\$)\(\((.*?)\)\)', driver, re.S)):
+    assigns |= set(re.findall(r'(?<![0-9A-Za-z_])([A-Za-z_][A-Za-z0-9_]*)\s*(?:=[^=]|\+\+|--)', expr))
 assigns |= set(re.findall(r'\b(?:export|declare|local|readonly)\s+(?:-\w+\s+)*'
                           r'([A-Za-z_][A-Za-z0-9_]*)', driver))
 assigns |= set(re.findall(r'\bfor\s+([A-Za-z_][A-Za-z0-9_]*)\s+in\b', driver))
@@ -131,7 +154,19 @@ ENV = {'PWD', 'HOME', 'PATH', 'IFS', 'PIPESTATUS', 'BASH_SOURCE', 'FUNCNAME',
 # silent. `n=Q; echo "${!n}"` reads Q, and no amount of pattern-matching
 # recovers that from the source. The guard's contract is that it does not miss
 # a dependency; where it cannot honour that it must refuse, not shrug.
-if re.search(r'\$\{!', payload):
+# `${!...}` HAS THREE MEANINGS IN BASH and only one of them is indirection:
+#     ${!name}            indirect expansion   — genuinely unanalysable
+#     ${!arr[@]} ${!arr[*]}  array KEY expansion  — ordinary, and LIVE at
+#                            ltl-accumulator check.sh:274, `for cert in
+#                            "${!CONES[@]}"`
+#     ${!prefix*} ${!prefix@} variable-NAME listing — ordinary
+# Round-9 review (Claude, N1). The round-8 refusal tested for `${!` and could
+# not tell them apart, so a legitimate construct would have hard-failed a lift
+# with a diagnostic naming a feature it does not use. A refusal is the most
+# expensive verdict this tool has; it must be reserved for the case it is
+# actually about.
+INDIRECT = re.compile(r'\$\{!\s*[A-Za-z_][A-Za-z0-9_]*\s*\}')
+if INDIRECT.search(payload):
     print('INDIRECT-EXPANSION')
 else:
     print(' '.join(sorted(n for n in reads - assigns - ENV if not n.isdigit())))
