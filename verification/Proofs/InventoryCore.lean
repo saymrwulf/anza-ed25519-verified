@@ -159,7 +159,37 @@ def emitDrivers (drivers : Array Name) : MetaM Unit := do
                   the audit infrastructure. An instrument may declare definitions \
                   and whatever the elaborator generates for them — never a claim \
                   of its own."
-    lines := lines.push s!"DRV|{n}|{k}"
+    -- THE CONE, and it is the second half of the accounting identity.
+    --
+    -- Round-8 review (Claude, register keys `drv-surface-no-cones` and
+    -- `accounting-certifies-enumeration`). These rows carried name and kind
+    -- only. The round-7 accounting identity then proved every kernel constant
+    -- was ENUMERATED by one of the two walks — and the reviewer demonstrated
+    -- that enumeration is not audit: a claim planted in an instrument WAS
+    -- enumerated, as `DRV|…bait.smuggled|theorem`, with a real cone of
+    -- [propext, Classical.choice, Quot.sound], and then nothing looked at it.
+    -- No allowlist row covered the instrument surface, the statement digest
+    -- does not reach instruments, and Phase 2b gates DECLARED AXIOMS, which is
+    -- a different question from cones. Their summary: the identity "converted
+    -- 36 declarations nobody enumerated into 36 declarations nobody examined.
+    -- That is progress of one step, not two."
+    --
+    -- With the cone emitted here and the rows pinned in driver-allowlist.txt
+    -- by the same gate the corpus uses, the identity and the audit coincide:
+    -- a planted claim is a new row, and a new row fails closed. The
+    -- name-prefix rule above is kept as a fast first line of defence but is no
+    -- longer load-bearing — the reviewer showed it breaks in one line.
+    let cone ← axiomCone n
+    let coneStr := ",".intercalate (cone.toList.map (·.toString))
+    -- THE ORIGINATING DRIVER is part of the record, for the same reason the
+    -- INV rows carry their module: dalek and anza run TWO drivers, each
+    -- declaring its own `corpus`, and keyed on name alone those two distinct
+    -- declarations produced one byte-identical row. `sort -u` then collapsed
+    -- them, the trailers summed to 37 against 36 unique rows, and the gate
+    -- reported the surface truncated. Two declarations must never share a
+    -- record — that is what let a real declaration hide behind another one's
+    -- entry when this mistake was made on the corpus walk.
+    lines := lines.push s!"DRV|{env.mainModule}|{n}|{k}|{coneStr}"
   let sorted := lines.qsort (· < ·)
   for l in sorted do
     IO.println l

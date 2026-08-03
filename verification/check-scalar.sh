@@ -29,7 +29,7 @@ AENEAS_LEAN="$AENEAS_HOME/backends/lean"
 TIMEOUT="${LEAN_TIMEOUT:-300}"
 CORES="${LEAN_MAX_CORES:-0-3}"
 GEN=(CurveField/TypesExternal CurveField/Types CurveField/FunsExternal CurveField/Funs)
-PROOFS=(ScalarDenote ScalarLoop ScalarSubSpec ScalarAddSpec ScalarMulSpec ScalarMontSpec ScalarReduceSpec ScalarFullMulSpec ScalarMain ScalarWideSpec ScalarBytesSpec ScalarUnpackSpec ScalarFromBytesSpec)
+PROOFS=(ScalarDenote ScalarLoop ScalarSubSpec ScalarAddSpec ScalarMulSpec ScalarMontSpec ScalarReduceSpec ScalarFullMulSpec ScalarMain ScalarWideSpec ScalarBytesSpec ScalarUnpackSpec ScalarFromBytesSpec ScalarAudit )
 # Fully-qualified scalar certificates. Each must report EXACTLY the standard
 # three axioms — asserted per certificate, not by counting how many lines of
 # output happened to match. A count cannot tell you WHICH certificate is clean.
@@ -225,6 +225,97 @@ if [ "$AUDFAIL" != 0 ]; then
   echo "SCALAR AXIOM AUDIT FAILED"; echo "$AUD_OUT" | tail -20 | sed 's/^/    /'; exit 1
 fi
 echo "  ${#CERTS[@]}/${#CERTS[@]} scalar certificates report exactly $EXPECTED"
+
+# ── Phase 3c: statement + specification binding ─────────────────────────────
+# WHAT PHASE 3 DOES NOT ESTABLISH — and why this repository claimed something
+# false for four rounds. Round-7 review (GPT-5.6, register key
+# `scalar-statements-unbound`, CRITICAL): the main button bound its 31
+# certificates' elaborated statements and reachable specification bodies; this
+# button bound NONE of its thirteen. Meanwhile TRUSTED-BASE item 8 said the
+# audit covers "every certificate" and each README said check.sh audits every
+# certificate. Both were false across the 44-certificate repository surface.
+#
+# The finding was raised in round 7, was lost from the round-8 work list by an
+# F-number collision between two reviewers, and was re-raised in round 8. It is
+# closed here.
+#
+# Phase 3 proves each scalar certificate rests on exactly the standard three
+# axioms. It does not say WHAT THE THEOREM SAYS. A certificate gutted to a
+# tautology of the same cone passes it, and so does one whose reference
+# definition has been redefined to BE the extracted code — at which point the
+# theorem reads `loop = loop` and the cone is byte-identical.
+#
+# Proofs/ScalarAudit.lean emits a canonical block holding the policy constants,
+# every scalar certificate's fully-elaborated statement (`pp.all`, so implicit
+# arguments, instances and universes are all visible), and the body of every
+# specification constant transitively reachable from those statements. This
+# phase binds its SHA-256, and the block's INPUT is committed too, so a
+# mismatch can be DIFFED rather than merely reported.
+#
+# To rotate deliberately: run this button, take the printed OBSERVED digest,
+# and update the constant below AND SCALAR-AUDIT-MANIFEST.txt in the same
+# reviewable commit. An author who edits a statement and refreshes the digest
+# together is caught by reading the diff, not by this script.
+EXPECTED_SCALAR_AUDIT_SHA256="0d942e472f5e5cbe428a824f4cd12dcb2d6b26e71db91a0665a4a90e341e9ce8"
+echo "=== Phase 3c: scalar statement + specification binding ==="
+cd "$AENEAS_LEAN"
+# The compiler's own exit code is the primary signal; the transcript is only
+# corroboration. A timeout or a memory clamp exits non-zero WITHOUT printing
+# "error:", so grepping the text alone would let it through.
+SAUD_RC=0
+SAUD_OUT=$(lake env bash -c "
+  set -uo pipefail
+  cd '$HERE/gen' && export LEAN_PATH=\"\$LEAN_PATH:\$PWD:$HERE\"
+  cd '$HERE'
+  LEAN_TIMEOUT=$TIMEOUT LEAN_MEM_MB=8192 '$HERE/lean-guard' Proofs/ScalarAudit.lean 2>&1
+" ) || SAUD_RC=$?
+if [ "$SAUD_RC" -ne 0 ]; then
+  echo "SCALAR AUDIT FAILED — Proofs/ScalarAudit.lean exited $SAUD_RC:"
+  tail -20 <<<"$SAUD_OUT" | sed 's/^/    /'
+  exit 1
+fi
+if grep -q 'error:' <<<"$SAUD_OUT"; then
+  echo "SCALAR AUDIT FAILED — Proofs/ScalarAudit.lean did not elaborate cleanly:"
+  grep 'error:' <<<"$SAUD_OUT" | head -20 | sed 's/^/    /'
+  exit 1
+fi
+SBLOCK=$(awk '/SCALAR-AUDIT-MANIFEST-BEGIN/{f=1;next} /SCALAR-AUDIT-MANIFEST-END/{f=0} f' <<<"$SAUD_OUT")
+# FAIL CLOSED ON ABSENCE: no block and a matching block must not share a path.
+if [ -z "$SBLOCK" ]; then
+  echo "SCALAR AUDIT FAILED — no SCALAR-AUDIT-MANIFEST block was emitted (fail-closed)."; exit 1
+fi
+SGOT_SHA=$(printf '%s\n' "$SBLOCK" | sha256sum | cut -d' ' -f1)
+if [ "$SGOT_SHA" != "$EXPECTED_SCALAR_AUDIT_SHA256" ]; then
+  printf '%s\n' "$SBLOCK" > "$HERE/.scalar-audit-manifest.observed"
+  echo "SCALAR AUDIT FAILED — audit-manifest digest mismatch."
+  echo "  expected: $EXPECTED_SCALAR_AUDIT_SHA256"
+  echo "  observed: $SGOT_SHA"
+  echo "  A statement, a specification body, or a policy constant changed."
+  echo "  First differences against the committed block:"
+  diff -u "$HERE/SCALAR-AUDIT-MANIFEST.txt" "$HERE/.scalar-audit-manifest.observed" 2>/dev/null \
+    | head -30 | sed 's/^/    /' || echo "    (SCALAR-AUDIT-MANIFEST.txt absent — cannot diff)"
+  rm -f "$HERE/.scalar-audit-manifest.observed"
+  exit 1
+fi
+# The digest's INPUT must be committed and current, or the diff above would
+# compare against a stale reference and quietly mislead the next reader.
+if ! printf '%s\n' "$SBLOCK" | cmp -s - "$HERE/SCALAR-AUDIT-MANIFEST.txt"; then
+  echo "SCALAR AUDIT FAILED — the committed SCALAR-AUDIT-MANIFEST.txt does not match the emitted block."
+  echo "  (the digest matched, so the committed copy is stale — refresh it)"; exit 1
+fi
+# CROSS-CHECK the certificate list against the CERTS array Phase 3 audits, so a
+# certificate cannot be dropped from the auditor's manifest unnoticed.
+SAUD_CERTS=$(grep -o 'AUDITED-SCALAR-CERTIFICATES:.*' <<<"$SAUD_OUT" \
+             | sed 's/AUDITED-SCALAR-CERTIFICATES: //' | tr ' ' '\n' | sort -u | sed '/^$/d')
+SBASH_CERTS=$(printf '%s\n' "${CERTS[@]}" | sort -u)
+if [ "$SAUD_CERTS" != "$SBASH_CERTS" ]; then
+  echo "SCALAR AUDIT FAILED — the auditor's certificate set differs from this button's CERTS array:"
+  diff <(echo "$SBASH_CERTS") <(echo "$SAUD_CERTS") | sed 's/^/    /'
+  exit 1
+fi
+echo "  ${#CERTS[@]} scalar statements + reachable specification bodies bound, sha256 = $SGOT_SHA"
+cd "$HERE"
+
 
 echo ""
 echo "SCALAR LAYER COMPLETE: add, sub, mul (Montgomery reduction, double round"

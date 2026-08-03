@@ -322,6 +322,13 @@ HARNESS_EXTRA=(
   inventory-allowlist.txt   # the audit surface Phase 2c diffs against
   inventory-allowlist-scalar.txt # the scalar layer's audit surface (second button)
   Proofs/Audit.lean         # the audit driver: it computes the digest it is judged by
+  driver-allowlist.txt      # the INSTRUMENTS' own declaration surface, with cones.
+                            # Not executable, so it would otherwise sit outside the
+                            # harness set — and an allowlist an attacker may rewrite
+                            # pins nothing.
+  Proofs/ScalarAudit.lean   # the scalar audit driver, likewise
+  SCALAR-AUDIT-MANIFEST.txt # the block the scalar digest is taken over, committed
+                            # so a mismatch can be DIFFED and not merely reported
   Proofs/InventoryCore.lean # inventory machinery
   Proofs/InventoryScalar.lean # inventory driver: the scalar layer
   Proofs/Inventory.lean     # inventory driver: main chain
@@ -759,6 +766,19 @@ done
 # fails closed: a declaration missing from both walks leaves the sum short, and
 # one counted twice leaves it long. A future mismatch must be explained — as
 # this one finally was — never absorbed into a constant.
+# PIN THE INSTRUMENTS' OWN SURFACE, in both directions, with the SAME gate the
+# corpus uses (round-8 review, Claude, register keys `drv-surface-no-cones`,
+# `accounting-certifies-enumeration`, and it retires `drv-naming-heuristic` as
+# load-bearing).
+#
+# The accounting identity below proves every kernel constant is ENUMERATED by
+# one of the two walks. The reviewer demonstrated that enumeration is not
+# audit: their planted claim WAS enumerated, carried a real axiom cone, and
+# nothing examined it — DRV rows had no cone and no allowlist covered them.
+# They now carry the cone, and this gate pins them exactly as the corpus is, so
+# a claim smuggled into an instrument is a NEW ROW and a new row fails closed
+# whatever it is called.
+"$HERE/inventory_gate.sh" "$INVLOG" "$HERE/driver-allowlist.txt" DRV || ACCTFAIL=1
 N_DRV=$(grep -c '^DRV|' "$INVLOG" || true)
 DRV_TRAILERS=$(grep -c '^DRV-COUNT|' "$INVLOG" || true)
 DRV_SUM=$(grep '^DRV-COUNT|' "$INVLOG" | cut -d'|' -f2 | paste -sd+ - | bc)
@@ -766,7 +786,7 @@ KERN_NAMES=$(mktemp /tmp/check-kernnames-XXXX.txt)
 ACCT_NAMES=$(mktemp /tmp/check-acctnames-XXXX.txt)
 LC_ALL=C grep '^KERNEL-NAME|' "$KERNLOG" | cut -d'|' -f2 | LC_ALL=C sort -u > "$KERN_NAMES"
 { LC_ALL=C awk -F'|' '/^INV\|/{print $3}' "$HERE/inventory-allowlist.txt"
-  LC_ALL=C grep '^DRV|' "$INVLOG" | cut -d'|' -f2
+  LC_ALL=C grep '^DRV|' "$INVLOG" | cut -d'|' -f3
 } | LC_ALL=C sort -u > "$ACCT_NAMES"
 UNACCOUNTED=$(LC_ALL=C comm -23 "$KERN_NAMES" "$ACCT_NAMES")
 if [ "$DRV_TRAILERS" -ne "$N_DRIVERS" ]; then

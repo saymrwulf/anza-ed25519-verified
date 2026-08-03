@@ -20,11 +20,14 @@ import Proofs.ScalarWideSpec
 import Proofs.ScalarBytesSpec
 import Proofs.ScalarUnpackSpec
 import Proofs.ScalarFromBytesSpec
+-- The scalar audit driver is in this button's compile manifest, exactly as
+-- Proofs.Audit is in the main button's, so the inventory must cover it too.
+import Proofs.ScalarAudit
 open Lean Ed25519Inventory
 
 /-- Exactly check-scalar.sh's PROOFS manifest; that script asserts the
     correspondence in both directions. -/
 def corpus : Array Name :=
-  #[`Proofs.ScalarDenote, `Proofs.ScalarLoop, `Proofs.ScalarSubSpec, `Proofs.ScalarAddSpec, `Proofs.ScalarMulSpec, `Proofs.ScalarMontSpec, `Proofs.ScalarReduceSpec, `Proofs.ScalarFullMulSpec, `Proofs.ScalarMain, `Proofs.ScalarWideSpec, `Proofs.ScalarBytesSpec, `Proofs.ScalarUnpackSpec, `Proofs.ScalarFromBytesSpec]
+  #[`Proofs.ScalarDenote, `Proofs.ScalarLoop, `Proofs.ScalarSubSpec, `Proofs.ScalarAddSpec, `Proofs.ScalarMulSpec, `Proofs.ScalarMontSpec, `Proofs.ScalarReduceSpec, `Proofs.ScalarFullMulSpec, `Proofs.ScalarMain, `Proofs.ScalarWideSpec, `Proofs.ScalarBytesSpec, `Proofs.ScalarUnpackSpec, `Proofs.ScalarFromBytesSpec, `Proofs.ScalarAudit]
 
 #eval show MetaM Unit from emitInventory corpus

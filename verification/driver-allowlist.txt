@@ -1,0 +1,51 @@
+# driver-allowlist.txt — THE AUDIT INSTRUMENTS' OWN DECLARATION SURFACE,
+# pinned with axiom cones, gated by inventory_gate.sh with the DRV tag:
+# the same implementation that pins the corpus, in both directions.
+#
+# Round-8 review (Claude, register keys drv-surface-no-cones and
+# accounting-certifies-enumeration). The accounting identity proved every
+# kernel constant was ENUMERATED. It did not prove any of them was
+# EXAMINED: a claim planted in an instrument was enumerated, carried a
+# real cone, and nothing looked at it. These rows close that gap.
+#
+# Regenerate deliberately, never by hand:
+#   scratchpad/gen-driver-allowlists.sh
+# and read the diff — a new row is a declaration that appeared in an
+# instrument, which is exactly the event this file exists to surface.
+DRV|Proofs.InventoryBasic|corpus|def|
+DRV|Proofs.Inventory|Ed25519Audit._aux_Proofs_Audit___elabRules_Ed25519Audit_commandAuditStatements_1._sparseCasesOn_3|def|propext
+DRV|Proofs.Inventory|Ed25519Audit._aux_Proofs_Audit___elabRules_Ed25519Audit_commandAuditStatements_1.match_10|def|
+DRV|Proofs.Inventory|Ed25519Audit._aux_Proofs_Audit___elabRules_Ed25519Audit_commandAuditStatements_1.match_12|def|Classical.choice,Quot.sound,propext
+DRV|Proofs.Inventory|Ed25519Audit._aux_Proofs_Audit___elabRules_Ed25519Audit_commandAuditStatements_1.match_1|def|
+DRV|Proofs.Inventory|Ed25519Audit._aux_Proofs_Audit___elabRules_Ed25519Audit_commandAuditStatements_1.match_3|def|propext
+DRV|Proofs.Inventory|Ed25519Audit._aux_Proofs_Audit___elabRules_Ed25519Audit_commandAuditStatements_1.match_6|def|propext
+DRV|Proofs.Inventory|Ed25519Audit._aux_Proofs_Audit___elabRules_Ed25519Audit_commandAuditStatements_1.match_8|def|
+DRV|Proofs.Inventory|Ed25519Audit._aux_Proofs_Audit___elabRules_Ed25519Audit_commandAuditStatements_1|def|Classical.choice,Quot.sound,propext
+DRV|Proofs.Inventory|Ed25519Audit.apexBoundary|def|
+DRV|Proofs.Inventory|Ed25519Audit.apexExtra|def|
+DRV|Proofs.Inventory|Ed25519Audit.closureOf._sparseCasesOn_1|def|propext
+DRV|Proofs.Inventory|Ed25519Audit.closureOf._unsafe_rec|def|Classical.choice,Quot.sound,propext
+DRV|Proofs.Inventory|Ed25519Audit.closureOf.match_1|def|propext
+DRV|Proofs.Inventory|Ed25519Audit.closureOf.match_4|def|
+DRV|Proofs.Inventory|Ed25519Audit.closureOf|opaque|Classical.choice,Quot.sound,propext
+DRV|Proofs.Inventory|Ed25519Audit.commandAuditStatements|def|
+DRV|Proofs.Inventory|Ed25519Audit.isSpecConst.match_1|def|
+DRV|Proofs.Inventory|Ed25519Audit.isSpecConst|def|Classical.choice,Quot.sound,propext
+DRV|Proofs.Inventory|Ed25519Audit.kernel3|def|
+DRV|Proofs.Inventory|Ed25519Audit.manifest|def|
+DRV|Proofs.Inventory|Ed25519Audit.normWs|def|Classical.choice,Quot.sound,propext
+DRV|Proofs.Inventory|Ed25519Audit.ppAll|def|Classical.choice,Quot.sound,propext
+DRV|Proofs.Inventory|Ed25519Audit.sortNames|def|Classical.choice,Quot.sound,propext
+DRV|Proofs.Inventory|Ed25519Audit.specPrefix|def|
+DRV|Proofs.Inventory|Ed25519Inventory.axiomCone|def|Classical.choice,Quot.sound,propext
+DRV|Proofs.Inventory|Ed25519Inventory.emitDrivers.match_1|def|Quot.sound,propext
+DRV|Proofs.Inventory|Ed25519Inventory.emitDrivers|def|Classical.choice,Quot.sound,propext
+DRV|Proofs.Inventory|Ed25519Inventory.emitInventory._sparseCasesOn_3|def|propext
+DRV|Proofs.Inventory|Ed25519Inventory.emitInventory.match_1|def|
+DRV|Proofs.Inventory|Ed25519Inventory.emitInventory.match_3|def|propext
+DRV|Proofs.Inventory|Ed25519Inventory.emitInventory.match_6|def|
+DRV|Proofs.Inventory|Ed25519Inventory.emitInventory|def|Classical.choice,Quot.sound,propext
+DRV|Proofs.Inventory|Ed25519Inventory.kindOf.match_1|def|
+DRV|Proofs.Inventory|Ed25519Inventory.kindOf|def|
+DRV|Proofs.Inventory|corpus|def|
+DRV|Proofs.Inventory|drivers|def|
