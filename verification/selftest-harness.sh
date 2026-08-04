@@ -43,7 +43,7 @@ PAYLOAD="$STASH/payload.sh"
 awk '/^# ── Phase 0c/{f=1} f{print} /^# ── Phase 1|^echo "=== Phase 1/{if(f && !/Phase 0c/) exit}' "$HERE/check.sh" \
   | sed '/^# ── Phase 1/d; /^echo "=== Phase 1/d' > "$PAYLOAD"
 {
-  echo 'set -uo pipefail'
+  echo 'set -euo pipefail'  # -e matches the button; see lift-drivers-drop-errexit
   echo "HERE=\"$HERE\""
   cat "$PAYLOAD"
 } > "$DRIVER"

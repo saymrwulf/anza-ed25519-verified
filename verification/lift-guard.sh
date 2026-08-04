@@ -72,6 +72,31 @@ for f in "$PAYLOAD" "$DRIVER"; do
   [ -s "$f" ] || { echo "FATAL: lift-guard: '$f' is missing or empty."; exit 1; }
 done
 
+# ── The driver must run the phase under the SAME shell options as the button ──
+# A lift is only evidence about the shipping gate if it executes the way the
+# shipping gate executes. Every button in this estate runs `set -euo pipefail`.
+# Eighteen lift sites prefixed their driver with `set -uo pipefail` and no -e
+# (four per fork, two in the accumulator) while sixteen others got it right, so
+# the estate did it both ways and the self-tests silently ran a more permissive
+# shell than the phase they claim to test: without -e a failing command does not
+# abort, execution continues, and the driver returns the LAST command's status.
+# A lifted phase can therefore reach a verdict the shipping phase would never
+# reach, while the self-test reports the gate "works".
+#
+# This lives here rather than in each self-test because the same defect appeared
+# in eighteen places and would return the nineteenth time someone writes a lift.
+# Checked on the DRIVER, which is what bash actually executes; the payload is
+# lifted verbatim and carries no `set` line of its own.
+if ! grep -qE '^[[:space:]]*set[[:space:]]+-[a-z]*e' "$DRIVER"; then
+  echo "FATAL: lift-guard: the driver for $LABEL does not enable errexit."
+  echo "  The button runs 'set -euo pipefail'; this driver does not set -e, so"
+  echo "  the lifted phase would run past a failure the shipping phase aborts on"
+  echo "  and the test would report a verdict the button cannot produce."
+  echo "  Driver's shell options:"
+  grep -nE '^[[:space:]]*set[[:space:]]+-' "$DRIVER" | sed 's/^/    /' || echo "    (none)"
+  exit 1
+fi
+
 UNBOUND=$(python3 - "$PAYLOAD" "$DRIVER" <<'PYGUARD'
 import re, sys
 payload = open(sys.argv[1]).read()

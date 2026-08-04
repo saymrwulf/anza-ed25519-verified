@@ -51,7 +51,7 @@ PAYLOAD="$STASH/payload.sh"
 build_driver() {
   awk '/^# ── Phase 3c/{f=1} f&&/^# ── (Phase |Phases end)/&&!/Phase 3c/{exit} f{print}' \
     "$HERE/check-scalar.sh" > "$PAYLOAD"
-  { echo 'set -uo pipefail'
+  { echo 'set -euo pipefail'  # -e matches the button; see lift-drivers-drop-errexit
     echo 'source ~/aeneas-toolchain/env.sh'
     echo "HERE=\"$HERE\""
     echo 'AENEAS_LEAN="$AENEAS_HOME/backends/lean"'

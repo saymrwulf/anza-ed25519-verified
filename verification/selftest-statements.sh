@@ -50,7 +50,7 @@ DRIVER0B="$STASH/phase0b.sh"
 PAYLOAD0B="$STASH/payload0b.sh"
 sed -n '/^# ── Phase 0b/,/^# ── Phase 1/p' "$HERE/check.sh" | sed '$d' > "$PAYLOAD0B"
 {
-  echo 'set -uo pipefail'
+  echo 'set -euo pipefail'  # -e matches the button; see lift-drivers-drop-errexit
   echo "HERE=\"$HERE\""
   cat "$PAYLOAD0B"
 } > "$DRIVER0B"
@@ -69,7 +69,7 @@ build_driver() {
   awk '/^# ── Phase 3c/{f=1} f&&/^# ── (Phase |Phases end)/&&!/Phase 3c/{exit} f{print}' "$HERE/check.sh" \
     | sed "s|\"\$0\"|\"$HERE/check.sh\"|g" > "$PAYLOAD"
   {
-    echo 'set -uo pipefail'
+    echo 'set -euo pipefail'  # -e matches the button; see lift-drivers-drop-errexit
     echo 'source ~/aeneas-toolchain/env.sh'
     echo "HERE=\"$HERE\""
     echo 'AENEAS_LEAN="$AENEAS_HOME/backends/lean"'
