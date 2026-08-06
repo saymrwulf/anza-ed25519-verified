@@ -273,3 +273,32 @@ running Rust code. Everything else is machine-checked.
    The general lesson, which is why the purge is worth its minutes: a
    verification that never cleans up cannot distinguish "these proofs check"
    from "these proofs check given whatever happens to be lying around".
+
+14. **The signing side of this library — not covered, by anything, at all.**
+    Every certificate in this repository is about the VERIFICATION path: the
+    apex is `verify_accepts_iff`, an acceptance decision over a message,
+    public key and candidate signature. Producing a signature is different
+    code — nonce derivation from the hashed secret key, the scalar
+    multiplication by the secret, the assembly of `s = r + H(R,A,M)·a mod ℓ` —
+    and none of it was extracted, none of it is modeled, and no theorem here
+    mentions it. Key generation likewise. This was always true; until
+    2026-08-06 no document in this repository said it, which round-7 external
+    review (GPT-5.6) correctly flagged as a missing required exclusion.
+
+    Concretely, so the consequence is not left to the reader: a defective
+    signer — say one that reuses or biases its nonce, the classic key-leaking
+    failure — would emit signatures this repository's proven verifier happily
+    accepts, because they are valid signatures. Every certificate would hold.
+    The green button says nothing about whether the private key survived the
+    signing operation.
+
+    Deployment note: this fork's proven verify path serves as an independent
+    quorum member for checking the pacta transparency log's head signatures.
+    That use needs only the verification half — which is the proven half. No
+    signing code from this repository is deployed anywhere.
+
+    The silence of this document on that point had a measured cost: the
+    estate's own author, in 2026-08-06 session notes, twice mangled which half
+    of which library the proofs cover. A trust document that states only what
+    IS covered invites every reader to over-read it; this item is the
+    counterweight.
