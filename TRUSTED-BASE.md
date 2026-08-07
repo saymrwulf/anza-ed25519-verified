@@ -4,8 +4,11 @@ What you must believe for the theorems in this repository to transfer to the
 running Rust code. Everything else is machine-checked.
 
 1. **Lean 4 kernel** (v4.30.0-rc2) and its three foundational axioms
-   `[propext, Classical.choice, Quot.sound]`. Every certificate is
-   `#print axioms`-audited against exactly this list.
+   `[propext, Classical.choice, Quot.sound]`. Every arithmetic and scalar
+   certificate is `#print axioms`-audited against exactly this list; the four
+   apex-tier certificates are audited against this list plus their documented
+   boundary axioms (the signature-apex item below), both enforced exactly —
+   nothing more, nothing less — by the button.
 2. **mathlib** (prebuilt oleans fetched by `lake exe cache get`).
 3. **Charon + Aeneas** (pinned `9dd7f23c` / `bf13c42e`): the translation
    from Rust MIR to the Lean model is assumed faithful. The generated
@@ -175,8 +178,10 @@ running Rust code. Everything else is machine-checked.
      cross-check, its corpus being mathlib-free.
 
    · *The scalar layer is outside this phase.* Thirteen `Proofs/Scalar*`
-     modules belong to `check-scalar.sh` and are inventoried by nothing. That
-     is the two-button seam, still open. Phase 2c prints every uncovered
+     modules belong to `check-scalar.sh` and sit outside `check.sh`'s
+     Phase 2c specifically — they are inventoried by `check-scalar.sh`'s own
+     Phase 2c against `inventory-allowlist-scalar.txt`, both directions. The
+     two-button seam itself closed 2026-07-30 (see the two-button item below). Phase 2c prints every uncovered
      module by name on every run, so the omission is visible rather than
      inferred.
 

@@ -18,8 +18,10 @@ coherent proof pyramid in Lean 4 via the Charon/Aeneas transpilation pipeline:
 Every layer states its theorems about the **actual Aeneas-transpiled Rust
 code** (never about a hand-written re-model), and every claim in the status
 table below is backed by a compiled proof plus an axiom audit of the named
-certificate. Files that do not compile under `verification/check.sh` are not
-in this repository.
+certificate. Files that compile under neither `verification/check.sh` nor
+`verification/check-scalar.sh` are not in this repository — each shipped
+proof source belongs to exactly one button's manifest, and the seam gate
+fails the build otherwise.
 
 ## Layer status
 
@@ -110,7 +112,7 @@ cones deviates from the boundary above.
 source ~/aeneas-toolchain/env.sh
 cd verification
 ./extract.sh    # Rust → LLBC → Lean (regenerates gen/)
-./check.sh      # compiles EVERY shipped file + axiom-audits EVERY certificate
+./check.sh      # compiles + audits everything the MAIN manifest owns (scalar layer: its own button below)
 ```
 
 The gen model is ONE merged universe (`gen/CurveField`: field + curve +
