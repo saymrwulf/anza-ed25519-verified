@@ -232,7 +232,7 @@ running Rust code. Everything else is machine-checked.
 
    **The kernel re-elaborates nothing in such a run.** What it establishes is
    that the gates accept artifacts produced earlier — useful while developing a
-   gate, worthless as a record. `formal-verification-control/tools/record-run.py`
+   gate, worthless as a record. an operator-internal recording gate (in the private infrastructure repo)
    enforces that: it refuses to archive any transcript bearing the audit-only
    markers, and also any transcript without a terminal success banner, any
    containing `error:`, and any repository whose tree is dirty at record time.
